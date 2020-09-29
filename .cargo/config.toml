@@ -1,2 +1,7 @@
+# See https://doc.rust-lang.org/cargo/reference/config.html
+
+[alias]
+d = "doc"
+
 [build]
 rustdocflags = ["--html-in-header", "katex-header.html"]
