@@ -9,6 +9,8 @@ edition = "2018"
 [dependencies]
 reqwest = "0.10.8"
 tokio = { version = "0.2.22", features = ["macros", "time"] }
+toml = "0.5.6"
+serde = { version = "1.0.116", features = ["derive"] }
 
 [lib]
 name = "verifiers"

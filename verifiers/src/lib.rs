@@ -1,4 +1,4 @@
 pub mod judge;
 pub mod solver;
 
-pub mod download;
+pub mod testcase;

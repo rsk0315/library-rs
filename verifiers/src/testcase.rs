@@ -1,12 +1,13 @@
 use std::io::{self, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub async fn download_testcase(
     oj: &str,
     id: &str,
+    dir: &Path,
 ) -> Result<Vec<(PathBuf, PathBuf)>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
-    let dir = PathBuf::from(format!("testcases/{}/{}", oj, id));
+    let dir = PathBuf::from(format!("{}/{}/{}", dir.to_str().unwrap(), oj, id));
     std::fs::create_dir_all(dir.as_path())?;
     let url_case_in = |id, casenum| match oj {
         "aoj" => format!(
@@ -70,4 +71,21 @@ async fn fetch(
         eprintln!("save to {:#?}", file);
         Ok(path_buf)
     }
+}
+
+pub fn find_testcases_toml(filename: &str) -> Result<PathBuf, std::io::Error> {
+    PathBuf::from(std::env::current_dir().unwrap())
+        .ancestors()
+        .find_map(|p| {
+            let p = p.join(filename);
+            if p.as_path().exists() {
+                Some(p)
+            } else {
+                None
+            }
+        })
+        .ok_or(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("{} not found", filename),
+        ))
 }

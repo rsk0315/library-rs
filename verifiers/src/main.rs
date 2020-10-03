@@ -1,9 +1,33 @@
-use verifiers::download::download_testcase;
+use serde::Deserialize;
+
+use verifiers::testcase::*;
+
+#[derive(Deserialize)]
+struct Testcases {
+    aoj: Option<Vec<String>>,
+    yukicoder: Option<Vec<String>>,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    download_testcase("aoj", "0000").await?;
-    download_testcase("aoj", "0002").await?;
+    let fin = find_testcases_toml("verifiers/testcases.toml")?;
+    let testcases =
+        String::from_utf8_lossy(&std::fs::read(fin.clone()).unwrap())
+            .to_string();
+    let testcases: Testcases = toml::from_str(&testcases).unwrap();
+
+    let dir = fin.parent().unwrap().join("testcases");
+
+    if let Some(aoj) = testcases.aoj {
+        for id in aoj {
+            download_testcase("aoj", &id, &dir).await?;
+        }
+    }
+    if let Some(yukicoder) = testcases.yukicoder {
+        for id in yukicoder {
+            download_testcase("yukicoder", &id, &dir).await?;
+        }
+    }
 
     Ok(())
 }
