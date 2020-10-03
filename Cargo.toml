@@ -5,5 +5,5 @@ members = [
     # 'crates/graph/*/',
     'crates/traits/*/',
     'crates/utils/*/',
-    # 'verifiers/',
+    'verifiers/',
 ]
