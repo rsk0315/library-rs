@@ -29,7 +29,8 @@ impl DisjointSet for UnionFind {
         if u == v {
             return false;
         }
-        match (self.buf.borrow()[u], self.buf.borrow()[v]) {
+        let (su, sv) = (self.buf.borrow()[u], self.buf.borrow()[v]);
+        match (su, sv) {
             (Item::Size(su), Item::Size(sv)) => {
                 let (child, par) = if su < sv { (u, v) } else { (v, u) };
                 self.buf.borrow_mut()[par] = Item::Size(su + sv);
@@ -44,10 +45,12 @@ impl DisjointSet for UnionFind {
         while let Item::Parent(v) = self.buf.borrow()[res] {
             res = v;
         }
-        while let Item::Parent(v) = self.buf.borrow()[u] {
-            let tmp = v;
+        let mut bu = self.buf.borrow()[u];
+        while let Item::Parent(pu) = bu {
+            let tmp = pu;
             self.buf.borrow_mut()[u] = Item::Parent(res);
             u = tmp;
+            bu = self.buf.borrow()[u];
         }
         res
     }
@@ -58,5 +61,27 @@ impl DisjointSet for UnionFind {
         } else {
             unreachable!()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::DisjointSet;
+    use crate::UnionFind;
+    #[test]
+    fn test() {
+        let n = 4;
+        let mut uf = UnionFind::new(n);
+        assert!(!uf.equiv(1, 3));
+        assert_eq!(uf.count(1), 1);
+        assert_eq!(uf.count(3), 1);
+        uf.unite(1, 3);
+        assert!(uf.equiv(1, 3));
+        assert_eq!(uf.count(1), 2);
+        assert_eq!(uf.count(3), 2);
+        uf.unite(2, 3);
+        assert!(uf.equiv(2, 3));
+        assert!(uf.equiv(1, 2));
+        assert!(!uf.equiv(1, 0));
     }
 }
