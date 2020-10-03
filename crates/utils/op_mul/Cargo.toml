@@ -1,0 +1,12 @@
+[package]
+name = "op_mul"
+version = "0.1.0"
+authors = ["rsk0315 <rsk0315@icloud.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+binop = { path = "../../traits/binop" }
+multiplicative = { path = "../../traits/multiplicative" }
+op_add = { path = "../op_add" }
