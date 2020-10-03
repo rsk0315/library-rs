@@ -4,4 +4,5 @@
 d = "doc"
 
 [build]
-rustdocflags = ["--html-in-header", "katex-header.html"]
+# Comment out next line when you run `cargo test`.
+# rustdocflags = ["--html-in-header", "katex-header.html"]
