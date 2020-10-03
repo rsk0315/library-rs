@@ -1,8 +1,8 @@
 use std::ops::RangeBounds;
 
-use binop::Monoid;
+use binop::{Magma, Monoid};
 
 pub trait Fold<R: RangeBounds<usize>> {
     type Output: Monoid;
-    fn fold<R>(r: R) -> Self::Output::Set;
+    fn fold(r: R) -> <Self::Output as Magma>::Set;
 }
