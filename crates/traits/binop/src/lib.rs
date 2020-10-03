@@ -7,7 +7,7 @@
 /// # 例
 ///
 /// ```
-/// use algebra::Magma;
+/// use binop::Magma;
 ///
 /// struct Min<T> {
 ///     _t: std::marker::PhantomData<T>,
@@ -34,7 +34,7 @@ pub trait Magma {
 /// # 例
 ///
 /// ```
-/// use algebra::{Associative, Magma};
+/// use binop::{Associative, Magma};
 ///
 /// struct Min<T> {
 ///     _t: std::marker::PhantomData<T>,
@@ -60,7 +60,7 @@ pub trait Associative: Magma {}
 /// # 例
 ///
 /// ```
-/// use algebra::{Identity, Magma};
+/// use binop::{Identity, Magma};
 ///
 /// struct Min<T> {
 ///     _t: std::marker::PhantomData<T>,
@@ -91,7 +91,7 @@ pub trait Identity: Magma {
 /// # 例
 ///
 /// ```
-/// use algebra::{Commutative, Magma};
+/// use binop::{Commutative, Magma};
 ///
 /// struct Min<T> {
 ///     _t: std::marker::PhantomData<T>,
