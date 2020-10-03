@@ -25,7 +25,9 @@ fn do_solve(
     path: &Path,
     solver: &'static (dyn Fn(String) -> String + Send + Sync),
     tl_millis: u64,
-    custom_judge: Option<&dyn Fn(String, String) -> Result<(), Option<String>>>,
+    custom_judge: Option<
+        &dyn Fn(String, String, String) -> Result<(), Option<String>>,
+    >,
 ) -> Result<usize, Rejected> {
     use mpsc::RecvTimeoutError::{Disconnected, Timeout};
 
@@ -38,17 +40,18 @@ fn do_solve(
 
         let input =
             String::from_utf8_lossy(&std::fs::read(fin).unwrap()).to_string();
-        let output =
-            run_solver(input, solver, tl_millis).map_err(|e| match e {
+        let output = run_solver(input.clone(), solver, tl_millis).map_err(
+            |e| match e {
                 Timeout => Tle(format!("TLE on test #{}", i)),
                 Disconnected => Re(format!("RE on test #{}", i)),
-            })?;
+            },
+        )?;
 
         let jury_output =
             String::from_utf8_lossy(&std::fs::read(fout).unwrap()).to_string();
 
         match custom_judge {
-            Some(j) => j(output, jury_output).map_err(|e| match e {
+            Some(j) => j(input, output, jury_output).map_err(|e| match e {
                 Some(msg) => Wa(format!("WA on test #{}; {}", i, msg)),
                 None => Wa(format!("WA on test #{}", i)),
             }),
@@ -65,7 +68,9 @@ pub fn solve(
     path: &Path,
     solver: &'static (dyn Fn(String) -> String + Send + Sync),
     tl_millis: u64,
-    custom_judge: Option<&dyn Fn(String, String) -> Result<(), Option<String>>>,
+    custom_judge: Option<
+        &dyn Fn(String, String, String) -> Result<(), Option<String>>,
+    >,
 ) {
     match do_solve(path, solver, tl_millis, custom_judge) {
         Err(Wa(e)) => panic!("{}", e),
