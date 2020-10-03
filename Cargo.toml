@@ -1,5 +1,9 @@
 [workspace]
 members = [
-    'crates/*/*/',
+    'crates/algo/*/',
+    'crates/ds/*/',
+    'crates/graph/*/',
+    'crates/traits/*/',
+    'crates/utils/*/',
     'verifiers/',
 ]
