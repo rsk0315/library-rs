@@ -34,3 +34,23 @@ mod tests_judge {
         solve(&Path::new("testcases/aoj/0002"), &aoj_0002, 2000, None);
     }
 }
+
+#[cfg(test)]
+mod tests_verify {
+    use std::path::Path;
+
+    use verifiers::judge::solve;
+    use verifiers::solver::aoj::*;
+
+    use vec_segtree::*;
+
+    #[test]
+    fn verify_vec_segtree() {
+        solve(
+            &Path::new("testcases/aoj/DSL_2_B"),
+            &aoj_dsl_2_b::<VecSegtree<_>>,
+            2000,
+            None,
+        );
+    }
+}
