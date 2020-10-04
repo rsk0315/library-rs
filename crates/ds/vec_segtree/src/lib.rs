@@ -150,4 +150,11 @@ mod test {
         assert_eq!(s.fold(..), 15);
         assert_eq!(s[4], 3);
     }
+
+    #[test]
+    #[should_panic(expected = "index")]
+    fn test_out_of_index() {
+        let mut s = VecSegtree::<OpAdd<i32>>::from(vec![1, 4, 2, 5, 3]);
+        s.set_value(5, 2);
+    }
 }
