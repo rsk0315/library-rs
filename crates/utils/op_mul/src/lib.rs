@@ -4,6 +4,7 @@ use multiplicative::*;
 /// 乗法。[`std::ops::Mul`](https://doc.rust-lang.org/std/ops/trait.Mul.html) により定義される。
 /// 単位元は [`One`]、逆元は [`MulRecip`] で定義する。
 /// 結合法則を満たすときは [`MulAssoc`]、交換法則を満たすときは [`MulComm`] を実装することで示す。
+#[derive(Clone)]
 pub struct OpMul<T> {
     _t: std::marker::PhantomData<T>,
 }

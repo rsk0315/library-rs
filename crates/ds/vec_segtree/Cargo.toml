@@ -8,3 +8,9 @@ edition = "2018"
 
 [dependencies]
 binop = { path = "../../traits/binop" }
+fold = { path = "../../traits/fold" }
+set_value = { path = "../../traits/set_value" }
+buf_range = { path = "../../utils/buf_range" }
+
+[dev-dependencies]
+op_add = { path = "../../utils/op_add" }
