@@ -9,11 +9,11 @@ pub trait Solver: Fn(String) -> String + Send + Sync {}
 impl<F> Solver for F where F: Fn(String) -> String + Send + Sync {}
 
 pub trait Judge:
-    Fn(String, String, String) -> Result<(), Option<String>> + Send + Sync
+    Fn(String, String, String, usize) -> Verdict + Send + Sync
 {
 }
 impl<F> Judge for F where
-    F: Fn(String, String, String) -> Result<(), Option<String>> + Send + Sync
+    F: Fn(String, String, String, usize) -> Verdict + Send + Sync
 {
 }
 
@@ -24,15 +24,11 @@ pub struct Verifier {
     judge: &'static dyn Judge,
 }
 
-fn default_judge(
-    _: String,
-    output: String,
-    jury_output: String,
-) -> Result<(), Option<String>> {
-    if output == jury_output {
-        Ok(())
+fn default_judge(_: String, out: String, jury: String, id: usize) -> Verdict {
+    if out == jury {
+        Ac(id + 1)
     } else {
-        Err(None)
+        Wa(id, "".to_string())
     }
 }
 
@@ -63,42 +59,39 @@ impl Verifier {
     }
     pub fn run(&self) {
         match self.do_run() {
-            Err(Wa(e)) => panic!("{}", e),
-            Err(Re(e)) => panic!("{}", e),
-            Err(Tle(e)) => panic!("{}", e),
-            Ok(n) if n > 0 => {
-                eprintln!("passed {} test{}", n, if n > 1 { "s" } else { "" });
-            }
-            Ok(_) => panic!("no testcases found"),
+            Ac(n) if n > 0 => eprintln!("{}", Ac(n)),
+            v => panic!("{}", v),
         }
     }
-    fn do_run(&self) -> Result<usize, Rejected> {
-        use RecvTimeoutError::{Disconnected, Timeout};
-
+    fn do_run(&self) -> Verdict {
         let path = self.testcases.clone().unwrap();
 
         for i in 0.. {
             let fin = path.join(format!("{}.in", i));
             let fout = path.join(format!("{}.out", i));
             if !(fin.exists() && fout.exists()) {
-                return Ok(i);
+                return Ac(i);
             }
 
             let input = String::from_utf8_lossy(&std::fs::read(fin).unwrap())
                 .to_string();
-            let output =
-                self.run_solver(input.clone()).map_err(|e| match e {
-                    Timeout => Tle(format!("TLE on test #{}", i)),
-                    Disconnected => Re(format!("RE on test #{}", i)),
-                })?;
+            let output = match self.run_solver(input.clone()) {
+                Err(RecvTimeoutError::Timeout) => {
+                    return Tle(i, format!("{} ms", self.tl.as_millis()))
+                }
+                Err(RecvTimeoutError::Disconnected) => {
+                    return Re(i, "".to_string())
+                }
+                Ok(output) => output,
+            };
             let jury_output =
                 String::from_utf8_lossy(&std::fs::read(fout).unwrap())
                     .to_string();
 
-            (self.judge)(input, output, jury_output).map_err(|e| match e {
-                Some(msg) => Wa(format!("WA on test #{}; {}", i, msg)),
-                None => Wa(format!("WA on test #{}", i)),
-            })?;
+            match (self.judge)(input, output, jury_output, i) {
+                Ac(_) => (),
+                v => return v,
+            }
         }
         unreachable!();
     }
@@ -110,10 +103,28 @@ impl Verifier {
     }
 }
 
-enum Rejected {
-    Wa(String),
-    Re(String),
-    Tle(String),
+pub enum Verdict {
+    Ac(usize),
+    Wa(usize, String),
+    Re(usize, String),
+    Tle(usize, String),
 }
 
-use Rejected::*;
+use Verdict::*;
+
+impl std::fmt::Display for Verdict {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Ac(n) if n > &1 => write!(f, "passed {} cases", n),
+            Ac(1) => write!(f, "passed 1 case"),
+            Ac(_) => write!(f, "no cases found"),
+            Wa(n, _) => write!(f, "WA on test #{}", n),
+            Re(n, _) => write!(f, "RE on test #{}", n),
+            Tle(n, _) => write!(f, "TLE on test #{}", n),
+        }?;
+        match self {
+            Wa(_, e) | Re(_, e) | Tle(_, e) if e != "" => write!(f, "; {}", e),
+            _ => write!(f, ""),
+        }
+    }
+}

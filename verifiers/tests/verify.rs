@@ -29,7 +29,7 @@ mod tests_judge {
     use verifiers::solver::aoj::*;
 
     simple_test! {
-        (test_aoj_0000, "testcases/aoj/0000", &aoj_0000),
+        (test_aoj_0000_ac, "testcases/aoj/0000", &aoj_0000),
 
         #[should_panic(expected = "RE")]
         (test_aoj_0000_re, "testcases/aoj/0000", &aoj_0000_re),
@@ -40,7 +40,7 @@ mod tests_judge {
         #[should_panic(expected = "WA")]
         (test_aoj_0000_wa, "testcases/aoj/0000", &aoj_0000_wa),
 
-        #[should_panic(expected = "no testcases")]
+        #[should_panic(expected = "no cases")]
         (test_aoj_0002_no, "testcases/aoj/0002", &aoj_0002),
     }
 }
