@@ -118,9 +118,7 @@ where
 
 #[cfg(test)]
 mod test {
-    // use fold::Fold;
     use op_add::OpAdd;
-    // use set_value::SetValue;
 
     use crate::*;
 
