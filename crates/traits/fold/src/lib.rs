@@ -4,5 +4,5 @@ use binop::{Magma, Monoid};
 
 pub trait Fold<R: RangeBounds<usize>> {
     type Output: Monoid;
-    fn fold(r: R) -> <Self::Output as Magma>::Set;
+    fn fold(&self, r: R) -> <Self::Output as Magma>::Set;
 }

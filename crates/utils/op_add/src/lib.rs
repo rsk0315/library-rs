@@ -4,6 +4,7 @@ use binop::*;
 /// 加法。[`std::ops::Add`](https://doc.rust-lang.org/std/ops/trait.Add.html) により定義される。
 /// 単位元は [`Zero`]、逆元は [`std::ops::Neg`](https://doc.rust-lang.org/std/ops/trait.Neg.html) で定義する。
 /// 結合法則を満たすときは [`AddAssoc`]、交換法則を満たすときは [`AddComm`] を実装することで示す。
+#[derive(Clone)]
 pub struct OpAdd<T> {
     _t: std::marker::PhantomData<T>,
 }
