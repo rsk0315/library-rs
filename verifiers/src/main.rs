@@ -29,22 +29,5 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // let token =
-    //     std::env::var("YUKICODER_TOKEN").expect("$YUKICODER_TOKEN not set");
-    // eprintln!("{:?}", token);
-
-    // let id = 1504;
-    // let url = format!("https://yukicoder.me/api/v1/problems/{}/file/in", id);
-    // let resp = reqwest::Client::new()
-    //     .get(&url)
-    //     .bearer_auth(token)
-    //     .send()
-    //     .await?
-    //     .text()
-    //     .await?;
-
-    // let j: Vec<String> = serde_json::from_str(&resp)?;
-    // dbg!(j);
-
     Ok(())
 }
