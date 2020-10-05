@@ -23,18 +23,3 @@ pub fn aoj_0000_tle(_: String) -> String {
 pub fn aoj_0000_re(_: String) -> String {
     panic!("nekochan");
 }
-
-pub fn aoj_0002(input: String) -> String {
-    let v: Vec<_> = input
-        .split("\n")
-        .take_while(|x| x.len() > 0)
-        .map(|x| {
-            let ab: Vec<_> =
-                x.split(" ").map(|x| x.parse::<i32>().unwrap()).collect();
-            let (a, b) = (ab[0], ab[1]);
-            (a + b).to_string().len().to_string()
-        })
-        .collect();
-
-    format!("{}\n", v.join("\n"))
-}
