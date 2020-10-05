@@ -1,22 +1,22 @@
-macro_rules! simple_verify {
+macro_rules! default_verify {
     (($c:expr, $s:expr)) => {
         Verifier::new()
             .testcases(Path::new($c).to_path_buf())
             .solver($s)
             .run();
     };
-    ( $( ($c:expr, $s:expr), )* ) => { $( simple_verify!(($c, $s)) )* };
-    ( $( ($c:expr, $s:expr) ),* ) => { $( simple_verify!(($c, $s)) )* };
+    ( $( ($c:expr, $s:expr), )* ) => { $( default_verify!(($c, $s)) )* };
+    ( $( ($c:expr, $s:expr) ),* ) => { $( default_verify!(($c, $s)) )* };
 }
 
-macro_rules! simple_test {
+macro_rules! default_test {
     (
         $( $( #[$m:meta] )* ($t:ident, $c:expr, $s:expr), )*
     ) => {
         $(
             #[test]
             $( #[$m] )*
-            fn $t() { simple_verify!(($c, $s)); }
+            fn $t() { default_verify!(($c, $s)); }
         )*
     }
 }
@@ -28,7 +28,7 @@ mod tests_judge {
     use verifiers::judge::Verifier;
     use verifiers::solver::aoj::*;
 
-    simple_test! {
+    default_test! {
         (test_aoj_0000_ac, "testcases/aoj/0000", &aoj_0000),
 
         #[should_panic(expected = "RE")]
@@ -57,7 +57,7 @@ mod tests_verify {
 
     #[test]
     fn verify_vec_segtree() {
-        simple_verify! {
+        default_verify! {
             ("testcases/aoj/DSL_2_B", &aoj_dsl_2_b::<VecSegtree<_>>),
         }
     }
