@@ -48,6 +48,7 @@ mod tests_judge {
 #[cfg(test)]
 mod tests_verify {
     use std::path::Path;
+    use std::time::Duration;
 
     use verifiers::judge::Verifier;
     use verifiers::solver::aoj::*;
@@ -59,5 +60,14 @@ mod tests_verify {
         simple_verify! {
             ("testcases/aoj/DSL_2_B", &aoj_dsl_2_b::<VecSegtree<_>>),
         }
+    }
+
+    #[test]
+    fn verify_partition_point() {
+        Verifier::new()
+            .testcases(Path::new("testcases/aoj/0270").to_path_buf())
+            .solver(&aoj_0270)
+            .tl(Duration::from_millis(3000))
+            .run();
     }
 }

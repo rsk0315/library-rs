@@ -12,5 +12,7 @@ macro_rules! uses {
 
 uses! {
     aoj_0000,
+    aoj_0002,
+    aoj_0270,
     aoj_dsl_2_b,
 }
