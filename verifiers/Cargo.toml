@@ -14,6 +14,7 @@ serde = { version = "1.0.116", features = ["derive"] }
 fold = { path = "../crates/traits/fold" }
 set_value = { path = "../crates/traits/set_value" }
 op_add = { path = "../crates/utils/op_add" }
+serde_json = "1.0.58"
 
 [dev-dependencies]
 vec_segtree = { path = "../crates/ds/vec_segtree" }
