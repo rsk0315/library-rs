@@ -5,6 +5,7 @@ use std::ops::{Index, RangeBounds};
 use binop::{Magma, Monoid};
 use buf_range::bounds_within;
 use fold::Fold;
+use fold_bisect::{FoldBisect, FoldBisectRev};
 use set_value::SetValue;
 
 #[derive(Clone)]
@@ -28,6 +29,28 @@ where
             buf: vec![M::id(); len + len],
         }
     }
+
+    fn nodes(&self, l: usize, r: usize) -> Vec<usize> {
+        let mut l = self.len + l;
+        let mut r = self.len + r;
+        let mut vl = vec![];
+        let mut vr = vec![];
+        while l < r {
+            if l & 1 == 1 {
+                vl.push(l);
+                l += 1;
+            }
+            if r & 1 == 1 {
+                r -= 1;
+                vr.push(r);
+            }
+            l >>= 1;
+            r >>= 1;
+        }
+        vr.reverse();
+        vl.append(&mut vr);
+        vl
+    }
 }
 
 impl<M, B> Fold<B> for VecSegtree<M>
@@ -38,10 +61,11 @@ where
 {
     type Output = M;
     fn fold(&self, b: B) -> <M as Magma>::Set {
+        let b = bounds_within(b, self.len);
+        let mut il = self.len + b.start;
+        let mut ir = self.len + b.end;
         let mut resl = M::id();
         let mut resr = M::id();
-        let b = bounds_within(b, self.len);
-        let (mut il, mut ir) = (b.start + self.len, b.end + self.len);
         while il < ir {
             if il & 1 == 1 {
                 resl = <M as Magma>::op(resl, self.buf[il].clone());
@@ -65,7 +89,13 @@ where
 {
     type Input = <M as Magma>::Set;
     fn set_value(&mut self, i: usize, x: Self::Input) {
-        assert!(i <= self.len, "index should be in {:?}", 0..self.len);
+        assert!(
+            i < self.len,
+            "index out of bounds: the len is {} but the index is {}",
+            self.len,
+            i
+        );
+
         let mut i = i + self.len;
         self.buf[i] = x;
         while i > 1 {
@@ -102,6 +132,13 @@ where
 {
     type Output = <M as Magma>::Set;
     fn index(&self, i: usize) -> &Self::Output {
+        assert!(
+            i < self.len,
+            "index out of bounds: the len is {} but the index is {}",
+            self.len,
+            i
+        );
+
         &self.buf[i + self.len]
     }
 }
@@ -113,6 +150,95 @@ where
 {
     fn from(v: VecSegtree<M>) -> Self {
         v.buf.into_iter().skip(v.len).collect()
+    }
+}
+
+impl<M> FoldBisect for VecSegtree<M>
+where
+    M: Monoid,
+    <M as Magma>::Set: Clone,
+{
+    type Folded = M;
+    fn fold_bisect<F>(&self, l: usize, pred: F) -> Option<usize>
+    where
+        F: Fn(&<M as Magma>::Set) -> bool,
+    {
+        assert!(
+            l < self.len,
+            "index out of bounds: the len is {} but the index is {}; valid range: 0..{}",
+            self.len, l, self.len
+        );
+
+        let mut x = M::id();
+        if !pred(&x) {
+            return Some(l);
+        } else if pred(&self.fold(l..)) {
+            return None;
+        }
+
+        for v in self.nodes(l, self.len) {
+            let tmp = <M as Magma>::op(x.clone(), self.buf[v].clone());
+            if pred(&tmp) {
+                x = tmp;
+                continue;
+            }
+            let mut v = v;
+            while v < self.len {
+                v <<= 1;
+                let tmp = <M as Magma>::op(x.clone(), self.buf[v].clone());
+                if pred(&tmp) {
+                    x = tmp;
+                    v += 1;
+                }
+            }
+            return Some(v - self.len);
+        }
+        unreachable!();
+    }
+}
+
+impl<M> FoldBisectRev for VecSegtree<M>
+where
+    M: Monoid,
+    <M as Magma>::Set: Clone,
+{
+    type Folded = M;
+    fn fold_bisect_rev<F>(&self, r: usize, pred: F) -> Option<usize>
+    where
+        F: Fn(&<M as Magma>::Set) -> bool,
+    {
+        assert!(
+            r <= self.len,
+            "index out of bounds: the len is {} but the index is {}; valid range: 0..={}",
+            self.len, r, self.len
+        );
+
+        let mut x = M::id();
+        if !pred(&x) {
+            return Some(r);
+        } else if pred(&self.fold(..r)) {
+            return None;
+        }
+
+        for v in self.nodes(0, r).into_iter().rev() {
+            let tmp = <M as Magma>::op(self.buf[v].clone(), x.clone());
+            if pred(&tmp) {
+                x = tmp;
+                continue;
+            }
+            let mut v = v;
+            while v < self.len {
+                v <<= 1;
+                v += 1;
+                let tmp = <M as Magma>::op(self.buf[v].clone(), x.clone());
+                if pred(&tmp) {
+                    x = tmp;
+                    v -= 1;
+                }
+            }
+            return Some(v - self.len);
+        }
+        unreachable!();
     }
 }
 
