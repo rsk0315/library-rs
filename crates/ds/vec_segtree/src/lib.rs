@@ -62,11 +62,23 @@ where
     type Output = M;
     fn fold(&self, b: B) -> <M as Magma>::Set {
         let b = bounds_within(b, self.len);
-        let mut res = M::id();
-        for v in self.nodes(b.start, b.end) {
-            res = <M as Magma>::op(res, self.buf[v].clone());
+        let mut il = self.len + b.start;
+        let mut ir = self.len + b.end;
+        let mut resl = M::id();
+        let mut resr = M::id();
+        while il < ir {
+            if il & 1 == 1 {
+                resl = <M as Magma>::op(resl, self.buf[il].clone());
+                il += 1;
+            }
+            if ir & 1 == 1 {
+                ir -= 1;
+                resr = <M as Magma>::op(self.buf[ir].clone(), resr);
+            }
+            il >>= 1;
+            ir >>= 1;
         }
-        res
+        <M as Magma>::op(resl, resr)
     }
 }
 
