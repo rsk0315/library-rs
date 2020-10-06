@@ -65,7 +65,7 @@ mod tests_verify {
     }
 
     #[test]
-    fn verify_partition_point() {
+    fn verify_bisect() {
         Verifier::new()
             .testcases(Path::new("testcases/aoj/0270").to_path_buf())
             .solver(&aoj_0270)

@@ -18,7 +18,7 @@ set_value = { path = "../crates/traits/set_value" }
 op_add = { path = "../crates/utils/op_add" }
 op_max = { path = "../crates/utils/op_max" }
 op_min = { path = "../crates/utils/op_min" }
-partition_point = { path = "../crates/algo/partition_point" }
+bisect = { path = "../crates/algo/bisect" }
 tortoise_hare = { path = "../crates/algo/tortoise_hare" }
 
 [dev-dependencies]

@@ -1,4 +1,4 @@
-use partition_point::partition_point;
+use bisect::bisect;
 
 fn parse_aoj_0270(input: String) -> (Vec<i32>, Vec<i32>) {
     let mut input = input.lines();
@@ -35,7 +35,7 @@ pub fn aoj_0270(input: String) -> String {
         for i in 1.. {
             let y = i * q;
             let pred = |&x: &i32| x < y;
-            let pp = partition_point(&c, pred);
+            let pp = bisect(&c, pred);
             if pp == n {
                 break;
             }

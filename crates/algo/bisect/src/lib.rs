@@ -1,4 +1,4 @@
-pub fn partition_point<T, F: Fn(&T) -> bool>(buf: &[T], pred: F) -> usize {
+pub fn bisect<T, F: Fn(&T) -> bool>(buf: &[T], pred: F) -> usize {
     if buf.is_empty() || !pred(&buf[0]) {
         return 0;
     }
