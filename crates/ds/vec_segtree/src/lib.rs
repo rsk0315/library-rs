@@ -89,7 +89,13 @@ where
 {
     type Input = <M as Magma>::Set;
     fn set_value(&mut self, i: usize, x: Self::Input) {
-        assert!(i <= self.len, "index should be in {:?}", 0..self.len);
+        assert!(
+            i < self.len,
+            "index out of bounds: the len is {} but the index is {}",
+            self.len,
+            i
+        );
+
         let mut i = i + self.len;
         self.buf[i] = x;
         while i > 1 {
@@ -126,6 +132,13 @@ where
 {
     type Output = <M as Magma>::Set;
     fn index(&self, i: usize) -> &Self::Output {
+        assert!(
+            i < self.len,
+            "index out of bounds: the len is {} but the index is {}",
+            self.len,
+            i
+        );
+
         &self.buf[i + self.len]
     }
 }
@@ -150,7 +163,11 @@ where
     where
         F: Fn(&<M as Magma>::Set) -> bool,
     {
-        assert!(l < self.len, "start should be in 0..{}", self.len);
+        assert!(
+            l < self.len,
+            "index out of bounds: the len is {} but the index is {}; valid range: 0..{}",
+            self.len, l, self.len
+        );
 
         let mut x = M::id();
         if !pred(&x) {
@@ -190,7 +207,11 @@ where
     where
         F: Fn(&<M as Magma>::Set) -> bool,
     {
-        assert!(r <= self.len, "end should be in 0..={}", self.len);
+        assert!(
+            r <= self.len,
+            "index out of bounds: the len is {} but the index is {}; valid range: 0..={}",
+            self.len, r, self.len
+        );
 
         let mut x = M::id();
         if !pred(&x) {
