@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 binop = { path = "../../traits/binop" }
 fold = { path = "../../traits/fold" }
+fold_bisect = { path = "../../traits/fold_bisect" }
 set_value = { path = "../../traits/set_value" }
 buf_range = { path = "../../utils/buf_range" }
 

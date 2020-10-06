@@ -1,14 +1,15 @@
-use binop::{Magma, Monoid};
-use fold::Fold;
+use binop::Magma;
 
-pub trait FoldBisect: Fold {
-    fn fold_bisect(&self, i: usize, pred: F) -> usize
+pub trait FoldBisect {
+    type Input: Magma;
+    fn fold_bisect<F>(&self, i: usize, pred: F) -> Option<usize>
     where
-        F: Fn(<Self as Fold>::Output) -> bool;
+        F: Fn(&<Self::Input as Magma>::Set) -> bool;
 }
 
-pub trait FoldBisectRev: Fold {
-    fn fold_bisect_rev(&self, i: usize, pred: F) -> usize
+pub trait FoldBisectRev {
+    type Input: Magma;
+    fn fold_bisect_rev<F>(&self, i: usize, pred: F) -> Option<usize>
     where
-        F: Fn(<Self as Fold>::Output) -> bool;
+        F: Fn(&<Self::Input as Magma>::Set) -> bool;
 }
