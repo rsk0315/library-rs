@@ -1,15 +1,15 @@
 use binop::Magma;
 
 pub trait FoldBisect {
-    type Input: Magma;
+    type Folded: Magma;
     fn fold_bisect<F>(&self, i: usize, pred: F) -> Option<usize>
     where
-        F: Fn(&<Self::Input as Magma>::Set) -> bool;
+        F: Fn(&<Self::Folded as Magma>::Set) -> bool;
 }
 
 pub trait FoldBisectRev {
-    type Input: Magma;
+    type Folded: Magma;
     fn fold_bisect_rev<F>(&self, i: usize, pred: F) -> Option<usize>
     where
-        F: Fn(&<Self::Input as Magma>::Set) -> bool;
+        F: Fn(&<Self::Folded as Magma>::Set) -> bool;
 }

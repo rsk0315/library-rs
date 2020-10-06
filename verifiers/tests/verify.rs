@@ -5,8 +5,8 @@ macro_rules! default_verify {
             .solver($s)
             .run();
     };
-    ( $( ($c:expr, $s:expr), )* ) => { $( default_verify!(($c, $s)) )* };
-    ( $( ($c:expr, $s:expr) ),* ) => { $( default_verify!(($c, $s)) )* };
+    ( $( ($c:expr, $s:expr), )* ) => { $( default_verify!(($c, $s)) );* };
+    ( $( ($c:expr, $s:expr) ),* ) => { $( default_verify!(($c, $s)) );* };
 }
 
 macro_rules! default_test {
@@ -52,6 +52,7 @@ mod tests_verify {
 
     use verifiers::judge::Verifier;
     use verifiers::solver::aoj::*;
+    use verifiers::solver::yukicoder::*;
 
     use vec_segtree::*;
 
@@ -59,6 +60,7 @@ mod tests_verify {
     fn verify_vec_segtree() {
         default_verify! {
             ("testcases/aoj/DSL_2_B", &aoj_dsl_2_b::<VecSegtree<_>>),
+            ("testcases/yukicoder/3287", &yuki_3287::<VecSegtree<_>, VecSegtree<_>>),
         }
     }
 

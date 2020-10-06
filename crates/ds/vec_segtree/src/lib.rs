@@ -145,7 +145,7 @@ where
     M: Monoid,
     <M as Magma>::Set: Clone,
 {
-    type Input = M;
+    type Folded = M;
     fn fold_bisect<F>(&self, l: usize, pred: F) -> Option<usize>
     where
         F: Fn(&<M as Magma>::Set) -> bool,
@@ -185,7 +185,7 @@ where
     M: Monoid,
     <M as Magma>::Set: Clone,
 {
-    type Input = M;
+    type Folded = M;
     fn fold_bisect_rev<F>(&self, r: usize, pred: F) -> Option<usize>
     where
         F: Fn(&<M as Magma>::Set) -> bool,

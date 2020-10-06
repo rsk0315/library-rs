@@ -13,8 +13,11 @@ toml = "0.5.6"
 serde = { version = "1.0.116", features = ["derive"] }
 serde_json = "1.0.58"
 fold = { path = "../crates/traits/fold" }
+fold_bisect = { path = "../crates/traits/fold_bisect" }
 set_value = { path = "../crates/traits/set_value" }
 op_add = { path = "../crates/utils/op_add" }
+op_max = { path = "../crates/utils/op_max" }
+op_min = { path = "../crates/utils/op_min" }
 partition_point = { path = "../crates/algo/partition_point" }
 tortoise_hare = { path = "../crates/algo/tortoise_hare" }
 
