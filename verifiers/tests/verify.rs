@@ -70,4 +70,8 @@ mod tests_verify {
             .tl(Duration::from_millis(3000))
             .run();
     }
+
+    default_test! {
+        (test_aoj_1180, "testcases/aoj/1180", &aoj_1180),
+    }
 }
