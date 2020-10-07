@@ -1,4 +1,3 @@
-pub mod judge;
+pub mod jury;
 pub mod solver;
-
-pub mod testcase;
+pub mod test_set;

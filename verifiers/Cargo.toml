@@ -21,6 +21,7 @@ op_min = { path = "../crates/utils/op_min" }
 bisect = { path = "../crates/algo/bisect" }
 tortoise_hare = { path = "../crates/algo/tortoise_hare" }
 additive = { path = "../crates/traits/additive" }
+vec_segtree = { path = "../crates/ds/vec_segtree" }
 
 [dev-dependencies]
 vec_segtree = { path = "../crates/ds/vec_segtree" }
