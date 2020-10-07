@@ -28,7 +28,3 @@ vec_segtree = { path = "../crates/ds/vec_segtree" }
 [lib]
 name = "verifiers"
 path = "src/lib.rs"
-
-[[bin]]
-name = "download"
-path = "src/main.rs"
