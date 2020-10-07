@@ -1,11 +1,9 @@
 macro_rules! uses {
-    (
-        $($c:ident,)*
-    ) => {
+    ( $( $i:ident, )* ) => {
         $(
-            pub mod $c;
+            pub mod $i;
             #[doc(inline)]
-            pub use $c::*;
+            pub use $i::*;
         )*
     }
 }
@@ -17,4 +15,5 @@ uses! {
     aoj_0564,
     aoj_1180,
     aoj_dsl_2_b,
+    yuki_3287,
 }
