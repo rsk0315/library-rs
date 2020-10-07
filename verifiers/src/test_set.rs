@@ -38,8 +38,8 @@ pub enum Oj {
     Yukicoder(&'static str),
 }
 
-pub use Oj::*;
-pub use Verdict::*;
+pub(crate) use Oj::*;
+pub(crate) use Verdict::*;
 
 pub trait Solver {
     type Jury: Jury;
