@@ -200,19 +200,12 @@ pub async fn download<J: Jury>() -> Result<(), Box<dyn std::error::Error>> {
     let dir = find_cases_dir(J::PROBLEM).unwrap();
     std::fs::create_dir_all(&dir)?;
 
-    let token = match J::PROBLEM {
-        Yukicoder(_) => Some(
-            std::env::var("YUKICODER_TOKEN").expect("$YUKICODER_TOKEN not set"),
-        ),
-        _ => None,
-    };
-
     for (casenum, (url_in, url_out)) in case_urls(J::PROBLEM).await? {
         let file_in = dir.join(format!("{}.in", casenum));
         let file_out = dir.join(format!("{}.out", casenum));
 
-        let input = fetch(&client, token.clone(), &url_in, file_in).await;
-        let output = fetch(&client, token.clone(), &url_out, file_out).await;
+        let input = fetch(&client, &url_in, file_in, J::PROBLEM).await;
+        let output = fetch(&client, &url_out, file_out, J::PROBLEM).await;
 
         if input.is_err() | output.is_err() {
             break;
@@ -228,9 +221,9 @@ fn yukitoken() -> String {
 
 async fn fetch(
     client: &reqwest::Client,
-    token: Option<String>,
     url: &str,
     path_buf: PathBuf,
+    problem: Oj,
 ) -> Result<(), Box<dyn std::error::Error>> {
     use io::ErrorKind::{NotFound, PermissionDenied};
 
@@ -238,9 +231,9 @@ async fn fetch(
         return Ok(());
     }
 
-    let client = match token {
-        Some(token) => client.get(url).bearer_auth(token),
-        None => client.get(url),
+    let client = match problem {
+        Yukicoder(_) => client.get(url).bearer_auth(yukitoken()),
+        _ => client.get(url),
     };
     let content = client.send().await?.text().await?;
 

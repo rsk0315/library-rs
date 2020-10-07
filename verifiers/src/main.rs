@@ -1,7 +1,4 @@
-use test_set::{Jury, Solver};
-use verifiers::{jury, solver, test_set};
-
-use vec_segtree::*;
+use verifiers::{jury, test_set};
 
 macro_rules! downloads {
     ( $( $t:ty, )* ) => {
@@ -9,31 +6,14 @@ macro_rules! downloads {
     }
 }
 
-macro_rules! tests {
-    ( $( $t:ty, )* ) => {
-        $( {
-            let v = test_set::verify::<$t>();
-            eprintln!("{:?}: {:?}", <$t as Solver>::Jury::PROBLEM, v);
-        }; )*
-    }
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    {
-        use jury::*;
-        downloads! {
-            Aoj0000,
-            Yuki3287,
-        }
-    }
+    use jury::*;
 
-    {
-        use solver::*;
-        tests! {
-            Aoj0000,
-            Yuki3287<VecSegtree<_>, VecSegtree<_>>,
-        }
+    downloads! {
+        Aoj0000,
+        Aoj0002,
+        Yuki3287,
     }
 
     Ok(())
