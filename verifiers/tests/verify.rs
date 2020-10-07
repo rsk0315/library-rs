@@ -1,34 +1,24 @@
 #[cfg(test)]
-mod tests_judge {
+mod verify {
     use verifiers::solver::*;
     use verifiers::test_set::verify;
 
+    use vec_segtree::*;
+
     #[test]
-    fn test_ac() {
-        verify::<Aoj0000>();
+    fn test_bisect() {
+        verify::<Aoj0270>();
     }
 
     #[test]
-    #[should_panic(expected = "WA")]
-    fn test_wa() {
-        verify::<Aoj0000Wa>();
+    fn test_tortoise_hare() {
+        verify::<Aoj1180>();
     }
 
     #[test]
-    #[should_panic(expected = "RE")]
-    fn test_re() {
-        verify::<Aoj0000Re>();
-    }
-
-    #[test]
-    #[should_panic(expected = "TLE")]
-    fn test_tle() {
-        verify::<Aoj0000Tle>();
-    }
-
-    #[test]
-    #[should_panic(expected = "no cases")]
-    fn test_no() {
-        verify::<Aoj0002>();
+    fn test_vec_segtree() {
+        verify::<Aoj0564<VecSegtree<_>>>();
+        verify::<AojDsl2B<VecSegtree<_>>>();
+        verify::<Yuki3287<VecSegtree<_>, VecSegtree<_>>>();
     }
 }

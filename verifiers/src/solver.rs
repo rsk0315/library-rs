@@ -14,5 +14,9 @@ uses! {
     aoj_0000_re,
     aoj_0000_tle,
     aoj_0002,
+    aoj_0270,
+    aoj_0564,
+    aoj_1180,
+    aoj_dsl_2_b,
     yuki_3287,
 }
