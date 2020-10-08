@@ -2,7 +2,7 @@
 
 use std::convert::From;
 use std::iter::{IntoIterator, Iterator};
-use std::ops::{Index, RangeBounds};
+use std::ops::{Index, Range, RangeBounds};
 
 use binop::{Magma, Monoid};
 use buf_range::bounds_within;
@@ -101,9 +101,9 @@ where
 {
     type Output = M;
     fn fold(&self, b: B) -> <M as Magma>::Set {
-        let b = bounds_within(b, self.len);
-        let mut il = self.len + b.start;
-        let mut ir = self.len + b.end;
+        let Range { start, end } = bounds_within(b, self.len);
+        let mut il = self.len + start;
+        let mut ir = self.len + end;
         let mut resl = M::id();
         let mut resr = M::id();
         while il < ir {
