@@ -1,6 +1,13 @@
+//! 最大値に関する wrapper クラス。
+
 use binop::*;
 use min::Min;
 
+/// 最大値を返す演算を持つ。
+///
+/// 単位元は [`Min`] で定義する。
+///
+/// [`Min`]: ../../traits/min/trait.Min.html
 #[derive(Clone)]
 pub struct OpMax<T> {
     _t: std::marker::PhantomData<T>,
