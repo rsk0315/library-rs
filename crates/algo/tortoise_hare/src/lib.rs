@@ -1,9 +1,32 @@
-pub fn tortoise_hare<T, F>(x: T, f: F) -> (usize, usize)
+//! 周期検出。
+
+/// 周期検出を行う。
+///
+/// 与えられた $x\_0$ と $f$ を用いて $x\_i = f(x\_{i-1})$ ($i > 0$) として
+/// 定義される列 $\\{x\_i\\}\_{i=0}\^\\infty$ の周期検出を行う。
+/// $x\_{\\mu} = x\_{\\mu+\\lambda}$ なる最小の $(\\mu, \\lambda)$ を返す。
+///
+/// # Requirements
+/// $f$ は参照透過である。
+///
+/// # Complexity
+/// $\\Theta(\\mu+\\lambda)$ 回の $f$ の呼び出しを行う。
+///
+/// # Examples
+/// ```
+/// use nekolib::algo::tortoise_hare;
+///
+/// // 3, 9, 11, 9, 11, ...
+/// assert_eq!(tortoise_hare(3, |x| x * x % 14), (1, 2));
+/// // 2, 6, 4, 5, 1, 3, 2, ...
+/// assert_eq!(tortoise_hare(2, |x| x * 3 % 7), (0, 6));
+/// ```
+pub fn tortoise_hare<T, F>(x0: T, f: F) -> (usize, usize)
 where
     T: Eq + Clone,
     F: Fn(T) -> T,
 {
-    let mut tor = f(x.clone());
+    let mut tor = f(x0.clone());
     let mut har = f(tor.clone());
 
     while tor != har {
@@ -11,7 +34,7 @@ where
         har = f(f(har));
     }
 
-    tor = x;
+    tor = x0;
     let mut mu = 0;
     while tor != har {
         tor = f(tor);
