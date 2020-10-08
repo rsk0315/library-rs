@@ -1,3 +1,5 @@
+//! 素集合に関するトレイトです。
+
 /// 共通要素を持たない集合族で、併合が可能なもの。
 pub trait DisjointSet {
     /// 集合族を $\\{\\{0\\}, \\{1\\}, \\dots, \\{n-1\\}\\}$ で初期化する。
@@ -5,7 +7,8 @@ pub trait DisjointSet {
     /// 集合族全体に含まれる要素数 $n$ を返す。
     fn len(&self) -> usize;
     /// $u$ を含む集合と $v$ を含む集合を併合する。
-    /// 集合族に変化があれば `true` を、元々同じ集合に含まれていれば `false` を返す。
+    /// 集合族に変化があれば `true` を返す。
+    /// $u$ と $v$ が元々同じ集合に含まれていれば `false` を返す。
     fn unite(&mut self, u: usize, v: usize) -> bool;
     /// $u$ を含む集合の代表元を返す。
     fn repr(&self, u: usize) -> usize;

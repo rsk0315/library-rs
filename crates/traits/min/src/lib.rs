@@ -1,4 +1,18 @@
+//! 最小元に関するトレイトです。
+
+/// 最小元を持つ。
+///
+/// # Examples
+/// ```
+/// use nekolib::traits::Min;
+///
+/// let min: i8 = Min::min();
+/// for x in std::i8::MIN..=std::i8::MAX {
+///     assert!(x >= min);
+/// }
+/// ```
 pub trait Min: Ord {
+    /// 最小元を返す。
     fn min() -> Self;
 }
 

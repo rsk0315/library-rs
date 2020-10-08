@@ -1,3 +1,8 @@
+//! 乗法に関するトレイトたちです。
+//!
+//! これを実装したクラスは `OpMul` によって積を求められます。
+//! 区間和を求めるデータ構造などに使います。
+
 use std::ops::Mul;
 
 /// 乗法の単位元 $1$ を定義する。
@@ -13,9 +18,11 @@ pub trait MulRecip {
     fn mul_recip(self) -> Self::Output;
 }
 /// 乗法が結合法則を満たすことを示す。
+///
 /// $$ x, y, z \\in S \\implies (x \\times y) \\times z = x \\times (y \\times z). $$
 pub trait MulAssoc: Mul<Output = Self> + Sized {}
 /// 乗法が交換法則を満たすことを示す。
+///
 /// $$ x, y \\in S \\implies x \\times y = y \\times x. $$
 pub trait MulComm: Mul<Output = Self> + Sized {}
 

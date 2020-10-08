@@ -1,3 +1,8 @@
+//! 加法に関するトレイトたちです。
+//!
+//! これを実装したクラスは `OpAdd` によって和を求められます。
+//! 区間和を求めるデータ構造などに使います。
+
 use std::ops::Add;
 
 /// 加法の単位元 $0$ を定義する。
@@ -6,9 +11,11 @@ pub trait Zero: Add<Output = Self> + Sized {
     fn zero() -> Self;
 }
 /// 加法が結合法則を満たすことを示す。
+///
 /// $$ x, y, z \\in S \\implies (x + y) + z = x + (y + z). $$
 pub trait AddAssoc: Add<Output = Self> + Sized {}
 /// 加法が交換法則を満たすことを示す。
+///
 /// $$ x, y \\in S \\implies x + y = y + x. $$
 pub trait AddComm: Add<Output = Self> + Sized {}
 
