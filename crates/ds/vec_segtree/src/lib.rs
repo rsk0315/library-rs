@@ -1,3 +1,5 @@
+//! `Vec` ベースのセグ木。
+
 use std::convert::From;
 use std::iter::{IntoIterator, Iterator};
 use std::ops::{Index, RangeBounds};
@@ -8,6 +10,44 @@ use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
 use set_value::SetValue;
 
+/// `Vec` ベースのセグ木。
+///
+/// 非再帰実装かつ配列サイズを $2n$ とするセグ木。
+/// モノイド `M` を対象として要素の取得・更新および区間和を処理する。
+/// 加えて、述語 `F` に対する二分探索も処理できる。
+///
+/// # Complexity
+/// |演算|時間計算量|
+/// |---|---|
+/// |`new`, `from`|$\\Theta(n)$|
+/// |`index`|$\\Theta(1)$|
+/// |`set_value`|$\\Theta(\\log(n))$|
+/// |$[l, r)$ の `fold`|$\\Theta(\\log(r-l))$|
+/// |`fold_bisect`, `fold_bisect_rev`|$O(\\log(n))$|
+///
+/// # Examples
+/// ```
+/// use nekolib::ds::VecSegtree;
+/// use nekolib::traits::{Fold, FoldBisect, FoldBisectRev, SetValue};
+/// use nekolib::utils::OpAdd;
+///
+/// let mut vs: VecSegtree<OpAdd<i32>> = vec![2, 4, 7, 3, 5].into();
+/// assert_eq!(vs.fold(1..3), 11);
+/// assert_eq!(vs.fold(..), 21);
+///
+/// vs.set_value(2usize, 1); // [2, 4, 1, 3, 5]
+/// assert_eq!(vs.fold(1..3), 5);
+/// assert_eq!(vs.fold(1..=3), 8);
+/// assert_eq!(vs.fold_bisect(1, |&x| x < 4), Some(1));
+/// assert_eq!(vs.fold_bisect(1, |&x| x <= 4), Some(2));
+/// assert_eq!(vs.fold_bisect(1, |&x| x < 13), Some(4));
+/// assert_eq!(vs.fold_bisect(1, |&x| x <= 13), None);
+///
+/// assert_eq!(vs.fold(..), 15);
+/// assert_eq!(vs.fold_bisect_rev(5, |&x| x <= 0), Some(4));
+/// assert_eq!(vs.fold_bisect_rev(5, |&x| x < 15), Some(0));
+/// assert_eq!(vs.fold_bisect_rev(5, |&x| x <= 15), None);
+/// ```
 #[derive(Clone)]
 pub struct VecSegtree<M>
 where

@@ -1,3 +1,5 @@
+//! union-find。
+
 use std::cell::RefCell;
 
 use disjoint_set::DisjointSet;
@@ -8,6 +10,25 @@ enum Item {
     Size(usize),
 }
 
+/// union-find データ構造。
+///
+/// # Examples
+/// ```
+/// use nekolib::traits::DisjointSet;
+/// use nekolib::ds::UnionFind;
+///
+/// let mut uf = UnionFind::new(4);
+/// assert!(!uf.equiv(0, 2));
+/// uf.unite(0, 1);
+/// uf.unite(1, 2);
+/// assert!(uf.equiv(0, 2));
+/// assert!(!uf.equiv(0, 3));
+/// assert_eq!(uf.count(0), 3);
+/// ```
+///
+/// # Complexity
+/// `count`、`equiv`、 `repr`、`unite` をそれぞれ償却 $O(\\alpha(n))$ 時間で処理する。
+/// `subset` はデフォルト実装なので $\\Theta(n)$ 時間かかる。
 pub struct UnionFind {
     n: usize,
     buf: RefCell<Vec<Item>>,
