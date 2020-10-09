@@ -23,10 +23,12 @@ tortoise_hare = { path = "../crates/algo/tortoise_hare" }
 additive = { path = "../crates/traits/additive" }
 union-find = { path = "../crates/ds/union_find" }
 disjoint-set = { path = "../crates/traits/disjoint-set" }
+range_hash = { path = "../crates/traits/range_hash" }
 
 [dev-dependencies]
 vec_segtree = { path = "../crates/ds/vec_segtree" }
 union-find = { path = "../crates/ds/union_find" }
+range_hash = { path = "../crates/traits/range_hash" }
 
 [lib]
 name = "verifiers"

@@ -27,4 +27,9 @@ mod verify {
     fn verify_union_find() {
         verify::<AojDsl1A<UnionFind>>();
     }
+
+    #[test]
+    fn verify_mo() {
+        verify::<Aoj0425<aoj_0425::NekoAoj0425>>();
+    }
 }

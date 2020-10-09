@@ -50,7 +50,7 @@ pub trait Solver {
 
 pub trait Jury {
     type Input: Clone + DeserializeOwned + Serialize + Send + Sync;
-    type Output: Eq + DeserializeOwned + Serialize + Send + Sync;
+    type Output: Debug + Eq + DeserializeOwned + Serialize + Send + Sync;
     const TL: Duration;
     const PROBLEM: Oj;
     fn parse_input(input: String) -> Self::Input;
@@ -62,7 +62,9 @@ pub trait Jury {
     ) -> Verdict {
         match output == jury {
             true => Ac(1),
-            false => Wa(0, "".to_string()),
+            false => {
+                Wa(0, format!("output: {:?};\nexpected: {:?}", output, jury))
+            }
         }
     }
 }
