@@ -25,27 +25,23 @@ impl Jury for AojDsl2B {
             let q = it.next().unwrap().parse().unwrap();
             (n, q)
         };
-        let qs = (0..q)
-            .map(|_| {
-                let mut it = input.next().unwrap().split(" ");
-                match it.next().unwrap() {
-                    "0" => {
-                        let i =
-                            it.next().unwrap().parse::<usize>().unwrap() - 1;
-                        let x = it.next().unwrap().parse().unwrap();
-                        Query::Add(i, x)
-                    }
-                    "1" => {
-                        let s =
-                            it.next().unwrap().parse::<usize>().unwrap() - 1;
-                        let t = it.next().unwrap().parse().unwrap();
-                        Query::GetSum(s, t)
-                    }
-                    _ => unreachable!(),
+        let qs = (0..q).map(|_| {
+            let mut it = input.next().unwrap().split(" ");
+            match it.next().unwrap() {
+                "0" => {
+                    let i = it.next().unwrap().parse::<usize>().unwrap() - 1;
+                    let x = it.next().unwrap().parse().unwrap();
+                    Query::Add(i, x)
                 }
-            })
-            .collect();
-        (n, qs)
+                "1" => {
+                    let s = it.next().unwrap().parse::<usize>().unwrap() - 1;
+                    let t = it.next().unwrap().parse().unwrap();
+                    Query::GetSum(s, t)
+                }
+                _ => unreachable!(),
+            }
+        });
+        (n, qs.collect())
     }
     fn parse_output((_n, qs): &Self::Input, output: String) -> Self::Output {
         let mut output = output.lines();
