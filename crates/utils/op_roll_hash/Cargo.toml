@@ -1,5 +1,5 @@
 [package]
-name = "modint"
+name = "op_roll_hash"
 version = "0.1.0"
 authors = ["rsk0315 <rsk0315@icloud.com>"]
 edition = "2018"
@@ -8,5 +8,6 @@ edition = "2018"
 
 [dependencies]
 assoc_val = { path = "../../traits/assoc_val" }
+binop = { path = "../../traits/binop" }
 additive = { path = "../../traits/additive" }
 multiplicative = { path = "../../traits/multiplicative" }

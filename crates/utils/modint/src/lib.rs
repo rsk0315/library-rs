@@ -1,27 +1,46 @@
 //! 法 $m$ での演算をする。
 
+use std::convert::TryInto;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::ops::*;
 
 use additive::*;
-use modulo::Mod;
+use assoc_val::AssocVal;
 use multiplicative::*;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct ModInt<M: Mod> {
+pub struct ModInt<M: AssocVal<i64>> {
     n: i64,
     _m: PhantomData<M>,
 }
 
-impl<M: Mod> ModInt<M> {
-    pub fn new(n: i64) -> Self {
-        let n = n % M::get();
+// new か？ from かも
+
+macro_rules! impl_from {
+    ( $t:ty ) => {
+        impl<M: AssocVal<i64>> From<$t> for ModInt<M> {
+            fn from(n: $t) -> Self {
+                let n: i64 = n.into();
+                let n = n % M::get();
+                Self { n, _m: PhantomData }
+            }
+        }
+    };
+    ( $( $t:ty ),* ) => { $( impl_from!($t); )* };
+}
+
+impl_from!(i8, i16, i32, i64, u8, u16, u32);
+
+impl<M: AssocVal<i64>> From<u64> for ModInt<M> {
+    fn from(n: u64) -> Self {
+        let m: u64 = M::get().try_into().unwrap();
+        let n: i64 = (n % m).try_into().unwrap();
         Self { n, _m: PhantomData }
     }
 }
 
-impl<M: Mod> Add for ModInt<M> {
+impl<M: AssocVal<i64>> Add for ModInt<M> {
     type Output = Self;
     fn add(self, other: Self) -> Self {
         let n = match self.n + other.n {
@@ -32,7 +51,7 @@ impl<M: Mod> Add for ModInt<M> {
     }
 }
 
-impl<M: Mod> AddAssign for ModInt<M> {
+impl<M: AssocVal<i64>> AddAssign for ModInt<M> {
     fn add_assign(&mut self, other: Self) {
         self.n += other.n;
         match self.n {
@@ -42,7 +61,7 @@ impl<M: Mod> AddAssign for ModInt<M> {
     }
 }
 
-impl<M: Mod> Sub for ModInt<M> {
+impl<M: AssocVal<i64>> Sub for ModInt<M> {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
         let n = match self.n - other.n {
@@ -53,7 +72,7 @@ impl<M: Mod> Sub for ModInt<M> {
     }
 }
 
-impl<M: Mod> SubAssign for ModInt<M> {
+impl<M: AssocVal<i64>> SubAssign for ModInt<M> {
     fn sub_assign(&mut self, other: Self) {
         self.n -= other.n;
         match self.n {
@@ -63,7 +82,7 @@ impl<M: Mod> SubAssign for ModInt<M> {
     }
 }
 
-impl<M: Mod> Mul for ModInt<M> {
+impl<M: AssocVal<i64>> Mul for ModInt<M> {
     type Output = Self;
     fn mul(self, other: Self) -> Self {
         let n = (self.n * other.n).rem_euclid(M::get());
@@ -71,26 +90,41 @@ impl<M: Mod> Mul for ModInt<M> {
     }
 }
 
-impl<M: Mod> MulAssign for ModInt<M> {
+impl<M: AssocVal<i64>> MulAssign for ModInt<M> {
     fn mul_assign(&mut self, other: Self) {
         self.n = (self.n * other.n).rem_euclid(M::get());
     }
 }
 
-impl<M: Mod> Div for ModInt<M> {
+impl<M: AssocVal<i64>> Div for ModInt<M> {
     type Output = Self;
     fn div(self, other: Self) -> Self {
         self.mul(other.mul_recip())
     }
 }
 
-impl<M: Mod> DivAssign for ModInt<M> {
+impl<M: AssocVal<i64>> DivAssign for ModInt<M> {
     fn div_assign(&mut self, other: Self) {
         self.mul_assign(other.mul_recip())
     }
 }
 
-impl<M: Mod> Neg for ModInt<M> {
+impl<M: AssocVal<i64>> Zero for ModInt<M> {
+    fn zero() -> Self {
+        Self {
+            n: 0,
+            _m: PhantomData,
+        }
+    }
+}
+
+impl<M: AssocVal<i64>> One for ModInt<M> {
+    fn one() -> Self {
+        Self::from(1_i64) // in case mod = 1
+    }
+}
+
+impl<M: AssocVal<i64>> Neg for ModInt<M> {
     type Output = Self;
     fn neg(self) -> Self {
         let n = match self.n {
@@ -101,7 +135,7 @@ impl<M: Mod> Neg for ModInt<M> {
     }
 }
 
-impl<M: Mod> MulRecip for ModInt<M> {
+impl<M: AssocVal<i64>> MulRecip for ModInt<M> {
     type Output = Self;
     fn mul_recip(self) -> Self {
         let mut x = 0_i64;
@@ -123,11 +157,11 @@ impl<M: Mod> MulRecip for ModInt<M> {
             a = tmp;
         }
         assert_eq!(b, 1, "{} has no reciprocal modulo {}", self.n, M::get());
-        Self::new(x)
+        Self::from(x)
     }
 }
 
-impl<M: Mod> AddAssoc for ModInt<M> {}
-impl<M: Mod> AddComm for ModInt<M> {}
-impl<M: Mod> MulAssoc for ModInt<M> {}
-impl<M: Mod> MulComm for ModInt<M> {}
+impl<M: AssocVal<i64>> AddAssoc for ModInt<M> {}
+impl<M: AssocVal<i64>> AddComm for ModInt<M> {}
+impl<M: AssocVal<i64>> MulAssoc for ModInt<M> {}
+impl<M: AssocVal<i64>> MulComm for ModInt<M> {}

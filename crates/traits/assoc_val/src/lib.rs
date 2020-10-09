@@ -1,23 +1,21 @@
-//! modint 用のトレイト。
+//! 型に紐づく値。
 //!
-//! C++ で言うところの `static` 変数の役割のものが欲しいので、
-//! `mod` を返すクラスを `PhantomData` に入れるように実装する（仮）。
+//! C++ で言うところの `static` 変数の役割のものが欲しい。
+//! その値の型 `PhantomData` に入れるように実装する（仮）。
 
-use std::fmt::Debug;
-
-/// 法を返す関数を持つ。
+/// 値を返す関数を持つ。
 ///
 /// # Example
 /// ```
-/// use nekolib::traits::Mod;
+/// use nekolib::traits::AssocVal;
 /// use nekolib::impl_mod_int;
 /// use nekolib::utils::ModInt;
 ///
 /// impl_mod_int! { Mod119l23p1 => 998_244_353_i64 }
 /// type Mi = ModInt<Mod119l23p1>;
 ///
-/// assert_eq!(Mi::new(2) - Mi::new(3), Mi::new(998_244_352));
-/// assert_eq!(Mi::new(1) / Mi::new(2), Mi::new(499_122_177));
+/// assert_eq!(Mi::from(2) - Mi::from(3), Mi::from(998_244_352));
+/// assert_eq!(Mi::from(1) / Mi::from(2), Mi::from(499_122_177));
 /// ```
 ///
 /// 法が実行時に決まる場合は、`static` とかを使うしかない気がする。
@@ -27,7 +25,7 @@ use std::fmt::Debug;
 ///
 /// use lazy_static::lazy_static;
 ///
-/// use nekolib::traits::Mod;
+/// use nekolib::traits::AssocVal;
 /// use nekolib::impl_mod_int;
 /// use nekolib::utils::ModInt;
 ///
@@ -40,11 +38,24 @@ use std::fmt::Debug;
 /// impl_mod_int! { ModRunTime => *MOD.lock().unwrap() }
 /// type Mi = ModInt<ModRunTime>;
 ///
-/// assert_eq!(Mi::new(20) + Mi::new(4), Mi::new(0));
-/// assert_eq!(Mi::new(1) / Mi::new(7), Mi::new(7));
+/// assert_eq!(Mi::from(20) + Mi::from(4), Mi::from(0));
+/// assert_eq!(Mi::from(1) / Mi::from(7), Mi::from(7));
 /// ```
-pub trait Mod: Clone + Copy + Debug + Eq + PartialEq {
-    fn get() -> i64;
+pub trait AssocVal<T> {
+    fn get() -> T;
+}
+
+#[macro_export]
+macro_rules! impl_assoc_val {
+    ( $i:ident<$t:ty> => $e:expr ) => {
+        #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+        struct $i { _t: std::marker::PhantomData<$t> }
+        impl AssocVal<$t> for $i {
+            fn get() -> $t { $e }
+        }
+    };
+    ( $( $i:ident<$t:ty> => $m:expr, )* ) => { $( impl_assoc_val!($i<$t> => $m); )* };
+    ( $( $i:ident<$t:ty> => $m:expr ),* ) => { $( impl_assoc_val!($i<$t> => $m); )* };
 }
 
 #[macro_export]
@@ -52,7 +63,7 @@ macro_rules! impl_mod_int {
     ( $i:ident => $m:expr ) => {
         #[derive(Copy, Clone, Debug, Eq, PartialEq)]
         struct $i {}
-        impl Mod for $i {
+        impl AssocVal<i64> for $i {
             fn get() -> i64 { $m }
         }
     };
