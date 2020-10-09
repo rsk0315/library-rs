@@ -6,8 +6,6 @@ use crate::test_set::*;
 
 use serde::{Deserialize, Serialize};
 
-pub struct Aoj0425 {}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub enum Query {
     Type1(usize),
@@ -19,6 +17,8 @@ pub enum Response {
     Type1(usize),
     Type2(usize),
 }
+
+pub struct Aoj0425 {}
 
 impl Jury for Aoj0425 {
     type Input = (usize, Vec<(usize, usize)>, Vec<(Range<usize>, Query)>);
