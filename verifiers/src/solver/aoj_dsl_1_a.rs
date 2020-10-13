@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use disjoint_set::DisjointSet;
 
 use crate::jury;
-use crate::test_set::*;
+use crate::test_set::Solver;
 
 use jury::aoj_dsl_1_a::Query;
 

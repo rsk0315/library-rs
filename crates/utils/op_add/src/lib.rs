@@ -2,8 +2,8 @@
 
 use std::fmt::Debug;
 
-use additive::*;
-use binop::*;
+use additive::{AddAssoc, AddComm, Zero};
+use binop::{Associative, Commutative, Identity, Magma, PartialRecip, Recip};
 
 /// 和を返す演算を持つ。
 ///

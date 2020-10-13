@@ -6,7 +6,7 @@ use op_add::OpAdd;
 use set_value::SetValue;
 
 use crate::jury;
-use crate::test_set::*;
+use crate::test_set::Solver;
 
 use jury::aoj_dsl_2_b::Query;
 
@@ -23,7 +23,7 @@ where
 {
     type Jury = jury::AojDsl2B;
     fn solve((n, qs): (usize, Vec<Query>)) -> Vec<u64> {
-        let mut rq: D = vec![0u64; n].into();
+        let mut rq: D = vec![0_u64; n].into();
         qs.into_iter()
             .filter_map(|q| match q {
                 Query::Add(i, x) => {

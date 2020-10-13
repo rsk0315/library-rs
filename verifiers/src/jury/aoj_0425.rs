@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::ops::Range;
 use std::time::Duration;
 
-use crate::test_set::*;
+use crate::test_set::{Aoj, Jury, Oj};
 
 use serde::{Deserialize, Serialize};
 
@@ -65,11 +65,11 @@ impl Jury for Aoj0425 {
     fn parse_output((_, _, qs): &Self::Input, output: String) -> Self::Output {
         let mut output = output.lines();
         qs.iter()
-            .filter_map(|q| {
+            .map(|q| {
                 let r = output.next().unwrap().parse::<usize>().unwrap() - 1;
                 match q {
-                    (_, Query::Type1(_)) => Some(Response::Type1(r)),
-                    (_, Query::Type2(_)) => Some(Response::Type2(r)),
+                    (_, Query::Type1(_)) => Response::Type1(r),
+                    (_, Query::Type2(_)) => Response::Type2(r),
                 }
             })
             .collect()

@@ -31,9 +31,10 @@ pub fn bisect<T, F: Fn(&T) -> bool>(buf: &[T], pred: F) -> usize {
     let mut bad = buf.len();
     while bad - ok > 1 {
         let mid = ok + (bad - ok) / 2;
-        match pred(&buf[mid]) {
-            true => ok = mid,
-            false => bad = mid,
+        if pred(&buf[mid]) {
+            ok = mid;
+        } else {
+            bad = mid;
         }
     }
     bad

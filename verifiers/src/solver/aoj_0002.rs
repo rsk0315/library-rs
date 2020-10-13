@@ -1,5 +1,5 @@
 use crate::jury;
-use crate::test_set::*;
+use crate::test_set::Solver;
 
 pub struct Aoj0002 {}
 

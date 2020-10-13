@@ -4,8 +4,8 @@ use std::fmt::Debug;
 use std::ops::{Add, Mul};
 
 use additive::Zero;
-use assoc_val::*;
-use binop::*;
+use assoc_val::AssocVal;
+use binop::{Associative, Identity, Magma};
 use multiplicative::One;
 
 /// 文字列連結をローリングハッシュで行う演算を持つ。
@@ -78,6 +78,7 @@ where
     T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero + One + From<u8>,
     B: AssocVal<T>,
 {
+    #[must_use]
     pub fn val_from(s: &str) -> <Self as Magma>::Set {
         s.bytes()
             .fold(Self::id(), |acc, x| Self::op(acc, (T::from(x), B::get())))

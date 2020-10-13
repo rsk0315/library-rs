@@ -1,7 +1,5 @@
-use std::ops::Range;
-
 use crate::jury;
-use crate::test_set::*;
+use crate::test_set::{Jury, Solver};
 
 use jury::aoj_0425::{Query, Response};
 
@@ -17,15 +15,13 @@ where
         + From<(usize, Vec<(usize, usize)>)>,
 {
     type Jury = jury::Aoj0425;
-    fn solve(
-        (n, ab, qs): (usize, Vec<(usize, usize)>, Vec<(Range<usize>, Query)>),
-    ) -> Vec<Response> {
+    fn solve((n, ab, qs): <Self::Jury as Jury>::Input) -> Vec<Response> {
         let mut rh: R = (n, ab).into();
         rh.batch_query(qs, Some(224))
     }
 }
 
-pub struct NekoAoj0425 {
+pub struct Neko {
     n: usize,
     l: usize,
     r: usize,
@@ -34,14 +30,14 @@ pub struct NekoAoj0425 {
     q: Vec<usize>,
 }
 
-impl NekoAoj0425 {
+impl Neko {
     fn swap(&mut self, a: usize, b: usize) {
         self.q.swap(self.p[a], self.p[b]);
         self.p.swap(a, b);
     }
 }
 
-impl From<(usize, Vec<(usize, usize)>)> for NekoAoj0425 {
+impl From<(usize, Vec<(usize, usize)>)> for Neko {
     fn from((n, ab): (usize, Vec<(usize, usize)>)) -> Self {
         Self {
             n,
@@ -54,7 +50,7 @@ impl From<(usize, Vec<(usize, usize)>)> for NekoAoj0425 {
     }
 }
 
-impl RangeHash for NekoAoj0425 {
+impl RangeHash for Neko {
     type Input = jury::aoj_0425::Query;
     type Output = jury::aoj_0425::Response;
     fn start(&self) -> usize {

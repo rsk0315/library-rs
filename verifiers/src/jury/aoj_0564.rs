@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::test_set::*;
+use crate::test_set::{Aoj, Jury, Oj};
 
 pub struct Aoj0564 {}
 
@@ -17,7 +17,7 @@ impl Jury for Aoj0564 {
                 let mut it = input
                     .next()
                     .unwrap()
-                    .split(" ")
+                    .split(' ')
                     .map(|x| x.parse().unwrap());
                 let a = it.next().unwrap();
                 let b = it.next().unwrap();

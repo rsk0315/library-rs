@@ -3,14 +3,14 @@ use std::ops::{Add, Range};
 
 use serde::{Deserialize, Serialize};
 
-use additive::*;
+use additive::{AddAssoc, Zero};
 use fold::Fold;
 use fold_bisect::FoldBisect;
 use op_add::OpAdd;
 use set_value::SetValue;
 
 use crate::jury;
-use crate::test_set::*;
+use crate::test_set::Solver;
 
 #[derive(Clone, Copy, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Pair(u64, u64);

@@ -176,6 +176,7 @@ pub trait Ring {
         Self::Additive::op(x, y)
     }
     /// 加法 $\\circ$ の単位元 $0$ を返す。
+    #[must_use]
     fn zero() -> Self::Set {
         Self::Additive::id()
     }
@@ -188,6 +189,7 @@ pub trait Ring {
         Self::Multiplicative::op(x, y)
     }
     /// 乗法 $\\ast$ の単位元 $1$ を返す。
+    #[must_use]
     fn one() -> Self::Set {
         Self::Multiplicative::id()
     }

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::test_set::*;
+use crate::test_set::{Aoj, Jury, Oj};
 
 pub struct Aoj1180 {}
 
@@ -13,7 +13,7 @@ impl Jury for Aoj1180 {
         input
             .lines()
             .filter_map(|s| {
-                let mut it = s.split(" ");
+                let mut it = s.split(' ');
                 let a = it.next().unwrap().parse().unwrap();
                 let l = it.next().unwrap().parse().unwrap();
                 match (a, l) {
@@ -28,7 +28,7 @@ impl Jury for Aoj1180 {
         let n = input.len();
         (0..n)
             .map(|_| {
-                let mut it = output.next().unwrap().split(" ");
+                let mut it = output.next().unwrap().split(' ');
                 let mu = it.next().unwrap().parse().unwrap();
                 let a = it.next().unwrap().parse().unwrap();
                 let lambda = it.next().unwrap().parse().unwrap();

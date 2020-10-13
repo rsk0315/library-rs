@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use crate::test_set::*;
+use crate::test_set::{Jury, Oj, Yukicoder};
 
 pub struct Yuki3287 {}
 
@@ -20,7 +20,7 @@ impl Jury for Yuki3287 {
         let mut input = input.lines();
         let (_n, q) = {
             let mut tmp =
-                input.next().unwrap().split(" ").map(|s| s.parse().unwrap());
+                input.next().unwrap().split(' ').map(|s| s.parse().unwrap());
 
             let n = tmp.next().unwrap();
             let q = tmp.next().unwrap();
@@ -30,13 +30,13 @@ impl Jury for Yuki3287 {
         let a = input
             .next()
             .unwrap()
-            .split(" ")
+            .split(' ')
             .map(|s| s.parse().unwrap())
             .collect();
         let qs = input
             .take(q)
             .map(|ss| {
-                let mut ss = ss.split(" ");
+                let mut ss = ss.split(' ');
                 match ss.next().unwrap() {
                     "1" => {
                         let l =

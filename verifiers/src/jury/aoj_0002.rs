@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::test_set::*;
+use crate::test_set::{Aoj, Jury, Oj};
 
 pub struct Aoj0002 {}
 
@@ -12,9 +12,9 @@ impl Jury for Aoj0002 {
     fn parse_input(input: String) -> Self::Input {
         input
             .lines()
-            .take_while(|s| s.len() > 0)
+            .take_while(|s| !s.is_empty())
             .map(|s| {
-                let mut it = s.split(" ").map(|x| x.parse().unwrap());
+                let mut it = s.split(' ').map(|x| x.parse().unwrap());
                 let a = it.next().unwrap();
                 let b = it.next().unwrap();
                 (a, b)

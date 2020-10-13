@@ -8,7 +8,7 @@ use op_max::OpMax;
 use set_value::SetValue;
 
 use crate::jury;
-use crate::test_set::*;
+use crate::test_set::Solver;
 
 use jury::yuki_3287::Query;
 
@@ -36,6 +36,7 @@ where
 {
     type Jury = jury::Yuki3287;
     fn solve((a, qs): (Vec<u32>, Vec<Query>)) -> Vec<usize> {
+        #![allow(clippy::similar_names)]
         let n = a.len();
         let q = qs.len();
 

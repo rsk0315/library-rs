@@ -30,6 +30,6 @@ mod verify {
 
     #[test]
     fn verify_mo() {
-        verify::<Aoj0425<aoj_0425::NekoAoj0425>>();
+        verify::<Aoj0425<aoj_0425::Neko>>();
     }
 }

@@ -2,8 +2,8 @@
 
 use std::fmt::Debug;
 
-use binop::*;
-use multiplicative::*;
+use binop::{Associative, Commutative, Identity, Magma, PartialRecip, Recip};
+use multiplicative::{MulAssoc, MulComm, MulRecip, One};
 
 /// 積を返す演算を持つ。
 ///
@@ -59,7 +59,7 @@ use op_add::OpAdd;
 
 macro_rules! impl_distributive {
     ( $T:ty ) => {
-        impl Distributive<OpAdd<$T>> for OpMul<$T> {}
+        impl binop::Distributive<OpAdd<$T>> for OpMul<$T> {}
     };
     ( $( $T:ty, )* ) => { $( impl_distributive!($T); )* };
 }

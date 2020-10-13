@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::test_set::*;
+use crate::test_set::{Aoj, Jury, Oj};
 
 pub struct Aoj0270 {}
 
@@ -12,7 +12,7 @@ impl Jury for Aoj0270 {
     fn parse_input(input: String) -> Self::Input {
         let mut input = input.lines();
         let (_n, q) = {
-            let mut it = input.next().unwrap().split(" ");
+            let mut it = input.next().unwrap().split(' ');
             let n = it.next().unwrap().parse::<usize>().unwrap();
             let q = it.next().unwrap().parse().unwrap();
             (n, q)
@@ -20,7 +20,7 @@ impl Jury for Aoj0270 {
         let c = input
             .next()
             .unwrap()
-            .split(" ")
+            .split(' ')
             .map(|x| x.parse().unwrap())
             .collect();
         let qs = (0..q)

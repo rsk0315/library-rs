@@ -6,6 +6,10 @@ pub trait DisjointSet {
     fn new(n: usize) -> Self;
     /// 集合族全体に含まれる要素数 $n$ を返す。
     fn len(&self) -> usize;
+    /// 集合族が空であれば `true` を返す。
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
     /// $u$ を含む集合と $v$ を含む集合を併合する。
     /// 集合族に変化があれば `true` を返す。
     /// $u$ と $v$ が元々同じ集合に含まれていれば `false` を返す。

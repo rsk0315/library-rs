@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use binop::*;
+use binop::{Associative, Commutative, Identity, Magma};
 use max::Max;
 
 /// 最小値を返す演算を持つ。

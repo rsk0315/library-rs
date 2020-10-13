@@ -1,6 +1,6 @@
 //! 区間に関する関数に関するトレイト。
 
-use std::cmp::Ordering::*;
+use std::cmp::Ordering::Equal;
 use std::ops::Range;
 
 /// 区間に関する関数。
@@ -72,6 +72,6 @@ pub trait RangeHash {
             }
             res[i] = Some(self.hash(x));
         }
-        res.into_iter().map(|x| x.unwrap()).collect()
+        res.into_iter().map(std::option::Option::unwrap).collect()
     }
 }

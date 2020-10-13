@@ -3,11 +3,13 @@
 use std::convert::TryInto;
 use std::fmt::Debug;
 use std::marker::PhantomData;
-use std::ops::*;
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
+};
 
-use additive::*;
+use additive::{AddAssoc, AddComm, Zero};
 use assoc_val::AssocVal;
-use multiplicative::*;
+use multiplicative::{MulAssoc, MulComm, MulRecip, One};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct ModInt<M: AssocVal<i64>> {
@@ -144,15 +146,21 @@ impl<M: AssocVal<i64>> MulRecip for ModInt<M> {
         let mut v = x;
         while a != 0 {
             let q = b / a;
-            let tmp = x - q * u;
-            x = u;
-            u = tmp;
-            let tmp = y - q * v;
-            y = v;
-            v = tmp;
-            let tmp = b - q * a;
-            b = a;
-            a = tmp;
+            {
+                let tmp = x - q * u;
+                x = u;
+                u = tmp;
+            }
+            {
+                let tmp = y - q * v;
+                y = v;
+                v = tmp;
+            }
+            {
+                let tmp = b - q * a;
+                b = a;
+                a = tmp;
+            }
         }
         assert_eq!(b, 1, "{} has no reciprocal modulo {}", self.n, M::get());
         Self::from(x)

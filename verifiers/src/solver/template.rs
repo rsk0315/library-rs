@@ -1,7 +1,7 @@
 use std::*;
 
-use crate::jury::*;
-use crate::test_set::*;
+use crate::jury;
+use crate::test_set::solver;
 
 use jury::template::*;
 

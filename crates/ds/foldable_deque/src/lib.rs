@@ -2,7 +2,7 @@
 
 use std::ops::RangeFull;
 
-use binop::*;
+use binop::Monoid;
 use fold::Fold;
 use push_pop::{PopBack, PopFront, PushBack, PushFront};
 
@@ -80,6 +80,7 @@ impl<M: Monoid> FoldableDeque<M>
 where
     M::Set: Clone,
 {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             buf_front: vec![],
@@ -197,5 +198,14 @@ where
         let front = self.buf_folded_front.last().unwrap().clone();
         let back = self.buf_folded_back.last().unwrap().clone();
         M::op(front, back)
+    }
+}
+
+impl<M: Monoid> Default for FoldableDeque<M>
+where
+    M::Set: Clone,
+{
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -1,6 +1,6 @@
 //! 配列上の区間に関する関数。
 
-use std::ops::Bound::*;
+use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::ops::{Range, RangeBounds};
 
 /// 区間を配列サイズに収まるように丸める。

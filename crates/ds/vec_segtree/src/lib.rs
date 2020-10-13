@@ -63,6 +63,7 @@ where
     M: Monoid,
     M::Set: Clone,
 {
+    #[must_use]
     pub fn new(len: usize) -> Self {
         Self {
             len,
@@ -104,21 +105,21 @@ where
         let Range { start, end } = bounds_within(b, self.len);
         let mut il = self.len + start;
         let mut ir = self.len + end;
-        let mut resl = M::id();
-        let mut resr = M::id();
+        let mut res_l = M::id();
+        let mut res_r = M::id();
         while il < ir {
             if il & 1 == 1 {
-                resl = M::op(resl, self.buf[il].clone());
+                res_l = M::op(res_l, self.buf[il].clone());
                 il += 1;
             }
             if ir & 1 == 1 {
                 ir -= 1;
-                resr = M::op(self.buf[ir].clone(), resr);
+                res_r = M::op(self.buf[ir].clone(), res_r);
             }
             il >>= 1;
             ir >>= 1;
         }
-        M::op(resl, resr)
+        M::op(res_l, res_r)
     }
 }
 

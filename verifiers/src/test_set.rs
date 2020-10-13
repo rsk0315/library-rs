@@ -60,15 +60,15 @@ pub trait Jury {
         output: Self::Output,
         jury: Self::Output,
     ) -> Verdict {
-        match output == jury {
-            true => Ac(1),
-            false => {
-                Wa(0, format!("output: {:?};\nexpected: {:?}", output, jury))
-            }
+        if output == jury {
+            Ac(1)
+        } else {
+            Wa(0, format!("output: {:?};\nexpected: {:?}", output, jury))
         }
     }
 }
 
+#[must_use]
 pub fn test<S: Solver>() -> Verdict
 where
     <S::Jury as Jury>::Input: 'static,
@@ -105,6 +105,7 @@ where
     unreachable!();
 }
 
+#[must_use]
 pub fn verify<S: Solver>() -> Verdict
 where
     <S::Jury as Jury>::Input: 'static,
@@ -122,9 +123,10 @@ fn find_cases_dir(oj: Oj) -> Option<PathBuf> {
     let cd = Path::new(&std::env::current_dir().unwrap()).to_path_buf();
     let d = cd.ancestors().find_map(|d| {
         let d = d.join("testcases");
-        match d.exists() {
-            true => Some(d),
-            false => None,
+        if d.exists() {
+            Some(d)
+        } else {
+            None
         }
     });
     match (d, oj) {
@@ -197,6 +199,7 @@ async fn case_urls(
     })
 }
 
+/// # Errors
 pub async fn download<J: Jury>() -> Result<(), Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let dir = find_cases_dir(J::PROBLEM).unwrap();
@@ -235,7 +238,7 @@ async fn fetch(
 
     let client = match problem {
         Yukicoder(_) => client.get(url).bearer_auth(yukitoken()),
-        _ => client.get(url),
+        Aoj(_) => client.get(url),
     };
     let content = client.send().await?.text().await?;
 

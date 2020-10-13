@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use crate::test_set::*;
+use crate::test_set::{Aoj, Jury, Oj};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub enum Query {
@@ -20,13 +20,13 @@ impl Jury for AojDsl1A {
     fn parse_input(input: String) -> Self::Input {
         let mut input = input.lines();
         let (n, q) = {
-            let mut it = input.next().unwrap().split(" ");
+            let mut it = input.next().unwrap().split(' ');
             let n = it.next().unwrap().parse().unwrap();
             let q = it.next().unwrap().parse().unwrap();
             (n, q)
         };
         let qs = (0..q).map(|_| {
-            let mut it = input.next().unwrap().split(" ");
+            let mut it = input.next().unwrap().split(' ');
 
             match it.next().unwrap() {
                 "0" => {

@@ -2,7 +2,7 @@
 
 use std::ops::RangeFull;
 
-use binop::*;
+use binop::Monoid;
 use fold::Fold;
 use push_pop::{Pop, PopFront, Push, PushBack};
 
@@ -76,6 +76,7 @@ impl<M: Monoid> FoldableQueue<M>
 where
     M::Set: Clone,
 {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             buf_front: vec![],
@@ -161,5 +162,14 @@ where
     fn fold(&self, _: RangeFull) -> M::Set {
         let front = self.buf_folded_front.last().unwrap().clone();
         M::op(front, self.folded_back.clone())
+    }
+}
+
+impl<M: Monoid> Default for FoldableQueue<M>
+where
+    M::Set: Clone,
+{
+    fn default() -> Self {
+        Self::new()
     }
 }
