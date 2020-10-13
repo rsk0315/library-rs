@@ -4,7 +4,7 @@ use std::convert::From;
 use std::iter::{IntoIterator, Iterator};
 use std::ops::{Index, Range, RangeBounds};
 
-use binop::{Magma, Monoid};
+use binop::Monoid;
 use buf_range::bounds_within;
 use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
@@ -52,16 +52,16 @@ use set_value::SetValue;
 pub struct VecSegtree<M>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
 {
-    buf: Vec<<M as Magma>::Set>,
+    buf: Vec<M::Set>,
     len: usize,
 }
 
 impl<M> VecSegtree<M>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
 {
     pub fn new(len: usize) -> Self {
         Self {
@@ -96,11 +96,11 @@ where
 impl<M, B> Fold<B> for VecSegtree<M>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
     B: RangeBounds<usize>,
 {
     type Output = M;
-    fn fold(&self, b: B) -> <M as Magma>::Set {
+    fn fold(&self, b: B) -> M::Set {
         let Range { start, end } = bounds_within(b, self.len);
         let mut il = self.len + start;
         let mut ir = self.len + end;
@@ -108,26 +108,26 @@ where
         let mut resr = M::id();
         while il < ir {
             if il & 1 == 1 {
-                resl = <M as Magma>::op(resl, self.buf[il].clone());
+                resl = M::op(resl, self.buf[il].clone());
                 il += 1;
             }
             if ir & 1 == 1 {
                 ir -= 1;
-                resr = <M as Magma>::op(self.buf[ir].clone(), resr);
+                resr = M::op(self.buf[ir].clone(), resr);
             }
             il >>= 1;
             ir >>= 1;
         }
-        <M as Magma>::op(resl, resr)
+        M::op(resl, resr)
     }
 }
 
 impl<M> SetValue<usize> for VecSegtree<M>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
 {
-    type Input = <M as Magma>::Set;
+    type Input = M::Set;
     fn set_value(&mut self, i: usize, x: Self::Input) {
         assert!(
             i < self.len,
@@ -140,26 +140,23 @@ where
         self.buf[i] = x;
         while i > 1 {
             i >>= 1;
-            self.buf[i] = <M as Magma>::op(
-                self.buf[i << 1].clone(),
-                self.buf[i << 1 | 1].clone(),
-            );
+            self.buf[i] =
+                M::op(self.buf[i << 1].clone(), self.buf[i << 1 | 1].clone());
         }
     }
 }
 
-impl<M> From<Vec<<M as Magma>::Set>> for VecSegtree<M>
+impl<M> From<Vec<M::Set>> for VecSegtree<M>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
 {
-    fn from(mut v: Vec<<M as Magma>::Set>) -> Self {
+    fn from(mut v: Vec<M::Set>) -> Self {
         let len = v.len();
         let mut buf = vec![M::id(); len];
         buf.append(&mut v);
         for i in (0..len).rev() {
-            buf[i] =
-                <M as Magma>::op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
+            buf[i] = M::op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
         }
         Self { buf, len }
     }
@@ -168,9 +165,9 @@ where
 impl<M> Index<usize> for VecSegtree<M>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
 {
-    type Output = <M as Magma>::Set;
+    type Output = M::Set;
     fn index(&self, i: usize) -> &Self::Output {
         assert!(
             i < self.len,
@@ -183,10 +180,10 @@ where
     }
 }
 
-impl<M> From<VecSegtree<M>> for Vec<<M as Magma>::Set>
+impl<M> From<VecSegtree<M>> for Vec<M::Set>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
 {
     fn from(v: VecSegtree<M>) -> Self {
         v.buf.into_iter().skip(v.len).collect()
@@ -196,12 +193,12 @@ where
 impl<M> FoldBisect for VecSegtree<M>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
 {
     type Folded = M;
     fn fold_bisect<F>(&self, l: usize, pred: F) -> Option<usize>
     where
-        F: Fn(&<M as Magma>::Set) -> bool,
+        F: Fn(&M::Set) -> bool,
     {
         assert!(
             l < self.len,
@@ -217,7 +214,7 @@ where
         }
 
         for v in self.nodes(l, self.len) {
-            let tmp = <M as Magma>::op(x.clone(), self.buf[v].clone());
+            let tmp = M::op(x.clone(), self.buf[v].clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
@@ -225,7 +222,7 @@ where
             let mut v = v;
             while v < self.len {
                 v <<= 1;
-                let tmp = <M as Magma>::op(x.clone(), self.buf[v].clone());
+                let tmp = M::op(x.clone(), self.buf[v].clone());
                 if pred(&tmp) {
                     x = tmp;
                     v += 1;
@@ -240,12 +237,12 @@ where
 impl<M> FoldBisectRev for VecSegtree<M>
 where
     M: Monoid,
-    <M as Magma>::Set: Clone,
+    M::Set: Clone,
 {
     type Folded = M;
     fn fold_bisect_rev<F>(&self, r: usize, pred: F) -> Option<usize>
     where
-        F: Fn(&<M as Magma>::Set) -> bool,
+        F: Fn(&M::Set) -> bool,
     {
         assert!(
             r <= self.len,
@@ -261,7 +258,7 @@ where
         }
 
         for v in self.nodes(0, r).into_iter().rev() {
-            let tmp = <M as Magma>::op(self.buf[v].clone(), x.clone());
+            let tmp = M::op(self.buf[v].clone(), x.clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
@@ -270,7 +267,7 @@ where
             while v < self.len {
                 v <<= 1;
                 v += 1;
-                let tmp = <M as Magma>::op(self.buf[v].clone(), x.clone());
+                let tmp = M::op(self.buf[v].clone(), x.clone());
                 if pred(&tmp) {
                     x = tmp;
                     v -= 1;
