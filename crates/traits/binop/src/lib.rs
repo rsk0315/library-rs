@@ -130,8 +130,8 @@ pub trait Distributive<A: Magma> {}
 /// 半群。
 ///
 /// マグマ $(M, \\circ)$ であり、結合法則を満たす。
-pub trait Semigroup: Magma {}
-impl<G: Magma> Semigroup for G {}
+pub trait Semigroup: Associative + Magma {}
+impl<G: Associative + Magma> Semigroup for G {}
 
 /// モノイド。
 ///
