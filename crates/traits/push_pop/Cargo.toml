@@ -1,5 +1,5 @@
 [package]
-name = "foldable_queue"
+name = "push_pop"
 version = "0.1.0"
 authors = ["rsk0315 <rsk0315@icloud.com>"]
 edition = "2018"
@@ -7,6 +7,3 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-binop = { path = "../../traits/binop" }
-fold = { path = "../../traits/fold" }
-push_pop = { path = "../../traits/push_pop" }
