@@ -15,8 +15,6 @@ pub struct ModInt<M: AssocVal<i64>> {
     _m: PhantomData<M>,
 }
 
-// new か？ from かも
-
 macro_rules! impl_from {
     ( $t:ty ) => {
         impl<M: AssocVal<i64>> From<$t> for ModInt<M> {
