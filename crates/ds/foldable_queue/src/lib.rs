@@ -8,6 +8,16 @@ use push_pop::{Pop, PopFront, Push, PushBack};
 
 /// fold 可能キュー。
 ///
+/// モノイドのキューであって、全体のモノイド積を計算できる。
+///
+/// # Complexity
+/// |演算|時間計算量|
+/// |---|---|
+/// |`new`|$\\Theta(1)$|
+/// |`push` (`push_back`)|$\\Theta(1)$|
+/// |`pop` (`pop_front`)|amortized $\\Theta(1)$|
+/// |`fold`|$\\Theta(1)$|
+///
 /// # Examples
 /// 逆元がない演算について処理できるのが強みです。
 ///
