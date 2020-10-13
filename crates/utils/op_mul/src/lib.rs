@@ -1,5 +1,7 @@
 //! 乗法に関する wrapper クラス。
 
+use std::fmt::Debug;
+
 use binop::*;
 use multiplicative::*;
 
@@ -13,7 +15,7 @@ use multiplicative::*;
 /// [`MulRecip`]: ../../traits/multiplicative/trait.MulRecip.html
 /// [`MulAssoc`]: ../../traits/multiplicative/trait.MulAssoc.html
 /// [`MulComm`]: ../../traits/multiplicative/trait.MulComm.html
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OpMul<T> {
     _t: std::marker::PhantomData<T>,
 }

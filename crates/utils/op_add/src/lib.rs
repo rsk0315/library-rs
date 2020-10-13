@@ -1,5 +1,7 @@
 //! 加法に関する wrapper クラス。
 
+use std::fmt::Debug;
+
 use additive::*;
 use binop::*;
 
@@ -12,7 +14,7 @@ use binop::*;
 /// [`Zero`]: ../../traits/additive/trait.Zero.html
 /// [`AddAssoc`]: ../../traits/additive/trait.AddAssoc.html
 /// [`AddComm`]: ../../traits/additive/trait.AddComm.html
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OpAdd<T> {
     _t: std::marker::PhantomData<T>,
 }

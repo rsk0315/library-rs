@@ -1,5 +1,6 @@
 //! ローリングハッシュに関する wrapper クラス。
 
+use std::fmt::Debug;
 use std::ops::{Add, Mul};
 
 use additive::Zero;
@@ -35,7 +36,7 @@ use multiplicative::One;
 /// assert_ne!(val(&s[1..5]), abra);
 /// assert_eq!(val(s), op(op(abra, val("cad")), abra));
 /// ```
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct OpRollHash<T, B>
 where
     T: Copy + Eq,

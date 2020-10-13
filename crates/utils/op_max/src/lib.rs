@@ -1,5 +1,7 @@
 //! 最大値に関する wrapper クラス。
 
+use std::fmt::Debug;
+
 use binop::*;
 use min::Min;
 
@@ -8,7 +10,7 @@ use min::Min;
 /// 単位元は [`Min`] で定義する。
 ///
 /// [`Min`]: ../../traits/min/trait.Min.html
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OpMax<T> {
     _t: std::marker::PhantomData<T>,
 }
