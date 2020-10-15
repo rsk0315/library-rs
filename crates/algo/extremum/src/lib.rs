@@ -1,6 +1,7 @@
 //! 三分探索。
 
-use std::ops::Range;
+use std::convert::From;
+use std::ops::{Add, Range, Sub};
 
 /// 三分探索で極値を探す。
 ///
@@ -9,7 +10,6 @@ use std::ops::Range;
 ///
 /// # Requirements
 /// 凸である。すなわち、ある $i$ が存在して以下の二つが成り立つ。
-///
 /// - ${}^\\forall j \\in [l, i)$ に対して $f(j) < f(j+1)$。
 /// - ${}^\\forall j \\in [i, r-1)$ に対して $f(j) > f(j+1)$。
 ///
@@ -18,8 +18,8 @@ use std::ops::Range;
 /// 関数 $f$ の呼び出しと関数値の比較を $\\log_{\\varphi}(n)+O(1)$ 回行う。
 /// ただし $\\varphi$ は黄金比 $(1+\\sqrt{5})/2 = 1.618\\dots$ である。
 ///
-/// 連続値の場合における黄金比分割のように、Fibonacci 数列に基づいて
-/// 区間を分割していくため、関数値を使い回すことができる。
+/// 連続値の場合における黄金比分割のように、Fibonacci
+/// 数列に基づいて区間を分割していくため、関数値を使い回すことができる。
 /// 三等分する素直な実装での呼び出し回数は
 /// $2\\cdot\\log_{3/2}(n)+O(1)$ 回となる（係数の $2$ に注意）。
 /// $$ \\sqrt{3/2} < 1.225 < 1.618 < \\varphi $$
@@ -29,6 +29,7 @@ use std::ops::Range;
 /// 引数は `Range<usize>` を渡すことにしているものの、実際には
 /// `RangeBounds<I: {integer}>` を渡せるようにする方がよさそう？
 /// ただし、両端とも `Unbounded` であっては困りそう（特に多倍長を視野に入れる場合？）。
+/// 多倍長だと `Copy` がないから、計算結果自体を使い回せても `.clone()` でつらい？
 ///
 /// # Examples
 /// ```
@@ -43,36 +44,34 @@ use std::ops::Range;
 /// let g = |i: usize| -buf[i];
 /// assert_eq!(extremum(3..8, g), (6_usize, 0));
 /// ```
-pub fn extremum<T, F>(Range { start, end }: Range<usize>, f: F) -> (usize, T)
+pub fn extremum<I, T, F>(Range { start, end }: Range<I>, f: F) -> (I, T)
 where
-    F: Fn(usize) -> T,
+    I: Add<Output = I> + Sub<Output = I> + From<u8> + Copy + Ord,
+    F: Fn(I) -> T,
     T: Ord,
 {
-    let mut i0 = 0usize;
-    let mut i1 = 1usize;
+    let mut i0: I = 0.into();
+    let mut i1: I = 1.into();
     let n = end - start;
     while i0 + i1 < n {
         let tmp = i0 + i1;
-        i0 = i1;
-        i1 = tmp;
+        i0 = std::mem::replace(&mut i1, tmp);
     }
     let g = |i| if i < n { Some(f(start + i)) } else { None };
     let mut d = i0;
     let mut g0 = g(i0);
     let mut g1 = g(i1);
-    while d >= 1 {
+    while d > 0.into() {
         match (g0, g1) {
             (Some(f0), Some(f1)) if f0 < f1 => {
                 let tmp = i0 + d;
-                i0 = i1;
-                i1 = tmp;
+                i0 = std::mem::replace(&mut i1, tmp);
                 g0 = Some(f1);
                 g1 = g(i1);
             }
             (f0, _) => {
                 let tmp = i1 - d;
-                i1 = i0;
-                i0 = tmp;
+                i1 = std::mem::replace(&mut i0, tmp);
                 g1 = f0;
                 g0 = g(i0);
             }
