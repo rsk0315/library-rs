@@ -3,7 +3,7 @@ name: neko
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
