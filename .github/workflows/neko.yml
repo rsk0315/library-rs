@@ -28,8 +28,7 @@ jobs:
       - name: Generate
         run: |
           pwd
-          mkdir -p doc/gen/generated
-          cp -R master/static/* master/static/.* doc/gen/generated/
+          cp -R master/static doc/gen/generated
           cd doc/gen
           cargo run
 
