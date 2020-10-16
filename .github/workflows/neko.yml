@@ -17,6 +17,13 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          ref:
-            - master
-            - doc
+          ref: master
+
+      - uses: actions/checkout@v2
+        with:
+          ref: doc
+
+      - name: Postcheck
+        run: |
+          git status
+          git branch
