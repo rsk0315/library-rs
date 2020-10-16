@@ -36,5 +36,6 @@ jobs:
       - name: Postcheck
         run: |
           ls master doc/gen/**
+          cd doc
           git add .
           git status
