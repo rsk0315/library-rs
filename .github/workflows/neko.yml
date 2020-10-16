@@ -19,5 +19,8 @@ jobs:
         echo test
         git status
         echo nya > nya.txt
+        ls
+        git log
+        git status
         git commit -m Nya nya.txt
         git push
