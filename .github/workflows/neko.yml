@@ -11,12 +11,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        ref: doc
 
     - name: Nya
       run: |
         echo test
         git status
-        git checkout doc
         echo nya > nya.txt
         git commit -m Nya nya.txt
         git push
