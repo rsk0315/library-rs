@@ -22,6 +22,8 @@ jobs:
         ls
         git log
         git status
+        git config user.name github-actions
+        git config user.email github-actions@github.com
         git add nya.txt
         git commit -m Nya
         git push
