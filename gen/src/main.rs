@@ -22,9 +22,11 @@ fn main() -> Result<(), std::io::Error> {
         "{}/work/library-rs/library-rs/master", // for remote
         std::env::var("HOME").unwrap()
     );
+    eprintln!("library dir: {:?}", &lib_dir);
 
     let tomls = format!("{}/crates/*/*/Cargo.toml", &lib_dir);
 
+    eprintln!("current dir: {:?}", std::env::current_dir().unwrap());
     let dst = std::env::current_dir().unwrap().join("generated");
 
     std::fs::remove_dir_all(&dst)?;
@@ -37,6 +39,8 @@ fn main() -> Result<(), std::io::Error> {
             Ok(toml_path) => toml_path,
             _ => continue,
         };
+
+        eprintln!("cloning {:?}", &toml_path);
 
         match clone(&toml_path, &dst) {
             Ok(_) => {}
