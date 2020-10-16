@@ -15,8 +15,8 @@ jobs:
           echo $HOME
           pwd
 
-    - uses: actions/checkout@v2
-      with:
-        ref:
-          - master
-          - doc
+      - uses: actions/checkout@v2
+        with:
+          ref:
+            - master
+            - doc
