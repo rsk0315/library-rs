@@ -1,3 +1,6 @@
+//! 便利ちゃんたち。
+//!
+//! ここに何かを書く。
 pub mod buf_range;
 #[doc(inline)]
 pub use buf_range::*;
