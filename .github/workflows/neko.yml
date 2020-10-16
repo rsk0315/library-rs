@@ -20,6 +20,11 @@ jobs:
           ref: doc
           path: doc
 
+      - uses: actions/checkout@v2
+        with:
+          repository: rsk0315/rsk0315.github.io
+          path: gh
+
       - name: Generate
         run: |
           pwd
@@ -32,6 +37,21 @@ jobs:
         run: |
           ls master doc/gen/**
           cd doc
+          git add .
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -m '[auto-generated]'
+          git push
+
+      - name: Push to github.io
+        run: |
+          rm -Rf gh/library-rs
+          mkdir gh/library-rs
+          cd doc/gen/generated
+          cargo d
+          cd target/doc
+          cp -R * ../../../../../gh/library-rs/
+          cd ../../../../../gh/library-rs
           git add .
           git config user.name github-actions
           git config user.email github-actions@github.com
