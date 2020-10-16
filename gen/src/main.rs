@@ -30,9 +30,10 @@ fn main() -> Result<(), std::io::Error> {
     let dst: PathBuf =
         std::env::current_dir().unwrap().join("generated").into();
 
-    if dst.exists() {
-        std::fs::remove_dir_all(&dst)?;
-    }
+    // for local
+    // if dst.exists() {
+    //     std::fs::remove_dir_all(&dst)?;
+    // }
     std::fs::create_dir(&dst)?;
 
     let mut crates = BTreeSet::<String>::new();
