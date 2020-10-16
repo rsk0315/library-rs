@@ -27,13 +27,14 @@ jobs:
           cp -R master/static doc/gen/generated
           cd doc/gen
           cargo run
-
-      - name: Push
-        run: |
-          ls master doc/gen/**
-          cd doc
           git add .
           git config user.name github-actions
           git config user.email github-actions@github.com
           git commit -m '[auto-generated]' || true
-          git push
+
+      - name: Push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          directory: doc
+          branch: doc
