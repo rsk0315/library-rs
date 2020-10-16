@@ -39,3 +39,7 @@ jobs:
           cd doc
           git add .
           git status
+          git config user.name github-actions
+          git config user.email github-action@github.com
+          git commit -m '[auto-generated]'
+          git push
