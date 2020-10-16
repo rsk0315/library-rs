@@ -6,14 +6,17 @@ on:
       - master
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Nya
-      run: echo nya; echo test; echo nya > nya.txt
-
-    - name: Check environments
-      run: pwd; git status
+      run: |
+        echo test
+        git status
+        git checkout doc
+        echo nya > nya.txt
+        git commit -m Nya nya.txt
+        git push
