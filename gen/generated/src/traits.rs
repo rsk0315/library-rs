@@ -1,3 +1,6 @@
+//! トレイトたち。
+//!
+//! ここに何かを書く。
 pub mod additive;
 #[doc(inline)]
 pub use additive::*;

@@ -1,3 +1,6 @@
+//! アルゴリズムたち。
+//!
+//! ここに何かを書く。
 pub mod bisect;
 #[doc(inline)]
 pub use bisect::*;

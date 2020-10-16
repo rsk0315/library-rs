@@ -1,3 +1,6 @@
+//! データ構造たち。
+//!
+//! ここに何かを書く。
 pub mod foldable_deque;
 #[doc(inline)]
 pub use foldable_deque::*;
