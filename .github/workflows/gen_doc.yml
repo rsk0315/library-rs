@@ -1,4 +1,4 @@
-name: generator document
+name: generate document
 
 on:
   push:
