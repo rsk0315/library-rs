@@ -1,5 +1,6 @@
 //! 区間和の二分探索に関するトレイトたちです。
 //!
+//! # Suggestions
 //! 設計を見直します。
 //! `r = fold_bisect(l, pred).unwrap()` および `l = fold_bisect_rev(r, pred).unwrap()` の
 //! どちらの場合においても、`fold(l..r)` が `true`（あるいは `false`）で
