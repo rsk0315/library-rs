@@ -25,6 +25,11 @@ jobs:
           ref: doc
           path: doc
 
+      - name: Generate
+        run: |
+          cd doc/gen
+          cargo run
+
       - name: Postcheck
         run: |
-          ls master doc
+          ls master doc/gen/*
