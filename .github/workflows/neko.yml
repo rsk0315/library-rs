@@ -43,7 +43,7 @@ jobs:
           git commit -m '[auto-generated]'
           git push
 
-      - name: Push to github.io
+      - name: Generate doc
         run: |
           rm -Rf gh/library-rs
           mkdir gh/library-rs
@@ -56,4 +56,10 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git commit -m '[auto-generated]'
-          git push
+
+      - name: Push to github.io
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          directory: gh
+          repository: rsk0315/rsk0315.github.io
