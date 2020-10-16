@@ -14,21 +14,17 @@ jobs:
         run: |
           echo $HOME
           pwd
-          mkdir master doc
-          cd master
 
       - uses: actions/checkout@v2
         with:
           ref: master
-
-      - name: Change directory
-        run: cd ../doc
+          path: master
 
       - uses: actions/checkout@v2
         with:
           ref: doc
+          path: doc
 
       - name: Postcheck
         run: |
-          cd ..
           ls master doc
