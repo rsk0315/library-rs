@@ -5,4 +5,8 @@ d = "doc"
 p = "clippy -- -W clippy::pedantic -A clippy::doc_markdown -A clippy::module_name_repetitions"
 
 [build]
-rustdocflags = ["--html-in-header", "katex-header.html"]
+rustdocflags = [
+    "--html-in-header", "katex-header.html",
+    "--html-in-header", "lato-header.html",
+    "--html-after-content", "neko-test.html",
+]
