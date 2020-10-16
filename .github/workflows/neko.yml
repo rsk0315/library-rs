@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+    - uses: actions/checkout@v1
 
-      - name: Nya
-        run: echo nya; echo test; echo nya > nya.txt
+    - name: Nya
+      run: echo nya; echo test; echo nya > nya.txt
 
-      - name: Check environments
-        run: pwd; git status
+    - name: Check environments
+      run: pwd; git status
