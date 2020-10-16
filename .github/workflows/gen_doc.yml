@@ -37,6 +37,6 @@ jobs:
       - name: Push to github.io
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GH_PAT }}
+          github_token: ${{ secrets.GH_TOKEN }}
           directory: gh
           repository: rsk0315/rsk0315.github.io
