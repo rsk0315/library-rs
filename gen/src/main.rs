@@ -34,7 +34,9 @@ fn main() -> Result<(), std::io::Error> {
     // if dst.exists() {
     //     std::fs::remove_dir_all(&dst)?;
     // }
-    std::fs::create_dir(&dst)?;
+    if !dst.exists() {
+        std::fs::create_dir(&dst)?;
+    }
 
     let mut crates = BTreeSet::<String>::new();
 
@@ -65,9 +67,6 @@ fn main() -> Result<(), std::io::Error> {
         .append(true)
         .open(lib_rs)?;
 
-    let desc = format!("//! {}\n\n", "ねこちゃん。");
-
-    outfile.write_all(desc.as_bytes())?;
     for c in crates {
         // add `pub mod {crate};` to src/lib.rs
         let pubmod = format!("pub mod {};\n", c);
