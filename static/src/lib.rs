@@ -1,6 +1,6 @@
 //! ねこちゃんライブラリ。
 //!
-//! <span style="font-family: Lato; color: #C0C000;">[rsk0315](https://atcoder.jp/users/rsk0315)</span>
+//! [<span style="font-family: Lato; color: #C0C000;">rsk0315</span>](https://atcoder.jp/users/rsk0315)
 //! の競プロライブラリです。
 //! まだ bundler を作っていないため、競プロでの使用には適していないと思います。
 //! と思ったのですが、全部貼りを厭わない人になれば大丈夫かもしれません。
