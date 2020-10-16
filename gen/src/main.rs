@@ -27,9 +27,12 @@ fn main() -> Result<(), std::io::Error> {
     let tomls = format!("{}/crates/*/*/Cargo.toml", &lib_dir);
 
     eprintln!("current dir: {:?}", std::env::current_dir().unwrap());
-    let dst = std::env::current_dir().unwrap().join("generated");
+    let dst: PathBuf =
+        std::env::current_dir().unwrap().join("generated").into();
 
-    std::fs::remove_dir_all(&dst)?;
+    if dst.exists() {
+        std::fs::remove_dir_all(&dst)?;
+    }
     std::fs::create_dir(&dst)?;
 
     let mut crates = BTreeSet::<String>::new();
