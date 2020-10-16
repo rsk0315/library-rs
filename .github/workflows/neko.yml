@@ -22,5 +22,6 @@ jobs:
         ls
         git log
         git status
-        git commit -m Nya nya.txt
+        git add nya.txt
+        git commit -m Nya
         git push
