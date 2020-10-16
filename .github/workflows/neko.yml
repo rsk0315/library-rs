@@ -10,20 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Precheck
+        run: |
+          echo $HOME
+          pwd
+
     - uses: actions/checkout@v2
       with:
-        ref: doc
-
-    - name: Nya
-      run: |
-        echo test
-        git status
-        echo nya > nya.txt
-        ls
-        git log
-        git status
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add nya.txt
-        git commit -m Nya
-        git push
+        ref:
+          - master
+          - doc
