@@ -20,6 +20,7 @@ jobs:
         run: |
           cd verifiers
           mkdir testcases
+          ls
           cargo run
 
       - name: Verify
