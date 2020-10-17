@@ -1,15 +1,13 @@
-use verifiers::{jury, test_set};
-
 macro_rules! downloads {
     ( $( $t:ty, )* ) => {
-        $( test_set::download::<$t>().await?; )*
+        $( download::download::<$t>().await?; )*
     }
 }
 
 #[allow(clippy::wildcard_imports)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    use jury::*;
+    use verify::jury::*;
 
     downloads! {
         Aoj0000,

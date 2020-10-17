@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod verify {
-    use verifiers::solver::*;
-    use verifiers::test_set::verify;
+    use verify::solver::*;
+    use verify::test_set::verify;
 
     use union_find::*;
     use vec_segtree::*;

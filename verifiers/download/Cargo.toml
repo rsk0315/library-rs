@@ -1,0 +1,18 @@
+[package]
+name = "download"
+version = "0.1.0"
+authors = ["rsk0315 <rsk0315@icloud.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = "0.10.8"
+tokio = { version = "0.2.22", features = ["macros", "time"] }
+toml = "0.5.6"
+serde = { version = "1.0.116", features = ["derive"] }
+serde_json = "1.0.58"
+verify = { path = "../verify" }
+
+[[bin]]
+name = "download"

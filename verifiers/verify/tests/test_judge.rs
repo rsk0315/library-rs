@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test_judge {
-    use verifiers::solver::*;
-    use verifiers::test_set::verify;
+    use verify::solver::*;
+    use verify::test_set::verify;
 
     #[test]
     fn test_ac() {
