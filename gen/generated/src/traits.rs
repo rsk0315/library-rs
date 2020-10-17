@@ -22,6 +22,9 @@ pub use fold::*;
 pub mod fold_bisect;
 #[doc(inline)]
 pub use fold_bisect::*;
+pub mod get_mut;
+#[doc(inline)]
+pub use get_mut::*;
 pub mod max;
 #[doc(inline)]
 pub use max::*;
