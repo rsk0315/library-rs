@@ -16,7 +16,7 @@ use elastic_slice::{ElasticSlice, ExpandBack, ShrinkFront, SliceHash};
 /// 各始端 $l$ に対して、$\\lnot P(h([a\_l, a\_{m\_l}]))$ なる $m\_l$
 /// が存在するとき、次の二つが成り立つ。
 /// - ${}^\\forall i\\in [l, m\_l)$ について $P(h([a\_l, a\_i]))$
-/// - ${}^\\forall i\\in [m, n)$ について $\\lnot P(h([a\_l, a\_i]))$
+/// - ${}^\\forall i\\in [m\_l, n)$ について $\\lnot P(h([a\_l, a\_i]))$
 ///
 /// # Complexity
 /// `expand_back` および `shrink_front` の呼び出しを高々 $n$ 回、
