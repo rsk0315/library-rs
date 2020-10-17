@@ -18,13 +18,14 @@ jobs:
         env:
           YUKICODER_TOKEN: ${{ secrets.YUKICODER_TOKEN }}
         run: |
-          cd verifiers
-          mkdir testcases
-          cd download
+          if [[ -d oj-testcases-mirror/testcases ]]; then
+              mv oj-testcases-mirror/testcases verifiers/
+          fi
+          cd verifiers/download
           cargo run
-          cd ..
-          cp -R testcases ../oj-testcases-mirror/
-          cd ../oj-testcases-mirror
+          cd ../..
+          mv verifiers/testcases oj-testcases-mirror/
+          cd oj-testcases-mirror
           git add .
           git config user.name github-actions
           git config user.email github-actions@github.com
