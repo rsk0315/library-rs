@@ -14,6 +14,7 @@
 //!
 //! # 🐱 Cat
 //! にゃー。
+//! ![test --doc](https://github.com/rsk0315/library-rs/workflows/test%20--doc/badge.svg)
 pub mod algo;
 pub mod ds;
 pub mod traits;
