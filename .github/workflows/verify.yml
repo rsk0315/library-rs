@@ -17,7 +17,9 @@ jobs:
           ref: master
 
       - name: Download testcases
-        run: cargo run
+        run: |
+          mkdir verifiers/testcases
+          cargo run
 
       - name: Verify
         run: cargo test --release
