@@ -1,0 +1,21 @@
+name: test --doc
+
+on:
+  push:
+    branches:
+      - doc
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: doc
+          path: doc
+
+      - name: Test doc
+        run: |
+          cd doc/gen/generated
+          cargo t --doc
