@@ -15,9 +15,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - uses: actions/checkout@v2
-        repository: rsk0315/oj-testcases-mirror
-        token: ${{ secrets.GH_TOKEN }}
-        path: oj-testcases-mirror
+        with:
+          repository: rsk0315/oj-testcases-mirror
+          token: ${{ secrets.GH_TOKEN }}
+          path: oj-testcases-mirror
 
       - name: Prepare testcases
         run: |
