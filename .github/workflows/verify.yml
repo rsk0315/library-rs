@@ -1,0 +1,26 @@
+name: verify
+on:
+  workflow_dispatch:
+    inputs:
+      neko:
+        description: nya
+        required: true
+        default: Nya
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Download testcases
+        run: cargo run
+
+      - name: Verify
+        run: cargo test --release
+
+      - name: Cat
+        run: echo ${{ github.event.inputs.neko }}

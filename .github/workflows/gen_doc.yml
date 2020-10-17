@@ -6,7 +6,7 @@ on:
       - doc
 
 jobs:
-  test:
+  generate:
     runs-on: ubuntu-latest
 
     steps:
