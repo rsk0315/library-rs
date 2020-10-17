@@ -17,11 +17,13 @@ jobs:
           ref: master
 
       - name: Download testcases
+        env:
+          YUKICODER_TOKEN: ${{ secrets.YUKICODER_TOKEN }}
         run: |
           cd verifiers
           mkdir testcases
-          ls
           cargo run
+          
 
       - name: Verify
         run: cargo test --release
