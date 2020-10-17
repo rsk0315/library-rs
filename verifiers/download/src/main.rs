@@ -11,14 +11,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     downloads! {
         Aoj0000,
-        // Aoj0002,
-        // Aoj0270,
-        // Aoj0425,
-        // Aoj0564,
-        // Aoj1180,
-        // AojDsl1A,
-        // AojDsl2B,
-        // Yuki3287,
+        Aoj0002,
+        Aoj0270,
+        Aoj0425,
+        Aoj0564,
+        Aoj1180,
+        AojDsl1A,
+        AojDsl2B,
+        Yuki3287,
     }
 
     Ok(())
