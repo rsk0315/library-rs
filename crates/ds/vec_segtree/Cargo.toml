@@ -12,6 +12,7 @@ fold = { path = "../../traits/fold" }
 fold_bisect = { path = "../../traits/fold_bisect" }
 set_value = { path = "../../traits/set_value" }
 buf_range = { path = "../../utils/buf_range" }
+get_mut = { path = "../../traits/get_mut" }
 
 [dev-dependencies]
 op_add = { path = "../../utils/op_add" }
