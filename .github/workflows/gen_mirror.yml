@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - master
+    paths:
+      - '.cargo/config.toml'
+      - 'Cargo.toml'
+      - 'static/**'
+      - 'crates/**'
 
 jobs:
   generate:
