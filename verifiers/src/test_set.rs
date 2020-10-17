@@ -63,7 +63,10 @@ pub trait Jury {
         if output == jury {
             Ac(1)
         } else {
-            Wa(0, format!("output: {:?};\nexpected: {:?}", output, jury))
+            Wa(
+                0,
+                format!("\noutput: {:#?};\nexpected: {:#?}", output, jury),
+            )
         }
     }
 }
@@ -105,8 +108,7 @@ where
     unreachable!();
 }
 
-#[must_use]
-pub fn verify<S: Solver>() -> Verdict
+pub fn verify<S: Solver>()
 where
     <S::Jury as Jury>::Input: 'static,
     <S::Jury as Jury>::Output: 'static,
@@ -115,8 +117,7 @@ where
     match verdict {
         Ac(n) if n > 0 => eprintln!("{}", verdict),
         _ => panic!("{}", verdict),
-    }
-    verdict
+    };
 }
 
 fn find_cases_dir(oj: Oj) -> Option<PathBuf> {

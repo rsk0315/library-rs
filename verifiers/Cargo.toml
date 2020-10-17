@@ -23,6 +23,8 @@ tortoise_hare = { path = "../crates/algo/tortoise_hare" }
 additive = { path = "../crates/traits/additive" }
 union-find = { path = "../crates/ds/union_find" }
 disjoint-set = { path = "../crates/traits/disjoint-set" }
+elastic_slice = { path = "../crates/traits/elastic_slice" }
+mo = { path = "../crates/algo/mo" }
 
 [dev-dependencies]
 vec_segtree = { path = "../crates/ds/vec_segtree" }

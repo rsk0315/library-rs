@@ -3,21 +3,31 @@ use crate::test_set::{Jury, Solver};
 
 use jury::aoj_0425::{Query, Response};
 
-use range_hash::RangeHash;
+use elastic_slice::{
+    ElasticSlice, ExpandBack, ExpandFront, ShrinkBack, ShrinkFront, SliceHash,
+};
+use mo::mo;
 
-pub struct Aoj0425<R> {
-    _r: std::marker::PhantomData<R>,
+pub struct Aoj0425<S> {
+    _s: std::marker::PhantomData<S>,
 }
 
-impl<R> Solver for Aoj0425<R>
+impl<S> Solver for Aoj0425<S>
 where
-    R: RangeHash<Input = Query, Output = Response>
-        + From<(usize, Vec<(usize, usize)>)>,
+    S: ElasticSlice
+        + ExpandBack
+        + ExpandFront
+        + ShrinkBack
+        + ShrinkFront
+        + SliceHash<
+            Salt = jury::aoj_0425::Query,
+            Hashed = jury::aoj_0425::Response,
+        > + From<(usize, Vec<(usize, usize)>)>,
 {
     type Jury = jury::Aoj0425;
     fn solve((n, ab, qs): <Self::Jury as Jury>::Input) -> Vec<Response> {
-        let mut rh: R = (n, ab).into();
-        rh.batch_query(qs, Some(224))
+        let rs: S = (n, ab).into();
+        mo(rs, qs, Some(224))
     }
 }
 
@@ -50,46 +60,60 @@ impl From<(usize, Vec<(usize, usize)>)> for Neko {
     }
 }
 
-impl RangeHash for Neko {
-    type Input = jury::aoj_0425::Query;
-    type Output = jury::aoj_0425::Response;
-    fn start(&self) -> usize {
-        self.l
-    }
-    fn end(&self) -> usize {
-        self.r
-    }
-    fn full_len(&self) -> usize {
-        self.n
-    }
+impl ElasticSlice for Neko {
     fn reset(&mut self) {
         self.l = 0;
         self.r = 0;
         self.p = (0..self.n).collect();
         self.q = (0..self.n).collect();
     }
+    fn full_len(&self) -> usize {
+        self.n
+    }
+    fn start(&self) -> usize {
+        self.l
+    }
+    fn end(&self) -> usize {
+        self.r
+    }
+}
+
+impl ExpandBack for Neko {
     fn expand_back(&mut self) {
         let (a, b) = self.ab[self.r];
         self.r += 1;
         self.swap(a, b);
     }
+}
+
+impl ExpandFront for Neko {
     fn expand_front(&mut self) {
         self.l -= 1;
         let (a, b) = self.ab[self.l];
         self.swap(self.q[a], self.q[b]);
     }
+}
+
+impl ShrinkBack for Neko {
     fn shrink_back(&mut self) {
         self.r -= 1;
         let (a, b) = self.ab[self.r];
         self.swap(a, b);
     }
+}
+
+impl ShrinkFront for Neko {
     fn shrink_front(&mut self) {
         let (a, b) = self.ab[self.l];
         self.l += 1;
         self.swap(self.q[a], self.q[b]);
     }
-    fn hash(&self, q: Self::Input) -> Self::Output {
-        use jury::aoj_0425::{Query, Response};
+}
+
+impl SliceHash for Neko {
+    type Salt = jury::aoj_0425::Query;
+    type Hashed = jury::aoj_0425::Response;
+    fn hash(&self, q: Self::Salt) -> Self::Hashed {
         match q {
             Query::Type1(x) => Response::Type1(self.p[x]),
             Query::Type2(x) => Response::Type2(self.q[x]),
