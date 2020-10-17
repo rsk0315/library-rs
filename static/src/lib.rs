@@ -14,4 +14,5 @@
 //!
 //! # 🐱 Cat
 //! にゃー。
+//! ![verify](https://github.com/rsk0315/library-rs/workflows/verify/badge.svg)
 //! ![test --doc](https://github.com/rsk0315/library-rs/workflows/test%20--doc/badge.svg)
