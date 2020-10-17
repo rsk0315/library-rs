@@ -37,9 +37,6 @@ pub use push_pop::*;
 pub mod range_bounds;
 #[doc(inline)]
 pub use range_bounds::*;
-pub mod range_hash;
-#[doc(inline)]
-pub use range_hash::*;
 pub mod set_value;
 #[doc(inline)]
 pub use set_value::*;
