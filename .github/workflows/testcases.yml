@@ -21,6 +21,8 @@ jobs:
         run: |
           if [[ -d oj-testcases-mirror/testcases ]]; then
               mv oj-testcases-mirror/testcases verifiers/
+          else
+              mkdir verifiers/testcases
           fi
           cd verifiers/download
           cargo run
