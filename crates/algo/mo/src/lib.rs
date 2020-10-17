@@ -68,8 +68,8 @@ use elastic_slice::{
 ///     type Salt = i32;
 ///     type Hashed = usize;
 ///     fn hash(&self, x: i32) -> usize {
-///         if self.count.contains_key(&x) { 0 } else { 1 }
-///             + self.count.len()
+///         self.count.len()
+///             + if self.count.contains_key(&x) { 0 } else { 1 }
 ///     }
 /// }
 ///
