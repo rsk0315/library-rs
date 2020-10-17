@@ -13,19 +13,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: master
 
-      - name: Download testcases
-        env:
-          YUKICODER_TOKEN: ${{ secrets.YUKICODER_TOKEN }}
+      - uses: actions/checkout@v2
+        repository: rsk0315/oj-testcases-mirror
+        token: ${{ secrets.GH_TOKEN }}
+        path: oj-testcases-mirror
+
+      - name: Prepare testcases
         run: |
-          cd verifiers
-          mkdir testcases
-          cargo run          
+          mv oj-testcases-mirror/testcases verifiers/
 
       - name: Verify
-        run: cargo test --lib --release
+        run: |
+          cd verifiers/verify
+          cargo test --release
 
       - name: Cat
         run: echo ${{ github.event.inputs.neko }}
