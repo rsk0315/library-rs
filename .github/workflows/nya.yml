@@ -1,0 +1,15 @@
+name: nekochan
+
+on:
+  push:
+    branches:
+      - doc
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Meow
+        run: |
+          echo ${{ secrets.NEKOCHAN }}
