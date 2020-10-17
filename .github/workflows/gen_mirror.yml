@@ -38,6 +38,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
           source-directory: doc
+          target-branch: doc
           destination-github-username: 'rsk0315'
           destination-repository-name: 'library-rs'
           user-email: 'github-actions@github.com'
