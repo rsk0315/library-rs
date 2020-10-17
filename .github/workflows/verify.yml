@@ -22,11 +22,10 @@ jobs:
         run: |
           cd verifiers
           mkdir testcases
-          cargo run
-          
+          cargo run          
 
       - name: Verify
-        run: cargo test --release
+        run: cargo test --lib --release
 
       - name: Cat
         run: echo ${{ github.event.inputs.neko }}
