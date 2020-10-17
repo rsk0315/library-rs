@@ -1,6 +1,1 @@
 name: generate document
-
-on:
-  push:
-    branches:
-      - doc
