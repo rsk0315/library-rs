@@ -15,8 +15,14 @@ enum Item {
 /// union-find。
 ///
 /// # Complexity
-/// `count`、`equiv`、 `repr`、`unite` をそれぞれ償却 $O(\\alpha(n))$ 時間で処理する。
-/// `subset` はデフォルト実装なので $\\Theta(n)$ 時間かかる。
+/// |演算|時間計算量|
+/// |---|---|
+/// |`new`|$\\Theta(n)$|
+/// |`unite`|amortized $O(\\alpha(n))$|
+/// |`repr`|amortized $O(\\alpha(n))$|
+/// |`equiv`|amortized $O(\\alpha(n))$|
+/// |`count`|amortized $O(\\alpha(n))$|
+/// |`subset`|$\\Theta(n)$|
 ///
 /// # Examples
 /// ```
