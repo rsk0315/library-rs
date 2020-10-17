@@ -1,11 +1,6 @@
 name: verify
 on:
   workflow_dispatch:
-    inputs:
-      neko:
-        description: nya
-        required: true
-        default: Nya
 
 jobs:
   verify:
@@ -28,6 +23,3 @@ jobs:
         run: |
           cd verifiers/verify
           cargo test --release
-
-      - name: Cat
-        run: echo ${{ github.event.inputs.neko }}
