@@ -1,0 +1,15 @@
+name: test --doc
+
+on:
+  push:
+    branches:
+      - doc
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dummy
+        run: |
+          echo nya
