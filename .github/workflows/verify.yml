@@ -18,7 +18,7 @@ jobs:
 
       - name: Download testcases
         run: |
-          mkdir verifiers/testcases
+          mkdir -p verifiers/testcases/{aoj,yukicoder}
           cargo run
 
       - name: Verify
