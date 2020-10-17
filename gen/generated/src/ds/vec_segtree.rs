@@ -3,17 +3,19 @@
 use super::super::traits::binop;
 use super::super::traits::fold;
 use super::super::traits::fold_bisect;
+use super::super::traits::get_mut;
 use super::super::traits::set_value;
 use super::super::utils::buf_range;
 
 use std::convert::From;
 use std::iter::{IntoIterator, Iterator};
-use std::ops::{Index, Range, RangeBounds};
+use std::ops::{Deref, DerefMut, Index, Range, RangeBounds};
 
 use binop::Monoid;
 use buf_range::bounds_within;
 use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
+use get_mut::GetMut;
 use set_value::SetValue;
 
 /// `Vec` ベースのセグ木。
@@ -143,13 +145,69 @@ where
             i
         );
 
-        let mut i = i + self.len;
-        self.buf[i] = x;
+        *self.get_mut(i).unwrap() = x;
+    }
+}
+
+pub struct IndexMut<'a, M>
+where
+    M: Monoid,
+    M::Set: Clone,
+{
+    tree: &'a mut VecSegtree<M>,
+    index: usize,
+}
+
+impl<'a, M: 'a> GetMut<'a> for VecSegtree<M>
+where
+    M: Monoid,
+    M::Set: Clone,
+{
+    type Output = IndexMut<'a, M>;
+    fn get_mut(&'a mut self, index: usize) -> Option<IndexMut<'a, M>> {
+        if index < self.len {
+            Some(IndexMut { tree: self, index })
+        } else {
+            None
+        }
+    }
+}
+
+impl<M> Drop for IndexMut<'_, M>
+where
+    M: Monoid,
+    M::Set: Clone,
+{
+    fn drop(&mut self) {
+        let mut i = self.tree.len + self.index;
         while i > 1 {
             i >>= 1;
-            self.buf[i] =
-                M::op(self.buf[i << 1].clone(), self.buf[i << 1 | 1].clone());
+            self.tree.buf[i] = M::op(
+                self.tree.buf[i << 1].clone(),
+                self.tree.buf[i << 1 | 1].clone(),
+            );
         }
+    }
+}
+
+impl<M> Deref for IndexMut<'_, M>
+where
+    M: Monoid,
+    M::Set: Clone,
+{
+    type Target = M::Set;
+    fn deref(&self) -> &Self::Target {
+        &self.tree.buf[self.tree.len + self.index]
+    }
+}
+
+impl<M> DerefMut for IndexMut<'_, M>
+where
+    M: Monoid,
+    M::Set: Clone,
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tree.buf[self.tree.len + self.index]
     }
 }
 

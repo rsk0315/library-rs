@@ -160,7 +160,7 @@ where
         while slice.start() > ql {
             slice.expand_front();
         }
-        while slice.end() < ql {
+        while slice.start() < ql {
             slice.shrink_front();
         }
         while slice.end() > qr {
