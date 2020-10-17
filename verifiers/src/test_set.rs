@@ -122,6 +122,7 @@ where
 
 fn find_cases_dir(oj: Oj) -> Option<PathBuf> {
     let cd = Path::new(&std::env::current_dir().unwrap()).to_path_buf();
+    eprintln!("{:?}", cd);
     let d = cd.ancestors().find_map(|d| {
         let d = d.join("testcases");
         if d.exists() {
