@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: action/checkout@v2
+      - uses: actions/checkout@v2
 
-      - uses: action/checkout@v2
+      - uses: actions/checkout@v2
         with:
           repository: rsk0315/oj-testcases-mirror
           token: ${{ secrets.GH_TOKEN }}
