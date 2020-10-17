@@ -27,8 +27,10 @@ fn main() -> Result<(), std::io::Error> {
     let tomls = format!("{}/crates/*/*/Cargo.toml", &lib_dir);
 
     eprintln!("current dir: {:?}", std::env::current_dir().unwrap());
-    let dst: PathBuf =
-        std::env::current_dir().unwrap().join("generated").into();
+    let dst: PathBuf = std::env::current_dir()
+        .unwrap()
+        .join("generated/nekolib")
+        .into();
 
     // for local
     // if dst.exists() {
