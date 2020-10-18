@@ -2,7 +2,7 @@
 //!
 //! そのうちちゃんと作ります。
 //!
-//! [`nekolib`]: ../nekolib
+//! [`nekolib`]: ../nekolib/index.html
 
 #[cfg(test)]
 mod tests {
