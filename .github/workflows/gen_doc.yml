@@ -27,7 +27,7 @@ jobs:
           rm -Rf gh/library-rs
           mkdir gh/library-rs
           cd doc/gen/generated
-          cargo d
+          cargo d --no-deps
           cd target/doc
           cp -R * ../../../../../gh/library-rs/
           cd ../../../../../gh/library-rs
