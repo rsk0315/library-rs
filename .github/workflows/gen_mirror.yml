@@ -31,7 +31,12 @@ jobs:
           pwd
           [[ -d doc/gen/generated ]] && rm -Rf doc/gen/generated
           cp -R master/static doc/gen/generated
-          cd doc/gen
+          cd doc
+          [[ -d .trigger ]] || mkdir .trigger
+          date --rfc-3339=seconds > .trigger/gen_doc
+          echo ${GITHUB_SHA} >> .trigger/gen_doc
+          cp .trigger/gen_doc .trigger/doc_test
+          cd gen
           cargo run
           git add .
           git config user.name github-actions
