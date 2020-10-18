@@ -12,8 +12,21 @@ struct LibPath {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+struct LibVerFeat {
+    version: String,
+    features: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+enum Dependency {
+    String,
+    LibPath(LibPath),
+    LibVerFeat(LibVerFeat),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 struct Manifest {
-    dependencies: BTreeMap<String, LibPath>,
+    dependencies: BTreeMap<String, Dependency>,
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -134,25 +147,29 @@ fn clone(toml_path: &PathBuf, dst: &PathBuf) -> Result<(), io::Error> {
 }
 
 fn generate_lib_rs(
-    dependencies: BTreeMap<String, LibPath>,
+    dependencies: BTreeMap<String, Dependency>,
     rs_path: PathBuf,
 ) -> String {
-    let uses = dependencies.into_iter().filter_map(|(_, path)| {
-        let s: Vec<_> = path
-            .path
-            .components()
-            .map(|c| match c {
-                Component::RootDir => "crate",
-                Component::ParentDir => "super",
-                Component::Normal(s) => s.to_str().unwrap(),
-                _ => unreachable!(),
-            })
-            .collect();
-        let s: String = s.join("::").replace("-", "_");
+    let uses = dependencies.into_iter().filter_map(|(_, dep)| {
+        if let Dependency::LibPath(path) = dep {
+            let s: Vec<_> = path
+                .path
+                .components()
+                .map(|c| match c {
+                    Component::RootDir => "crate",
+                    Component::ParentDir => "super",
+                    Component::Normal(s) => s.to_str().unwrap(),
+                    _ => unreachable!(),
+                })
+                .collect();
+            let s: String = s.join("::").replace("-", "_");
 
-        match s.is_empty() {
-            true => None,
-            false => Some(format!("use {};", s)),
+            match s.is_empty() {
+                true => None,
+                false => Some(format!("use {};", s)),
+            }
+        } else {
+            None
         }
     });
     let mut uses: Vec<_> = uses.collect();
