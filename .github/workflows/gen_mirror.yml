@@ -40,7 +40,7 @@ jobs:
           cargo run
           cd ..
           git add .
-          ls *
+          ls -a *
           git status
           git config user.name github-actions
           git config user.email github-actions@github.com
