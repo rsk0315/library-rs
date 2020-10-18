@@ -40,14 +40,9 @@ fn main() -> Result<(), std::io::Error> {
 }
 
 fn generate(lib_dir: PathBuf, dst: PathBuf) -> Result<(), std::io::Error> {
-    let lib_dir = format!(
-        // "{}/git/rsk0315/library-rs/crates", // for local
-        "{}/work/library-rs/library-rs/master", // for remote
-        std::env::var("HOME").unwrap()
-    );
     eprintln!("Move {:?} => {:?}", &lib_dir, &dst);
 
-    let tomls = format!("{}/*/*/Cargo.toml", &lib_dir);
+    let tomls = format!("{}/*/*/Cargo.toml", lib_dir.to_str().unwrap());
 
     // for local
     // if dst.exists() {
