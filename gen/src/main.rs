@@ -27,8 +27,8 @@ fn main() -> Result<(), std::io::Error> {
     generate(src_glob, dst)?;
 
     let src_glob = format!(
-        // "{}/git/rsk0315/library-rs/verifiers/*/Cargo.toml", // for local
-        "{}/work/library-rs/library-rs/master/verifiers/*/Cargo.toml", // for remote
+        // "{}/git/rsk0315/library-rs/verifiers/verify/Cargo.toml", // for local
+        "{}/work/library-rs/library-rs/master/verifiers/verify/Cargo.toml", // for remote
         std::env::var("HOME").unwrap()
     );
     let dst = cd.join("generated/nekolib-verify").into();
