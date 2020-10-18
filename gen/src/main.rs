@@ -7,26 +7,8 @@ use glob::glob;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
-struct LibPath {
-    path: PathBuf,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct LibVerFeat {
-    version: String,
-    features: Vec<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-enum Dependency {
-    String,
-    LibPath(LibPath),
-    LibVerFeat(LibVerFeat),
-}
-
-#[derive(Debug, Deserialize, Serialize)]
 struct Manifest {
-    dependencies: BTreeMap<String, Dependency>,
+    dependencies: BTreeMap<String, toml::Value>,
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -39,13 +21,13 @@ fn main() -> Result<(), std::io::Error> {
     let dst = cd.join("generated/nekolib").into();
     generate(src_glob, dst)?;
 
-    let src_glob = format!(
-        // "{}/git/rsk0315/library-rs/verifiers/verify/Cargo.toml", // for local
-        "{}/work/library-rs/library-rs/master/verifiers/verify/Cargo.toml", // for remote
-        std::env::var("HOME").unwrap()
-    );
-    let dst = cd.join("generated/nekolib-verify").into();
-    generate(src_glob, dst)?;
+    // let src_glob = format!(
+    //     // "{}/git/rsk0315/library-rs/verifiers/verify/Cargo.toml", // for local
+    //     "{}/work/library-rs/library-rs/master/verifiers/verify/Cargo.toml", // for remote
+    //     std::env::var("HOME").unwrap()
+    // );
+    // let dst = cd.join("generated/nekolib-verify").into();
+    // generate(src_glob, dst)?;
 
     Ok(())
 }
@@ -147,13 +129,16 @@ fn clone(toml_path: &PathBuf, dst: &PathBuf) -> Result<(), io::Error> {
 }
 
 fn generate_lib_rs(
-    dependencies: BTreeMap<String, Dependency>,
+    dependencies: BTreeMap<String, toml::Value>,
     rs_path: PathBuf,
 ) -> String {
     let uses = dependencies.into_iter().filter_map(|(_, dep)| {
-        if let Dependency::LibPath(path) = dep {
+        if let toml::Value::Table(table) = dep {
+            let path = match table.get("path") {
+                Some(p) => PathBuf::from(p.as_str().unwrap()),
+                None => return None,
+            };
             let s: Vec<_> = path
-                .path
                 .components()
                 .map(|c| match c {
                     Component::RootDir => "crate",
