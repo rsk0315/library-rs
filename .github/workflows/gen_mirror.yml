@@ -47,12 +47,16 @@ jobs:
           git commit -m '[auto-generated]' || true
 
       - name: Push
-        uses: cpina/github-action-push-to-another-repository@master
+        # uses: cpina/github-action-push-to-another-repository@master
+        run: |
+          cd doc
+          git log
+          git push
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
-        with:
-          source-directory: doc
-          target-branch: doc
-          destination-github-username: 'rsk0315'
-          destination-repository-name: 'library-rs'
-          user-email: 'github-actions@github.com'
+        # with:
+        #   source-directory: doc
+        #   target-branch: doc
+        #   destination-github-username: 'rsk0315'
+        #   destination-repository-name: 'library-rs'
+        #   user-email: 'github-actions@github.com'
