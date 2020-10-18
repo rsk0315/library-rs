@@ -53,7 +53,7 @@ jobs:
           git log
           git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         # with:
         #   source-directory: doc
         #   target-branch: doc
