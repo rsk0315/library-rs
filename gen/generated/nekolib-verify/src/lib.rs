@@ -28,10 +28,7 @@
 //! ## Expalnations
 //! 解法の概要などが必要であれば書く。
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+pub mod jury;
+pub mod solver;
+pub mod test_set;
+pub mod verifier;
