@@ -10,22 +10,39 @@
 //! どの問題で何を verify したかとかを見やすい形式で可視化できたらいいよね。
 //! たとえば、次のような形式のドキュメントを生成しやすいように作ってみる？
 //!
+//! ---
+//!
 //! # Sample (verifier)
 //!
-//! some algo の verify をします。
+//! `some_algo` の verify をします。
 //!
 //! ## Verified by
-//! - ソルバへのリンク 1
-//! - ソルバへのリンク 2
+//! - ソルバへのリンク 1 (passing/failing)
+//! - ソルバへのリンク 2 (passing/failing)
+//! - ソルバへのリンク 3 (passing/failing)
 //!
-//! # Sample (solver)
+//! ---
 //!
-//! some algo を用いて some prob を解きます。
+//! # Sample (solver for algo)
+//!
+//! `some_algo` を用いて問題 A を解きます。
 //!
 //! ## Solves
-//! - 問題へのリンク
+//! - 問題 A へのリンク
 //!
-//! ## Expalnations
+//! ## Explanations
+//! 解法の概要などが必要であれば書く。
+//!
+//! ---
+//!
+//! # Sample (solver for ds)
+//!
+//! トレイト `T` を実装した `some_ds` を用いて問題 B を解きます。
+//!
+//! ## Solves
+//! - 問題 B へのリンク
+//!
+//! ## Explanations
 //! 解法の概要などが必要であれば書く。
 
 #[cfg(test)]
