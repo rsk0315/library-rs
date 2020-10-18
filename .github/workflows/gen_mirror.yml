@@ -9,6 +9,7 @@ on:
       - 'Cargo.toml'
       - 'static/**'
       - 'crates/**'
+  workflow_dispatch:
 
 jobs:
   generate:
