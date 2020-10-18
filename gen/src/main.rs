@@ -18,31 +18,29 @@ struct Manifest {
 
 fn main() -> Result<(), std::io::Error> {
     let cd = std::env::current_dir().unwrap();
-    let lib_dir = format!(
-        // "{}/git/rsk0315/library-rs/crates", // for local
-        "{}/work/library-rs/library-rs/master/crates", // for remote
+    let src_glob = format!(
+        // "{}/git/rsk0315/library-rs/crates/*/*/Cargo.toml", // for local
+        "{}/work/library-rs/library-rs/master/crates/*/*/Cargo.toml", // for remote
         std::env::var("HOME").unwrap()
     );
-    let lib_dir = PathBuf::from(lib_dir);
     let dst = cd.join("generated/nekolib").into();
-    generate(lib_dir, dst)?;
+    generate(src_glob, dst)?;
 
-    let verify_dir = format!(
-        // "{}/git/rsk0315/library-rs/verifiers", // for local
-        "{}/work/library-rs/library-rs/master/verifiers", // for remote
+    let src_glob = format!(
+        // "{}/git/rsk0315/library-rs/verifiers/*/Cargo.toml", // for local
+        "{}/work/library-rs/library-rs/master/verifiers/*/Cargo.toml", // for remote
         std::env::var("HOME").unwrap()
     );
-    let verify_dir = PathBuf::from(verify_dir);
     let dst = cd.join("generated/nekolib-verify").into();
-    generate(verify_dir, dst)?;
+    generate(src_glob, dst)?;
 
     Ok(())
 }
 
-fn generate(lib_dir: PathBuf, dst: PathBuf) -> Result<(), std::io::Error> {
+fn generate(lib_dir: String, dst: PathBuf) -> Result<(), std::io::Error> {
     eprintln!("Move {:?} => {:?}", &lib_dir, &dst);
 
-    let tomls = format!("{}/*/*/Cargo.toml", lib_dir.to_str().unwrap());
+    let tomls = format!("{}", lib_dir);
 
     // for local
     // if dst.exists() {
