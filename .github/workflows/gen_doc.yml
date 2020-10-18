@@ -5,7 +5,7 @@ on:
     branches:
       - doc
     paths:
-      - '.trigger/gen_doc'
+      - 'trigger/gen_doc'
 
 jobs:
   generate:
