@@ -36,14 +36,14 @@ use set_value::SetValue;
 /// # Examples
 /// ```
 /// use nekolib::ds::VecSegtree;
-/// use nekolib::traits::{Fold, FoldBisect, FoldBisectRev, SetValue};
+/// use nekolib::traits::{Fold, FoldBisect, FoldBisectRev, GetMut};
 /// use nekolib::utils::OpAdd;
 ///
 /// let mut vs: VecSegtree<OpAdd<i32>> = vec![2, 4, 7, 3, 5].into();
 /// assert_eq!(vs.fold(1..3), 11);
 /// assert_eq!(vs.fold(..), 21);
 ///
-/// vs.set_value(2usize, 1); // [2, 4, 1, 3, 5]
+/// *vs.get_mut(2).unwrap() = 1; // [2, 4, 1, 3, 5]
 /// assert_eq!(vs.fold(1..3), 5);
 /// assert_eq!(vs.fold(1..=3), 8);
 /// assert_eq!(vs.fold_bisect(1, |&x| x < 4), Some(1));
@@ -149,7 +149,7 @@ where
     }
 }
 
-pub struct IndexMut<'a, M>
+pub struct GetMutIndex<'a, M>
 where
     M: Monoid,
     M::Set: Clone,
@@ -163,17 +163,17 @@ where
     M: Monoid,
     M::Set: Clone,
 {
-    type Output = IndexMut<'a, M>;
-    fn get_mut(&'a mut self, index: usize) -> Option<IndexMut<'a, M>> {
+    type Output = GetMutIndex<'a, M>;
+    fn get_mut(&'a mut self, index: usize) -> Option<GetMutIndex<'a, M>> {
         if index < self.len {
-            Some(IndexMut { tree: self, index })
+            Some(GetMutIndex { tree: self, index })
         } else {
             None
         }
     }
 }
 
-impl<M> Drop for IndexMut<'_, M>
+impl<M> Drop for GetMutIndex<'_, M>
 where
     M: Monoid,
     M::Set: Clone,
@@ -190,7 +190,7 @@ where
     }
 }
 
-impl<M> Deref for IndexMut<'_, M>
+impl<M> Deref for GetMutIndex<'_, M>
 where
     M: Monoid,
     M::Set: Clone,
@@ -201,7 +201,7 @@ where
     }
 }
 
-impl<M> DerefMut for IndexMut<'_, M>
+impl<M> DerefMut for GetMutIndex<'_, M>
 where
     M: Monoid,
     M::Set: Clone,
@@ -341,46 +341,5 @@ where
             return Some(v - self.len);
         }
         unreachable!();
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use op_add::OpAdd;
-
-    use crate::*;
-
-    #[test]
-    fn test() {
-        let mut s = VecSegtree::<OpAdd<i32>>::new(5);
-        s.set_value(1usize, 3);
-        s.set_value(4usize, 5);
-        s.set_value(2usize, 2);
-        s.set_value(0usize, 4);
-        assert_eq!(Vec::<_>::from(s.clone()), vec![4, 3, 2, 0, 5]);
-        assert_eq!(s.fold(0..4), 9);
-        assert_eq!(s.fold(1..=3), 5);
-        assert_eq!(s.fold(3..), 5);
-        assert_eq!(s.fold(..0), 0);
-        assert_eq!(s.fold(..=2), 9);
-        assert_eq!(s.fold(..), 14);
-        assert_eq!(s[1], 3);
-
-        let s = VecSegtree::<OpAdd<i32>>::from(vec![1, 4, 2, 5, 3]);
-        assert_eq!(Vec::<_>::from(s.clone()), vec![1, 4, 2, 5, 3]);
-        assert_eq!(s.fold(1..3), 6);
-        assert_eq!(s.fold(0..=2), 7);
-        assert_eq!(s.fold(5..), 0);
-        assert_eq!(s.fold(..3), 7);
-        assert_eq!(s.fold(..=4), 15);
-        assert_eq!(s.fold(..), 15);
-        assert_eq!(s[4], 3);
-    }
-
-    #[test]
-    #[should_panic(expected = "index")]
-    fn test_out_of_index() {
-        let mut s = VecSegtree::<OpAdd<i32>>::from(vec![1, 4, 2, 5, 3]);
-        s.set_value(5, 2);
     }
 }
