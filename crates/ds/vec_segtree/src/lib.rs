@@ -29,14 +29,14 @@ use set_value::SetValue;
 /// # Examples
 /// ```
 /// use nekolib::ds::VecSegtree;
-/// use nekolib::traits::{Fold, FoldBisect, FoldBisectRev, SetValue};
+/// use nekolib::traits::{Fold, FoldBisect, FoldBisectRev, GetMut};
 /// use nekolib::utils::OpAdd;
 ///
 /// let mut vs: VecSegtree<OpAdd<i32>> = vec![2, 4, 7, 3, 5].into();
 /// assert_eq!(vs.fold(1..3), 11);
 /// assert_eq!(vs.fold(..), 21);
 ///
-/// vs.set_value(2usize, 1); // [2, 4, 1, 3, 5]
+/// *vs.get_mut(2).unwrap() = 1; // [2, 4, 1, 3, 5]
 /// assert_eq!(vs.fold(1..3), 5);
 /// assert_eq!(vs.fold(1..=3), 8);
 /// assert_eq!(vs.fold_bisect(1, |&x| x < 4), Some(1));
@@ -142,7 +142,7 @@ where
     }
 }
 
-pub struct IndexMut<'a, M>
+pub struct GetMutIndex<'a, M>
 where
     M: Monoid,
     M::Set: Clone,
@@ -156,17 +156,17 @@ where
     M: Monoid,
     M::Set: Clone,
 {
-    type Output = IndexMut<'a, M>;
-    fn get_mut(&'a mut self, index: usize) -> Option<IndexMut<'a, M>> {
+    type Output = GetMutIndex<'a, M>;
+    fn get_mut(&'a mut self, index: usize) -> Option<GetMutIndex<'a, M>> {
         if index < self.len {
-            Some(IndexMut { tree: self, index })
+            Some(GetMutIndex { tree: self, index })
         } else {
             None
         }
     }
 }
 
-impl<M> Drop for IndexMut<'_, M>
+impl<M> Drop for GetMutIndex<'_, M>
 where
     M: Monoid,
     M::Set: Clone,
@@ -183,7 +183,7 @@ where
     }
 }
 
-impl<M> Deref for IndexMut<'_, M>
+impl<M> Deref for GetMutIndex<'_, M>
 where
     M: Monoid,
     M::Set: Clone,
@@ -194,7 +194,7 @@ where
     }
 }
 
-impl<M> DerefMut for IndexMut<'_, M>
+impl<M> DerefMut for GetMutIndex<'_, M>
 where
     M: Monoid,
     M::Set: Clone,
