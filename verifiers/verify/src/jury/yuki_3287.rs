@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::test_set::{Jury, Oj, Yukicoder};
 
+use parser::Parser;
+
 pub struct Yuki3287 {}
 
 #[derive(Clone, Copy, Eq, PartialEq, Deserialize, Serialize)]
@@ -17,41 +19,28 @@ impl Jury for Yuki3287 {
     const TL: Duration = Duration::from_millis(2000);
     const PROBLEM: Oj = Yukicoder("3287");
     fn parse_input(input: String) -> Self::Input {
-        let mut input = input.lines();
-        let (_n, q) = {
-            let mut tmp =
-                input.next().unwrap().split(' ').map(|s| s.parse().unwrap());
+        let mut input: Parser = input.into();
 
-            let n = tmp.next().unwrap();
-            let q = tmp.next().unwrap();
-            (n, q)
-        };
+        let n = input.next().unwrap();
+        let q = input.next().unwrap();
 
-        let a = input
-            .next()
-            .unwrap()
-            .split(' ')
-            .map(|s| s.parse().unwrap())
-            .collect();
-        let qs = input
-            .take(q)
-            .map(|ss| {
-                let mut ss = ss.split(' ');
-                match ss.next().unwrap() {
-                    "1" => {
-                        let l =
-                            ss.next().unwrap().parse::<usize>().unwrap() - 1;
-                        let r = ss.next().unwrap().parse().unwrap();
-                        Query::Type1(l, r)
-                    }
-                    _ => unreachable!(),
-                }
-            })
-            .collect();
+        let a = input.next_n(n).map(std::result::Result::unwrap).collect();
+        let qs = (0..q).map(|_| match input.next().unwrap() {
+            '1' => {
+                let l = input.next::<usize>().unwrap() - 1;
+                let r = input.next().unwrap();
+                Query::Type1(l, r)
+            }
+            _ => unreachable!(),
+        });
+        let qs = qs.collect();
+
         (a, qs)
     }
-    fn parse_output(input: &Self::Input, output: String) -> Self::Output {
-        let q = input.1.len();
-        output.lines().take(q).map(|s| s.parse().unwrap()).collect()
+    fn parse_output((_, qs): &Self::Input, output: String) -> Self::Output {
+        let q = qs.len();
+        let mut output: Parser = output.into();
+
+        output.next_n(q).map(std::result::Result::unwrap).collect()
     }
 }

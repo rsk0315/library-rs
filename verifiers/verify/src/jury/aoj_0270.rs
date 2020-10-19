@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use crate::test_set::{Aoj, Jury, Oj};
 
+use parser::Parser;
+
 pub struct Aoj0270 {}
 
 impl Jury for Aoj0270 {
@@ -10,29 +12,18 @@ impl Jury for Aoj0270 {
     const TL: Duration = Duration::from_millis(3000);
     const PROBLEM: Oj = Aoj("0270");
     fn parse_input(input: String) -> Self::Input {
-        let mut input = input.lines();
-        let (_n, q) = {
-            let mut it = input.next().unwrap().split(' ');
-            let n = it.next().unwrap().parse::<usize>().unwrap();
-            let q = it.next().unwrap().parse().unwrap();
-            (n, q)
-        };
-        let c = input
-            .next()
-            .unwrap()
-            .split(' ')
-            .map(|x| x.parse().unwrap())
-            .collect();
-        let qs = (0..q)
-            .map(|_| input.next().unwrap().parse().unwrap())
-            .collect();
+        let mut input: Parser = input.into();
+
+        let n = input.next().unwrap();
+        let q = input.next().unwrap();
+        let c = input.next_n(n).map(std::result::Result::unwrap).collect();
+        let qs = input.next_n(q).map(std::result::Result::unwrap).collect();
         (c, qs)
     }
-    fn parse_output(input: &Self::Input, output: String) -> Self::Output {
-        let q = input.1.len();
-        let mut output = output.lines();
-        (0..q)
-            .map(|_| output.next().unwrap().parse().unwrap())
-            .collect()
+    fn parse_output((_, qs): &Self::Input, output: String) -> Self::Output {
+        let q = qs.len();
+        let mut output: Parser = output.into();
+
+        output.next_n(q).map(std::result::Result::unwrap).collect()
     }
 }

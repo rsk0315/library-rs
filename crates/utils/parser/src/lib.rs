@@ -1,6 +1,7 @@
 //! パーサ。
 
 use std::io::{stdin, Error, Read};
+use std::marker::PhantomData;
 use std::str::FromStr;
 
 /// パーサ。
@@ -41,6 +42,13 @@ impl Parser {
     pub fn next<T: FromStr>(&mut self) -> Result<T, <T as FromStr>::Err> {
         self.next_range(char::is_whitespace, char::is_whitespace)
     }
+    pub fn next_n<T: FromStr>(&mut self, n: usize) -> NextN<T> {
+        NextN {
+            parser: self,
+            n,
+            _t: PhantomData,
+        }
+    }
     pub fn next_range<T, P1, P2>(
         &mut self,
         skip: P1,
@@ -49,11 +57,23 @@ impl Parser {
     where
         T: FromStr,
         P1: Fn(char) -> bool,
-
         P2: Fn(char) -> bool,
     {
         self.ignore_while(skip);
         self.get_while(take).parse()
+    }
+    pub fn next_n_ranges<T, P1, P2>(
+        &mut self,
+        n: usize,
+        skip: P1,
+        take: P2,
+    ) -> Vec<Result<T, <T as FromStr>::Err>>
+    where
+        T: FromStr,
+        P1: Fn(char) -> bool,
+        P2: Fn(char) -> bool,
+    {
+        (0..n).map(|_| self.next_range(&skip, &take)).collect()
     }
     pub fn get_while<P>(&mut self, pat: P) -> &str
     where
@@ -80,5 +100,23 @@ impl Parser {
         P: Fn(char) -> bool,
     {
         self.get_while(|c| !pat(c));
+    }
+}
+
+pub struct NextN<'a, T: FromStr> {
+    parser: &'a mut Parser,
+    n: usize,
+    _t: PhantomData<T>,
+}
+
+impl<T: FromStr> Iterator for NextN<'_, T> {
+    type Item = Result<T, <T as FromStr>::Err>;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.n > 0 {
+            self.n -= 1;
+            Some(self.parser.next())
+        } else {
+            None
+        }
     }
 }
