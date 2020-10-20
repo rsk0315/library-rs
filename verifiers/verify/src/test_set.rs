@@ -101,7 +101,9 @@ where
         };
         match <S::Jury as Jury>::judge(input, output, jury) {
             Ac(_) => {}
-            v => return v,
+            Wa(_, e) => return Wa(i, e),
+            Re(_, e) => return Re(i, e),
+            Tle(_, e) => return Tle(i, e),
         }
     }
     unreachable!();
