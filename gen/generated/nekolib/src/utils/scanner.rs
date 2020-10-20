@@ -8,9 +8,9 @@ use std::io::{stdin, Error, Read};
 ///
 /// # Examples
 /// ```
-/// use nekolib::utils::Scanner;
-///
 /// use std::num::ParseIntError;
+///
+/// use nekolib::utils::Scanner;
 ///
 /// let mut p: Scanner = "1 2  a\nb 3".to_string().into();
 ///
@@ -27,8 +27,8 @@ use std::io::{stdin, Error, Read};
 /// assert!(p.next::<i32>().is_err());
 /// // `""` => `ParseCharError { kind: EmptyString }`
 /// assert!(p.next::<char>().is_err());
-///
-/// assert_eq!(p.next::<String>(), Ok("".to_string())); // ok again
+/// // ok again, as `&str` => `String` never fails
+/// assert_eq!(p.next::<String>(), Ok("".to_string()));
 /// ```
 pub struct Scanner {
     buf: String,
