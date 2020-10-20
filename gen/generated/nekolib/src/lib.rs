@@ -23,5 +23,6 @@
 //! にゃー。
 pub mod algo;
 pub mod ds;
+pub mod graph;
 pub mod traits;
 pub mod utils;
