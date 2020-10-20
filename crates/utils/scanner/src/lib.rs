@@ -8,9 +8,9 @@ use std::io::{stdin, Error, Read};
 ///
 /// # Examples
 /// ```
-/// use nekolib::utils::Scanner;
-///
 /// use std::num::ParseIntError;
+///
+/// use nekolib::utils::Scanner;
 ///
 /// let mut p: Scanner = "1 2  a\nb 3".to_string().into();
 ///
