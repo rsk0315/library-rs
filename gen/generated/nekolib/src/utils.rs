@@ -22,6 +22,6 @@ pub use op_mul::*;
 pub mod op_roll_hash;
 #[doc(inline)]
 pub use op_roll_hash::*;
-pub mod parser;
+pub mod scanner;
 #[doc(inline)]
-pub use parser::*;
+pub use scanner::*;
