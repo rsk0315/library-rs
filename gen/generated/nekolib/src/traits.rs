@@ -43,3 +43,6 @@ pub use range_bounds::*;
 pub mod set_value;
 #[doc(inline)]
 pub use set_value::*;
+pub mod stateful_predicate;
+#[doc(inline)]
+pub use stateful_predicate::*;

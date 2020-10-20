@@ -1,12 +1,12 @@
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
-pub fn dijkstra<V, D, I, W>(
+pub fn dijkstra<V, W, I, D>(
     n: usize,
     s: V,
     zero: W,
-    delta: D,
     index: I,
+    delta: D,
 ) -> Vec<Option<W>>
 where
     D: Fn(&V, &mut dyn FnMut(V, W)),
