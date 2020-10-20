@@ -24,6 +24,7 @@ union-find = { path = "../../crates/ds/union_find" }
 disjoint-set = { path = "../../crates/traits/disjoint-set" }
 elastic_slice = { path = "../../crates/traits/elastic_slice" }
 mo = { path = "../../crates/algo/mo" }
+dijkstra = { path = "../../crates/graph/dijkstra" }
 
 [dev-dependencies]
 vec_segtree = { path = "../../crates/ds/vec_segtree" }

@@ -32,4 +32,9 @@ mod verify {
     fn verify_mo() {
         verify::<Aoj0425<aoj_0425::Neko>>();
     }
+
+    #[test]
+    fn verify_dijkstra() {
+        verify::<AojGrl1A>();
+    }
 }
