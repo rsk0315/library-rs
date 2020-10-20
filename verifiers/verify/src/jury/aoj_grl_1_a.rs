@@ -21,6 +21,11 @@ impl Jury for AojGrl1A {
     fn parse_output(&(n, _, _): &Self::Input, output: String) -> Self::Output {
         let mut output: Scanner = output.into();
 
-        (0..n).map(|_| output.next::<i32>().ok()).collect()
+        (0..n)
+            .map(|_| match output.get_line().trim() {
+                "INF" => None,
+                s => Some(s.parse().unwrap()),
+            })
+            .collect()
     }
 }
