@@ -22,6 +22,6 @@ impl Solver for AojGrl1A {
                 f(nv, ew);
             }
         };
-        dijkstra(n, r, 0, delta, index)
+        dijkstra(n, r, 0, index, delta)
     }
 }

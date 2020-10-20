@@ -25,6 +25,8 @@ disjoint-set = { path = "../../crates/traits/disjoint-set" }
 elastic_slice = { path = "../../crates/traits/elastic_slice" }
 mo = { path = "../../crates/algo/mo" }
 dijkstra = { path = "../../crates/graph/dijkstra" }
+parallel_bisect = { path = "../../crates/algo/parallel_bisect" }
+stateful_predicate = { path = "../../crates/traits/stateful_predicate" }
 
 [dev-dependencies]
 vec_segtree = { path = "../../crates/ds/vec_segtree" }

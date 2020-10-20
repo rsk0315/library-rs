@@ -37,4 +37,9 @@ mod verify {
     fn verify_dijkstra() {
         verify::<AojGrl1A>();
     }
+
+    #[test]
+    fn verify_parallel_bisect() {
+        verify::<Aoj0575<UnionFind>>();
+    }
 }
