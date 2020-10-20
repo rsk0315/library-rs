@@ -13,12 +13,22 @@ use std::io::{stdin, Error, Read};
 /// use std::num::ParseIntError;
 ///
 /// let mut p: Scanner = "1 2  a\nb 3".to_string().into();
+///
 /// assert_eq!(p.next::<i32>(), Ok(1));
 /// assert_eq!(p.next::<i32>(), Ok(2));
+/// // `"a"` => `ParseIntError { kind: InvalidDigit }`
 /// assert!(p.next::<i32>().is_err());
+///
 /// assert_eq!(p.next::<char>(), Ok('b'));
 /// assert_eq!(p.next::<String>(), Ok("3".to_string()));
+/// assert_eq!(p.next::<String>(), Ok("".to_string()));
+///
+/// // `""` => `ParseIntError { kind: Empty }`
 /// assert!(p.next::<i32>().is_err());
+/// // `""` => `ParseCharError { kind: EmptyString }`
+/// assert!(p.next::<char>().is_err());
+///
+/// assert_eq!(p.next::<String>(), Ok("".to_string())); // ok again
 /// ```
 pub struct Scanner {
     buf: String,
