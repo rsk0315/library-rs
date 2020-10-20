@@ -141,6 +141,20 @@ impl Scan for String {
     }
 }
 
+impl Scan for char {
+    type Err = std::char::ParseCharError;
+    fn scan(buf: &str) -> (Result<Self, Self::Err>, usize) {
+        let start = buf.find(|c| !char::is_whitespace(c)).unwrap_or(buf.len());
+        let buf = &buf[start..];
+        let len = buf
+            .char_indices()
+            .nth(1)
+            .map(|(i, _)| i)
+            .unwrap_or(buf.len());
+        (buf[..len].parse(), start + len)
+    }
+}
+
 #[derive(std::fmt::Debug, Eq, PartialEq)]
 pub struct ScanTupleError();
 
