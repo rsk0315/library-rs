@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::test_set::{Jury, Oj, Yukicoder};
 
-use parser::Parser;
+use scanner::Scanner;
 
 pub struct Yuki3287 {}
 
@@ -19,15 +19,14 @@ impl Jury for Yuki3287 {
     const TL: Duration = Duration::from_millis(2000);
     const PROBLEM: Oj = Yukicoder("3287");
     fn parse_input(input: String) -> Self::Input {
-        let mut input: Parser = input.into();
+        let mut input: Scanner = input.into();
 
-        let n = input.next().unwrap();
-        let q = input.next().unwrap();
+        let (n, q) = input.next().unwrap();
 
-        let a = input.next_n(n).map(std::result::Result::unwrap).collect();
+        let a = input.next_n(n).unwrap();
         let qs = (0..q).map(|_| match input.next().unwrap() {
-            '1' => {
-                let l = input.next::<usize>().unwrap() - 1;
+            1 => {
+                let l = input.next_m1().unwrap();
                 let r = input.next().unwrap();
                 Query::Type1(l, r)
             }
@@ -39,8 +38,8 @@ impl Jury for Yuki3287 {
     }
     fn parse_output((_, qs): &Self::Input, output: String) -> Self::Output {
         let q = qs.len();
-        let mut output: Parser = output.into();
+        let mut output: Scanner = output.into();
 
-        output.next_n(q).map(std::result::Result::unwrap).collect()
+        output.next_n(q).unwrap()
     }
 }

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::test_set::{Aoj, Jury, Oj};
 
-use parser::Parser;
+use scanner::Scanner;
 
 pub struct Aoj1180 {}
 
@@ -12,32 +12,21 @@ impl Jury for Aoj1180 {
     const TL: Duration = Duration::from_millis(8000);
     const PROBLEM: Oj = Aoj("1180");
     fn parse_input(input: String) -> Self::Input {
-        let mut input: Parser = input.into();
+        let mut input: Scanner = input.into();
 
         std::iter::repeat(0)
-            .map(|_| {
-                let a = input.next().unwrap();
-                let l = input.next().unwrap();
-                match (a, l) {
-                    (0, 0) => None,
-                    (a, l) => Some((a, l)),
-                }
+            .map(|_| match input.next().unwrap() {
+                (0, 0) => None,
+                (a, l) => Some((a, l)),
             })
             .fuse()
             .map(std::option::Option::unwrap)
             .collect()
     }
     fn parse_output(input: &Self::Input, output: String) -> Self::Output {
-        let mut output: Parser = output.into();
+        let mut output: Scanner = output.into();
 
         let n = input.len();
-        (0..n)
-            .map(|_| {
-                let mu = output.next().unwrap();
-                let a = output.next().unwrap();
-                let lambda = output.next().unwrap();
-                (mu, a, lambda)
-            })
-            .collect()
+        (0..n).map(|_| output.next().unwrap()).collect()
     }
 }

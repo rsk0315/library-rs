@@ -10,7 +10,7 @@ edition = "2018"
 toml = "0.5.6"
 serde = { version = "1.0.116", features = ["derive"] }
 serde_json = "1.0.58"
-parser = { path = "../../crates/utils/parser" }
+scanner = { path = "../../crates/utils/scanner" }
 fold = { path = "../../crates/traits/fold" }
 fold_bisect = { path = "../../crates/traits/fold_bisect" }
 set_value = { path = "../../crates/traits/set_value" }

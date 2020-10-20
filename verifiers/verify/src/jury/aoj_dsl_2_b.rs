@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::test_set::{Aoj, Jury, Oj};
 
-use parser::Parser;
+use scanner::Scanner;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub enum Query {
@@ -20,19 +20,18 @@ impl Jury for AojDsl2B {
     const TL: Duration = Duration::from_millis(1000);
     const PROBLEM: Oj = Aoj("DSL_2_B");
     fn parse_input(input: String) -> Self::Input {
-        let mut input: Parser = input.into();
+        let mut input: Scanner = input.into();
 
-        let n = input.next().unwrap();
-        let q = input.next().unwrap();
+        let (n, q) = input.next().unwrap();
 
         let qs = (0..q).map(|_| match input.next().unwrap() {
-            '0' => {
-                let i = input.next::<usize>().unwrap() - 1;
+            0 => {
+                let i = input.next_m1().unwrap();
                 let x = input.next().unwrap();
                 Query::Add(i, x)
             }
-            '1' => {
-                let s = input.next::<usize>().unwrap() - 1;
+            1 => {
+                let s = input.next_m1().unwrap();
                 let t = input.next().unwrap();
                 Query::GetSum(s, t)
             }
@@ -41,7 +40,7 @@ impl Jury for AojDsl2B {
         (n, qs.collect())
     }
     fn parse_output((_n, qs): &Self::Input, output: String) -> Self::Output {
-        let mut output: Parser = output.into();
+        let mut output: Scanner = output.into();
 
         qs.iter()
             .filter_map(|q| match q {

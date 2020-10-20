@@ -42,12 +42,21 @@ impl Scanner {
         self.pos += endpos;
         x
     }
-    pub fn next_n<T, C>(&mut self, n: usize) -> Result<C, <T as Scan>::Err>
+    pub fn next_m1<T>(&mut self) -> Result<T, <T as Scan>::Err>
     where
-        T: Scan,
-        C: std::iter::FromIterator<T>,
+        T: Scan + std::ops::Sub<Output = T> + std::convert::From<u8>,
     {
-        Ok((0..n).map(|_| self.next().unwrap()).collect())
+        self.next::<T>().map(|x| x - 1_u8.into())
+    }
+    pub fn next_n<T>(&mut self, n: usize) -> Result<Vec<T>, <T as Scan>::Err>
+    where
+        T: Scan + Clone,
+    {
+        let mut res = vec![];
+        for _ in 0..n {
+            res.push(self.next::<T>()?);
+        }
+        Ok(res)
     }
     pub fn get_while<P>(&mut self, pat: P) -> &str
     where
