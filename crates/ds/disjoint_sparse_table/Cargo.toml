@@ -1,0 +1,12 @@
+[package]
+name = "disjoint_sparse_table"
+version = "0.1.0"
+authors = ["rsk0315 <rsk0315@icloud.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fold = { path = "../../traits/fold" }
+binop = { path = "../../traits/binop" }
+buf_range = { path = "../../utils/buf_range" }
