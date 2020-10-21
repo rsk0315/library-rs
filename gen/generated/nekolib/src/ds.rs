@@ -1,6 +1,9 @@
 //! データ構造たち。
 //!
 //! ここに何かを書く。
+pub mod disjoint_sparse_table;
+#[doc(inline)]
+pub use disjoint_sparse_table::*;
 pub mod foldable_deque;
 #[doc(inline)]
 pub use foldable_deque::*;

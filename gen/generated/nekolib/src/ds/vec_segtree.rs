@@ -149,6 +149,7 @@ where
     }
 }
 
+#[doc(hidden)]
 pub struct GetMutIndex<'a, M>
 where
     M: Monoid,
