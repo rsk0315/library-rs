@@ -18,19 +18,21 @@ use fold::Fold;
 /// 半群を返すことにしてもよいが、要検討。
 ///
 /// # Complexity
-///
-/// 前処理の際、モノイド積を高々 $n\\lfloor\\log\_2(n)-1\\rfloor$ 回計算するが、
+/// 前処理の際、モノイド積を高々 $n\\cdot\\lfloor\\log\_2(n)-1\\rfloor$ 回計算するが、
 /// がんばって重複を削減することでもう少し削減でき、次の値で上から抑えられる。
 /// $$ \\begin{aligned}
 /// n\\cdot\\lceil{\\log\_2(n)-3}\\rceil + 2\\cdot\\lceil{\\log\_2(n)}\\rceil + 2
 /// \\end{aligned} $$
 ///
 /// また、クエリ処理の際、高々 $1$ 回（！）のモノイド積を計算する。
+/// 与えられた区間が前処理で計算した区間であるか、長さが $1$ 以下の場合は、
+/// 新たにモノイド積を計算せずに答えを返す。
+/// そうでない場合はちょうど $1$ 回のモノイド積を計算する。
 ///
-/// モノイド積の計算コストが非常に高いときは前処理の削減は有用だと思うが、
+///
+/// モノイド積の計算コストが非常に高いときは削減は有用だと思うが、
 /// そうでないときにどうなるかは要実測。
-///
-/// 現時点では、使い回す箇所の実装方法はよくわかっていない（たぶんできると思う）。
+/// 削減のための計算コストが無視できないかもしれないので。
 ///
 /// ## Precise Analysis
 ///
@@ -71,9 +73,18 @@ use fold::Fold;
 ///         + (n + 1) / (2 * p) * (p - 1)
 /// }
 /// ```
+///
+/// # Examples
+/// ```
+/// use nekolib::ds::DisjointSparseTable;
+/// use nekolib::traits::Fold;
+/// use nekolib::utils::OpAdd;
+///
+/// let dst: DisjointSparseTable<OpAdd<i32>> = vec![1, 6, 3, 8, 4].into();
+/// assert_eq!(dst.fold(1..=3), 17);
+/// assert_eq!(dst.fold(..), 22);
+/// ```
 pub struct DisjointSparseTable<M: Monoid> {
-    len: usize,
-    height: usize,
     buf: Vec<Vec<M::Set>>,
 }
 
@@ -85,8 +96,29 @@ where
 {
     type Output = M;
     fn fold(&self, b: B) -> M::Set {
-        let Range { start, end } = bounds_within(b, self.len);
-        todo!();
+        let Range { start, end } = bounds_within(b, self.buf[0].len());
+        if start >= end {
+            return M::id();
+        }
+        let len = end - start;
+        let end = end - 1;
+        if start == end {
+            return self.buf[0][start].clone();
+        }
+        let row = ((start ^ end) + 1).next_power_of_two().trailing_zeros() - 1;
+        let row_len = 1_usize << row;
+        let row = row as usize;
+
+        if len <= 2 * row_len && row + 1 < self.buf.len() {
+            if start.is_power_of_two() && end >> (row + 1) == 1 {
+                return self.buf[row + 1][end].clone();
+            }
+            if (end + 1).is_power_of_two() && start >> (row + 1) == 0 {
+                return self.buf[row + 1][start].clone();
+            }
+        }
+
+        M::op(self.buf[row][start].clone(), self.buf[row][end].clone())
     }
 }
 
@@ -95,8 +127,44 @@ where
     M: Monoid,
     M::Set: Clone,
 {
-    fn from(v: Vec<M::Set>) -> Self {
-        todo!();
+    fn from(base: Vec<M::Set>) -> Self {
+        let len = base.len();
+
+        let height = len.next_power_of_two().trailing_zeros().max(1) as usize;
+        let mut buf = vec![base; height];
+
+        for i in 1..height {
+            let w = 1 << i;
+            for j in (1..).step_by(2).take_while(|&j| j * w <= len) {
+                let mid = j * w;
+                for r in (1..w).take_while(|r| mid + r < len) {
+                    buf[i][mid + r] = M::op(
+                        buf[i][mid + r - 1].clone(),
+                        buf[0][mid + r].clone(),
+                    );
+                }
+            }
+        }
+
+        for i in 1..height {
+            let w = 1 << i;
+            for j in (1..).step_by(2).take_while(|&j| j * w <= len) {
+                let mid = j * w - 1;
+                for l in 1..w {
+                    buf[i][mid - l] = if mid > l && (l + 1).is_power_of_two() {
+                        let ei = (mid - l).trailing_zeros() as usize;
+                        let ej = mid;
+                        buf[ei][ej].clone()
+                    } else {
+                        M::op(
+                            buf[0][mid - l].clone(),
+                            buf[i][mid - l + 1].clone(),
+                        )
+                    };
+                }
+            }
+        }
+        Self { buf }
     }
 }
 
