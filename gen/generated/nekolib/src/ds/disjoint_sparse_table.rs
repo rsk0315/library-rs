@@ -22,11 +22,7 @@ use fold::Fold;
 /// 前処理の際、モノイド積を高々 $n\\lfloor\\log\_2(n)-1\\rfloor$ 回計算するが、
 /// がんばって重複を削減することでもう少し削減でき、次の値で上から抑えられる。
 /// $$ \\begin{aligned}
-/// n\\cdot\\lceil{\\log\_2(n)-3}\\rceil + \\lceil{\\log\_2(n)}\\rceil + 2
-/// + \\begin{cases}
-/// \\log\_2(n), & \\text{if }n\\text{ is power of }2; \\\\
-/// 2\^{\\lfloor\\log\_2(n)\\rfloor}, & \\text{otherwise.}
-/// \\end{cases}
+/// n\\cdot\\lceil{\\log\_2(n)-3}\\rceil + 2\\cdot\\lceil{\\log\_2(n)}\\rceil + 2
 /// \\end{aligned} $$
 ///
 /// また、クエリ処理の際、高々 $1$ 回（！）のモノイド積を計算する。
