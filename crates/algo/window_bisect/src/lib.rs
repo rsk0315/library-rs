@@ -6,17 +6,22 @@ use elastic_slice::{ElasticSlice, ExpandBack, ShrinkFront, SliceHash};
 ///
 /// スライスと述語を引数に取り、スライスの各始端 $l$ に対して $r\_l$ を求める。
 /// $r\_l$ は、以下の両方を満たす $r < n$ が存在すればその $r$、存在しなければ $n$ である。
-/// - $P(h([a\_l, a\_{r}]))$
-/// - $\\lnot P(h([a\_l, a\_{r+1}]))$
+/// $$ P(h([l, r))) \\text{ and } \\lnot P(h([l, r+1))). $$
 ///
-/// ここで、$P$ は `pred`、$h([a\_l, a\_r])$ は `slice.start() == l`, `slice.end() == r+1`
+/// ここで、$P$ は `pred`、$h([l, r))$ は `slice.start() == l`, `slice.end() == r`
 /// における `slice.hash(())` によって計算される。
 ///
 /// # Requirements
-/// 各始端 $l$ に対して、$\\lnot P(h([a\_l, a\_{m\_l}]))$ なる $m\_l$
+/// 各始端 $l$ に対して、$\\lnot P(h([l, m\_l)))$ なる $m\_l$
 /// が存在するとき、次の二つが成り立つ。
-/// - ${}^\\forall i\\in [l, m\_l)$ について $P(h([a\_l, a\_i]))$
-/// - ${}^\\forall i\\in [m\_l, n)$ について $\\lnot P(h([a\_l, a\_i]))$
+/// - ${}^\\forall i\\in [l, m\_l)$ について $P(h([l, i)))$
+/// - ${}^\\forall i\\in (m\_l, n)$ について $\\lnot P(h([l, i)))$
+///
+/// また、空区間に対しては $P$ は真を返す必要がある[^1]。
+///
+/// [^1]: そうでないと、返り値が定義しにくいためである。
+/// $l-1$ や $-1$ が返り値として挙げられるが、後者では
+/// `1_usize.wrapping_neg()` を使う必要がある上、大小関係がややこしくなり厄介。
 ///
 /// # Complexity
 /// `expand_back` および `shrink_front` の呼び出しを高々 $n$ 回、
