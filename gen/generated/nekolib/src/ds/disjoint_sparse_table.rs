@@ -17,26 +17,41 @@ use fold::Fold;
 /// 値の更新はできない。
 /// 半群を返すことにしてもよいが、要検討。
 ///
-/// # Complexity
-/// 前処理の際、モノイド積を高々 $n\\cdot\\lfloor\\log\_2(n)-1\\rfloor$ 回計算するが、
-/// がんばって重複を削減することでもう少し削減でき、次の値で上から抑えられる。
-/// $$ \\begin{aligned}
-/// n\\cdot\\lceil{\\log\_2(n)-3}\\rceil + 2\\cdot\\lceil{\\log\_2(n)}\\rceil + 2
-/// \\end{aligned} $$
+/// # Idea
+/// 各 $k$ ($1\\le k\< \\log\_2(n)$) について、区間
+/// $[i\\cdot 2\^k-j, i\\cdot 2\^k)$ および $[i\\cdot 2\^k, i\\cdot 2\^k+j)$
+/// ($2\\le j\\le 2\^k$、$i$ は区間の終端が $n$ 以下になる各奇数)
+/// におけるモノイド積を予め計算しておく。
+/// 任意の区間は、上記の区間を高々 $2$ つ合わせることで表現できる。
 ///
-/// また、クエリ処理の際、高々 $1$ 回（！）のモノイド積を計算する。
+/// # Implementation notes
+/// 前処理では、異なる段で同じ区間のモノイド積を複数回計算するのを避けるための工夫をしている。
+/// その処理のオーバーヘッドにより、モノイド積のコストが高くない場合は、
+/// 毎回計算する方が高速かもしれない。クエリ処理についても同様の工夫をしている。
+///
+/// # Complexity
+/// |演算|時間計算量|
+/// |---|---|
+/// |`from`|$\\Theta(n\\log(n))$|
+/// |`fold`|$\\Theta(1)$|
+///
+/// # Precise analysis
+/// 前処理におけるモノイド積の計算回数は以下の値で上から抑えられる。
+/// $$ n\\cdot\\lceil{\\log\_2(n)-3}\\rceil + 2\\cdot\\lceil{\\log\_2(n)}\\rceil + 2. $$
+///
+/// これは、$n = 1000$ で $7022$ であり、
+/// [Secret](http://s3-ap-northeast-1.amazonaws.com/data.cms.ioi-jp.org/open-2014/2014-open-d2-secret.pdf)
+/// の「$n = 1000$ でクエリ $8000$ 回以下」に余裕を持って間に合う。
+///
+/// クエリ処理の際には、
 /// 与えられた区間が前処理で計算した区間であるか、長さが $1$ 以下の場合は、
-/// 新たにモノイド積を計算せずに答えを返す。
+/// 新たにモノイド積は計算せずに答えを返す。
 /// そうでない場合はちょうど $1$ 回のモノイド積を計算する。
 ///
+/// ## More precise analysis
 ///
-/// モノイド積の計算コストが非常に高いときは削減は有用だと思うが、
-/// そうでないときにどうなるかは要実測。
-/// 削減のための計算コストが無視できないかもしれないので。
-///
-/// ## Precise Analysis
-///
-/// 実際の回数は以下のコードで計算できる（はず）。
+/// 前処理の実際の計算回数は、以下のコードにより $O(\\log(n))$ 時間で計算できるはず。
+/// コード長が長いので隔離したいかも。
 /// ```
 /// /// 要素数 `n` での前処理における計算回数を返す。
 /// fn count(n: usize) -> usize {
@@ -62,7 +77,7 @@ use fold::Fold;
 ///     (0..)
 ///         .take_while(|&k| n >= 2_usize.pow(k + 1))
 ///         .map(|k| f(k, n - 2_usize.pow(k + 1)))
-///         .sum::<usize>()
+///         .sum()
 /// }
 ///
 /// /// k 段目における寄与分を返す。
@@ -76,13 +91,23 @@ use fold::Fold;
 ///
 /// # Examples
 /// ```
+/// use nekolib::{impl_assoc_val, impl_mod_int};
 /// use nekolib::ds::DisjointSparseTable;
-/// use nekolib::traits::Fold;
-/// use nekolib::utils::OpAdd;
+/// use nekolib::traits::{AssocVal, Fold};
+/// use nekolib::utils::{ModInt, OpRollHash};
 ///
-/// let dst: DisjointSparseTable<OpAdd<i32>> = vec![1, 6, 3, 8, 4].into();
-/// assert_eq!(dst.fold(1..=3), 17);
-/// assert_eq!(dst.fold(..), 22);
+/// impl_mod_int! { Mod1e9p7 => 1_000_000_007_i64 }
+/// type Mi = ModInt<Mod1e9p7>;
+/// impl_assoc_val! { Base<Mi> => Mi::from(123) }
+/// type OpRh = OpRollHash::<Mi, Base>;
+///
+/// let val_from = |s| OpRh::val_from(s);
+///
+/// let dst: DisjointSparseTable<OpRh> = vec![
+///     val_from("abra"), val_from("cad"), val_from("abra")
+/// ].into();
+/// assert_eq!(dst.fold(1..=2), val_from("cadabra"));
+/// assert_eq!(dst.fold(..), val_from("abracadabra"));
 /// ```
 pub struct DisjointSparseTable<M: Monoid> {
     buf: Vec<Vec<M::Set>>,
