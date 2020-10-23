@@ -171,3 +171,16 @@ impl<M: AssocVal<i64>> AddAssoc for ModInt<M> {}
 impl<M: AssocVal<i64>> AddComm for ModInt<M> {}
 impl<M: AssocVal<i64>> MulAssoc for ModInt<M> {}
 impl<M: AssocVal<i64>> MulComm for ModInt<M> {}
+
+#[macro_export]
+macro_rules! impl_mod_int {
+    ( $i:ident => $m:expr ) => {
+        #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+        struct $i {}
+        impl AssocVal<i64> for $i {
+            fn get() -> i64 { $m }
+        }
+    };
+    ( $( $i:ident => $m:expr, )* ) => { $( impl_mod_int!($i => $m); )* };
+    ( $( $i:ident => $m:expr ),* ) => { $( impl_mod_int!($i => $m); )* };
+}

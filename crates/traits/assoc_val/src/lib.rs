@@ -57,16 +57,3 @@ macro_rules! impl_assoc_val {
     ( $( $i:ident<$t:ty> => $m:expr, )* ) => { $( impl_assoc_val!($i<$t> => $m); )* };
     ( $( $i:ident<$t:ty> => $m:expr ),* ) => { $( impl_assoc_val!($i<$t> => $m); )* };
 }
-
-#[macro_export]
-macro_rules! impl_mod_int {
-    ( $i:ident => $m:expr ) => {
-        #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-        struct $i {}
-        impl AssocVal<i64> for $i {
-            fn get() -> i64 { $m }
-        }
-    };
-    ( $( $i:ident => $m:expr, )* ) => { $( impl_mod_int!($i => $m); )* };
-    ( $( $i:ident => $m:expr ),* ) => { $( impl_mod_int!($i => $m); )* };
-}
