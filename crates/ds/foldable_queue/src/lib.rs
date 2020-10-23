@@ -8,8 +8,22 @@ use push_pop::{Pop, PopFront, Push, PushBack};
 
 /// fold 可能キュー。
 ///
-/// モノイドのキューであって、全体のモノイド積を計算できる。
+/// いわゆる SWAG (*S*liding *W*indow *Ag*gregation)。
+/// モノイドを要素とするキューであって、全体のモノイド積を計算できる。
 /// 逆元がある演算であれば、単に要素を一つ持って計算すればよい。
+///
+/// # Idea
+/// スタックを二つ使ってキューを実現できることを応用する。
+/// モノイド積を管理するスタックも二つ用意する。
+/// 後者のスタックそれぞれの top が、対応する前者のスタック中の要素の総積となるように管理する。
+/// これにより、キュー全体としての積は、二つの要素の積として計算できる。
+///
+/// # Implementation notes
+/// `fold()` だけを考えると front stack には元の値を入れる必要はないが、
+/// `pop()` の際の挙動を標準の [`VecDeque`] などと合わせたかったので、含めることにした。
+/// fold した値を返すということにすれば含めなくて済むが、あまりそうしたくなかったので。
+///
+/// [`VecDeque`]: https://doc.rust-lang.org/std/collections/struct.VecDeque.html#method.pop_front
 ///
 /// # Complexity
 /// |演算|時間計算量|
@@ -18,6 +32,11 @@ use push_pop::{Pop, PopFront, Push, PushBack};
 /// |`push` (`push_back`)|$\\Theta(1)$|
 /// |`pop` (`pop_front`)|amortized $\\Theta(1)$|
 /// |`fold`|$\\Theta(1)$|
+///
+/// `pop` の計算量は、two-stack queue のならし解析から従う。
+/// わかりやすい資料として
+/// [CS166](http://web.stanford.edu/class/archive/cs/cs166/cs166.1206/lectures/07/Small07.pdf)
+/// を挙げておく。
 ///
 /// # Examples
 /// ```

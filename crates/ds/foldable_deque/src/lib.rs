@@ -8,8 +8,17 @@ use push_pop::{PopBack, PopFront, PushBack, PushFront};
 
 /// fold 可能両端キュー。
 ///
-/// モノイドの両端キューであって、全体のモノイド積を計算できる。
+/// モノイドを要素とする両端キューであって、全体のモノイド積を計算できる。
 /// 逆元がある演算であれば、単に要素を一つ持って計算すればよい。
+///
+/// # Idea
+/// スタックを二つ使って両端キューを実現できることを応用する[^1]。
+/// モノイド積に関する方針は [`FoldableQueue`] と同じ。
+///
+/// [^1]: 内部的には `std::VecDeque` を使ってスタックを実現しているため、
+/// 両端キュー二つで両端キューを実現していることになっている。ギャグ？
+///
+/// [`FoldableQueue`]: struct.FoldableQueue.html
 ///
 /// # Complexity
 /// |演算|時間計算量|
@@ -19,8 +28,11 @@ use push_pop::{PopBack, PopFront, PushBack, PushFront};
 /// |`pop_back`, `pop_front`|amortized $\\Theta(1)$|
 /// |`fold`|$\\Theta(1)$|
 ///
-/// # Examples
+/// キューを実現する場合と異なり、pop したい側の stack が空の際は、
+/// 他方の stack から半分（奇数なら切り上げ）だけ要素をもらってくるようにする。
+/// 各スタックの要素数の差の絶対値をポテンシャルとすることで、ならし定数時間が示せる。
 ///
+/// # Examples
 /// ```
 /// use nekolib::ds::FoldableDeque;
 /// use nekolib::traits::{Fold, PopBack, PopFront, PushBack, PushFront};
