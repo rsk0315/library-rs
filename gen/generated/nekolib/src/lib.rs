@@ -24,5 +24,7 @@
 pub mod algo;
 pub mod ds;
 pub mod graph;
+pub mod math;
+pub mod seq;
 pub mod traits;
 pub mod utils;
