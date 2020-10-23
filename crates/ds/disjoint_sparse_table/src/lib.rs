@@ -87,13 +87,23 @@ use fold::Fold;
 ///
 /// # Examples
 /// ```
+/// use nekolib::{impl_assoc_val, impl_mod_int};
 /// use nekolib::ds::DisjointSparseTable;
-/// use nekolib::traits::Fold;
-/// use nekolib::utils::OpAdd;
+/// use nekolib::traits::{AssocVal, Fold};
+/// use nekolib::utils::{ModInt, OpRollHash};
 ///
-/// let dst: DisjointSparseTable<OpAdd<i32>> = vec![1, 6, 3, 8, 4].into();
-/// assert_eq!(dst.fold(1..=3), 17);
-/// assert_eq!(dst.fold(..), 22);
+/// impl_mod_int! { Mod1e9p7 => 1_000_000_007_i64 }
+/// type Mi = ModInt<Mod1e9p7>;
+/// impl_assoc_val! { Base<Mi> => Mi::from(123) }
+/// type OpRh = OpRollHash::<Mi, Base>;
+///
+/// let val_from = |s| OpRh::val_from(s);
+///
+/// let dst: DisjointSparseTable<OpRh> = vec![
+///     val_from("abra"), val_from("cad"), val_from("abra")
+/// ].into();
+/// assert_eq!(dst.fold(1..=2), val_from("cadabra"));
+/// assert_eq!(dst.fold(..), val_from("abracadabra"));
 /// ```
 pub struct DisjointSparseTable<M: Monoid> {
     buf: Vec<Vec<M::Set>>,

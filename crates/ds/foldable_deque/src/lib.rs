@@ -9,6 +9,7 @@ use push_pop::{PopBack, PopFront, PushBack, PushFront};
 /// fold 可能両端キュー。
 ///
 /// モノイドの両端キューであって、全体のモノイド積を計算できる。
+/// 逆元がある演算であれば、単に要素を一つ持って計算すればよい。
 ///
 /// # Complexity
 /// |演算|時間計算量|
@@ -19,7 +20,6 @@ use push_pop::{PopBack, PopFront, PushBack, PushFront};
 /// |`fold`|$\\Theta(1)$|
 ///
 /// # Examples
-/// 逆元がない演算について処理できるのが強みです。
 ///
 /// ```
 /// use nekolib::ds::FoldableDeque;
@@ -41,33 +41,6 @@ use push_pop::{PopBack, PopFront, PushBack, PushFront};
 /// fq.pop_back();
 /// assert_eq!(fq.fold(..), std::i32::MAX);
 /// ```
-///
-/// もちろん非可換でも問題ありません。
-///
-/// ```
-/// use nekolib::{impl_assoc_val, impl_mod_int};
-/// use nekolib::ds::FoldableDeque;
-/// use nekolib::traits::{AssocVal, Fold, PopBack, PopFront, PushBack, PushFront};
-/// use nekolib::utils::{ModInt, OpRollHash};
-///
-/// impl_mod_int! { Mod1e9p7 => 1_000_000_007_i64 }
-/// type Mi = ModInt<Mod1e9p7>;
-/// impl_assoc_val! { Base<Mi> => Mi::from(123) }
-/// type OpRh = OpRollHash::<Mi, Base>;
-///
-/// let val_from = |s| OpRh::val_from(s);
-///
-/// let mut fq = FoldableDeque::<OpRh>::new();
-/// assert_eq!(fq.fold(..), val_from(""));
-/// fq.push_back(val_from("abra"));
-/// fq.push_back(val_from("cad"));
-/// fq.push_back(val_from("abra"));
-/// assert_eq!(fq.fold(..), val_from("abracadabra"));
-/// fq.pop_front();
-/// assert_eq!(fq.fold(..), val_from("cadabra"));
-/// fq.push_front(val_from("abra"));
-/// fq.pop_back();
-/// assert_eq!(fq.fold(..), val_from("abracad"));
 #[derive(Debug)]
 pub struct FoldableDeque<M: Monoid> {
     buf_front: Vec<M::Set>,
