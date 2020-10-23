@@ -4,9 +4,6 @@
 pub mod buf_range;
 #[doc(inline)]
 pub use buf_range::*;
-pub mod modint;
-#[doc(inline)]
-pub use modint::*;
 pub mod op_add;
 #[doc(inline)]
 pub use op_add::*;

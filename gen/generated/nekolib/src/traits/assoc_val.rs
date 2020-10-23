@@ -9,7 +9,7 @@
 /// ```
 /// use nekolib::traits::AssocVal;
 /// use nekolib::impl_mod_int;
-/// use nekolib::utils::ModInt;
+/// use nekolib::math::ModInt;
 ///
 /// impl_mod_int! { Mod119l23p1 => 998_244_353_i64 }
 /// type Mi = ModInt<Mod119l23p1>;
@@ -27,7 +27,7 @@
 ///
 /// use nekolib::traits::AssocVal;
 /// use nekolib::impl_mod_int;
-/// use nekolib::utils::ModInt;
+/// use nekolib::math::ModInt;
 ///
 /// lazy_static! {
 ///     static ref MOD: Arc<Mutex<i64>> = Arc::new(Mutex::new(0));
@@ -56,17 +56,4 @@ macro_rules! impl_assoc_val {
     };
     ( $( $i:ident<$t:ty> => $m:expr, )* ) => { $( impl_assoc_val!($i<$t> => $m); )* };
     ( $( $i:ident<$t:ty> => $m:expr ),* ) => { $( impl_assoc_val!($i<$t> => $m); )* };
-}
-
-#[macro_export]
-macro_rules! impl_mod_int {
-    ( $i:ident => $m:expr ) => {
-        #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-        struct $i {}
-        impl AssocVal<i64> for $i {
-            fn get() -> i64 { $m }
-        }
-    };
-    ( $( $i:ident => $m:expr, )* ) => { $( impl_mod_int!($i => $m); )* };
-    ( $( $i:ident => $m:expr ),* ) => { $( impl_mod_int!($i => $m); )* };
 }
