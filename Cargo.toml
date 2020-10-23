@@ -3,6 +3,8 @@ members = [
     'crates/algo/*/',
     'crates/ds/*/',
     'crates/graph/*/',
+    'crates/math/*/',
+    'crates/seq/*/',
     'crates/traits/*/',
     'crates/utils/*/',
     'verifiers/download',
