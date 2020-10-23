@@ -9,7 +9,7 @@
 /// ```
 /// use nekolib::traits::AssocVal;
 /// use nekolib::impl_mod_int;
-/// use nekolib::utils::ModInt;
+/// use nekolib::math::ModInt;
 ///
 /// impl_mod_int! { Mod119l23p1 => 998_244_353_i64 }
 /// type Mi = ModInt<Mod119l23p1>;
@@ -27,7 +27,7 @@
 ///
 /// use nekolib::traits::AssocVal;
 /// use nekolib::impl_mod_int;
-/// use nekolib::utils::ModInt;
+/// use nekolib::math::ModInt;
 ///
 /// lazy_static! {
 ///     static ref MOD: Arc<Mutex<i64>> = Arc::new(Mutex::new(0));

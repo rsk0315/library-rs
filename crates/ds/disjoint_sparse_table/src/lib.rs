@@ -89,8 +89,9 @@ use fold::Fold;
 /// ```
 /// use nekolib::{impl_assoc_val, impl_mod_int};
 /// use nekolib::ds::DisjointSparseTable;
+/// use nekolib::math::ModInt;
 /// use nekolib::traits::{AssocVal, Fold};
-/// use nekolib::utils::{ModInt, OpRollHash};
+/// use nekolib::utils::OpRollHash;
 ///
 /// impl_mod_int! { Mod1e9p7 => 1_000_000_007_i64 }
 /// type Mi = ModInt<Mod1e9p7>;

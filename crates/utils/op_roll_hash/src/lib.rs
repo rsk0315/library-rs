@@ -12,10 +12,9 @@ use multiplicative::One;
 ///
 /// # Examples
 /// ```
-/// use nekolib::traits::binop::*;
-/// use nekolib::traits::AssocVal;
+/// use nekolib::math::ModInt;
+/// use nekolib::traits::{AssocVal, Magma};
 /// use nekolib::utils::OpRollHash;
-/// use nekolib::utils::ModInt;
 /// use nekolib::{impl_assoc_val, impl_mod_int};
 ///
 /// impl_mod_int! { Mod1e9p7 => 1_000_000_007_i64 }
