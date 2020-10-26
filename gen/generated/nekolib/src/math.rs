@@ -4,3 +4,6 @@
 pub mod modint;
 #[doc(inline)]
 pub use modint::*;
+pub mod polynomial;
+#[doc(inline)]
+pub use polynomial::*;

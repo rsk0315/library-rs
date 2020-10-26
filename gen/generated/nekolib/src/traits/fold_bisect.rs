@@ -1,59 +1,86 @@
 //! 区間和の二分探索に関するトレイトたちです。
-//!
-//! # Suggestions
-//! 設計を見直します。
-//! `r = fold_bisect(l, pred).unwrap()` および `l = fold_bisect_rev(r, pred).unwrap()` の
-//! どちらの場合においても、`fold(l..r)` が `true`（あるいは `false`）で
-//! 同じ値になる方がいいんじゃないかという気がしてきました。
-//!
-//! 現状では、前者は `fold(l..=r)` で（返り値の `r` を区間に含むので）`false`、
-//! 後者は `fold(l..r)` で（返り値の `l` を区間に含むので）`false` 、
-//! それより短い区間であれば `true` ということになっています。
 
 use super::binop;
+use super::fold;
+
+use std::ops::Range;
 
 use binop::{Magma, Monoid};
+use fold::Fold;
 
 /// 左端を固定したときの区間和に関する境界を求める。
-pub trait FoldBisect {
-    /// 区間和に関するモノイド $(M, \\circ, e)$。
-    type Folded: Monoid;
+pub trait FoldBisect: Fold<Range<usize>> {
+    /// 添字 `l` と述語 `pred` を引数に取り、次の条件を満たす `r` を返す。
+    /// ただし、区間長を `n` とする。
+    /// - `pred(&self.fold(l..r))`
+    /// - `r == n || pred(&self.fold(l..r + 1))`
+    ///
+    /// # Requirements
+    /// 対象のモノイドの単位元を `e` とするとき、 `pred(e)` が成り立つ。
+    ///
     /// # Examples
     /// ```
     /// use nekolib::ds::VecSegtree;
     /// use nekolib::traits::{Fold, FoldBisect};
-    /// use nekolib::utils::OpMin;
+    /// use nekolib::utils::OpAdd;
     ///
-    /// let vs: VecSegtree<OpMin<i32>> = vec![5, 3, 7, 4, 2].into();
-    /// let i = 1;
-    /// let pred = |&x: &i32| x >= 4;
-    /// let j = vs.fold_bisect(i, pred).unwrap();
-    /// // assert!(pred(&vs.fold(i..j)));
-    /// // assert!(!pred(&vs.fold(i..=j)));
+    /// let vs: VecSegtree<OpAdd<i32>> = vec![2, 4, 1, 3, 5].into();
+    ///
+    /// assert_eq!(vs.fold_bisect(1, |&x| x < 4), (1_usize, 0));
+    /// assert_eq!(vs.fold_bisect(1, |&x| x <= 4), (2_usize, 4));
+    /// assert_eq!(vs.fold_bisect(1, |&x| x < 13), (4_usize, 8));
+    /// assert_eq!(vs.fold_bisect(1, |&x| x <= 13), (5_usize, 13));
+    ///
+    /// let l = 1;
+    /// let pred = |&x: &i32| x <= 12;
+    /// let (r, x) = vs.fold_bisect(l, pred);
+    /// assert_eq!(vs.fold(l..r), x);
+    /// assert!(pred(&x));
+    /// assert!(r == vs.len() || !pred(&vs.fold(l..r + 1)));
     /// ```
-    fn fold_bisect<F>(&self, i: usize, pred: F) -> Option<usize>
+    fn fold_bisect<F>(
+        &self,
+        i: usize,
+        pred: F,
+    ) -> (usize, <Self::Output as Magma>::Set)
     where
-        F: Fn(&<Self::Folded as Magma>::Set) -> bool;
+        F: Fn(&<Self::Output as Magma>::Set) -> bool;
 }
 
 /// 右端を固定したときの区間和に関する境界を求める。
-pub trait FoldBisectRev {
-    /// 区間和に関するモノイド $(M, \\circ, e)$。
-    type Folded: Monoid;
+pub trait FoldBisectRev: Fold<Range<usize>> {
+    /// 添字 `r` と述語 `pred` を引数に取り、次の条件を満たす `l` を返す。
+    /// - `pred(&self.fold(l..r))`
+    /// - `l == 0 || pred(&self.fold(l - 1..r))`
+    ///
+    /// # Requirements
+    /// 対象のモノイドの単位元を `e` とするとき、`pred(e)` が成り立つ。
+    ///
     /// # Examples
     /// ```
     /// use nekolib::ds::VecSegtree;
     /// use nekolib::traits::{Fold, FoldBisectRev};
-    /// use nekolib::utils::OpMin;
+    /// use nekolib::utils::OpAdd;
     ///
-    /// let vs: VecSegtree<OpMin<i32>> = vec![5, 3, 7, 4, 2].into();
-    /// let i = 4;
-    /// let pred = |&x: &i32| x >= 4;
-    /// let j = vs.fold_bisect_rev(i, pred).unwrap();
-    /// // assert!(pred(&vs.fold(i+1..j)));
-    /// // assert!(!pred(&vs.fold(i..j)));
+    /// let vs: VecSegtree<OpAdd<i32>> = vec![2, 4, 1, 3, 5].into();
+    ///
+    /// assert_eq!(vs.fold(..), 15);
+    /// assert_eq!(vs.fold_bisect_rev(5, |&x| x <= 0), (5_usize, 0));
+    /// assert_eq!(vs.fold_bisect_rev(5, |&x| x < 15), (1_usize, 13));
+    /// assert_eq!(vs.fold_bisect_rev(5, |&x| x <= 15), (0_usize, 15));
+    ///
+    /// let r = 5;
+    /// let pred = |&x: &i32| x <= 12;
+    /// let (l, x) = vs.fold_bisect_rev(r, pred);
+    /// assert_eq!(vs.fold(l..r), x);
+    /// assert!(pred(&x));
+    /// assert!(l == 0 || !pred(&vs.fold(l - 1..r)));
     /// ```
-    fn fold_bisect_rev<F>(&self, i: usize, pred: F) -> Option<usize>
+    fn fold_bisect_rev<F>(
+        &self,
+        i: usize,
+        pred: F,
+    ) -> (usize, <Self::Output as Magma>::Set)
     where
-        F: Fn(&<Self::Folded as Magma>::Set) -> bool;
+        F: Fn(&<Self::Output as Magma>::Set) -> bool;
 }
