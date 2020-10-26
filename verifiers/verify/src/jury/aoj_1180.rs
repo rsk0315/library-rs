@@ -14,14 +14,12 @@ impl Jury for Aoj1180 {
     fn parse_input(input: String) -> Self::Input {
         let mut input: Scanner = input.into();
 
-        std::iter::repeat(0)
-            .map(|_| match input.next().unwrap() {
-                (0, 0) => None,
-                (a, l) => Some((a, l)),
-            })
-            .fuse()
-            .map(std::option::Option::unwrap)
-            .collect()
+        std::iter::successors(Some((1, 1)), |_| match input.next().unwrap() {
+            (0, 0) => None,
+            (a, l) => Some((a, l)),
+        })
+        .skip(1)
+        .collect()
     }
     fn parse_output(input: &Self::Input, output: String) -> Self::Output {
         let mut output: Scanner = output.into();
