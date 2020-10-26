@@ -7,7 +7,7 @@ use super::fold;
 
 use std::ops::Range;
 
-use binop::{Magma, Monoid};
+use binop::Magma;
 use fold::Fold;
 
 /// 左端を固定したときの境界を求める。
