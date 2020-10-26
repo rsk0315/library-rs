@@ -1,5 +1,10 @@
 name: prepare testcases
 on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'verifiers/download/src/main.rs'
   workflow_dispatch:
 
 jobs:
