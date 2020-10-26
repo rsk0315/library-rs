@@ -14,6 +14,9 @@ use std::ops::Range;
 ///
 /// `todo!()`
 ///
+/// # Parameters
+/// `todo!()`
+///
 /// # Complexity
 /// `todo!()`
 ///
@@ -22,6 +25,10 @@ use std::ops::Range;
 /// 関数の返り値も `T: PartialOrd` にする？
 ///
 /// # Examples
+/// $f(x) = x\^x$ の最小値を求める。
+///
+/// $x = 1/e$ のとき、最小値 $e\^{-1/e}$ をとる。
+/// cf. [Wolfram|Alpha](https://www.wolframalpha.com/input/?i=y+%3D+x**x)
 /// ```
 /// use nekolib::algo::extremum_float;
 ///
@@ -32,10 +39,11 @@ use std::ops::Range;
 /// let xr = 140.0;
 /// let eps = 1.0e-8;
 /// let (x, y) = extremum_float(xl..xr, eps, f);
+/// let y = -y;
 ///
 /// let e = std::f64::consts::E;
-/// assert!((1.0 / e - x).abs() < eps);
-/// assert!((-e.powf(-1.0 / e) - y).abs() < eps);
+/// assert!(((1.0 / e) - x).abs() < eps);
+/// assert!((e.powf(-1.0 / e) - y).abs() < eps);
 /// ```
 pub fn extremum_float<F>(range: Range<f64>, eps: f64, f: F) -> (f64, f64)
 where
