@@ -1,11 +1,13 @@
-//! 区間和の二分探索に関するトレイトたちです。
+//! 区間和の二分探索に関するトレイトたち。
+//!
+//! 区間のモノイド積が述語を満たすような区間のうち、最大のものを返す。
 
 use std::ops::Range;
 
 use binop::{Magma, Monoid};
 use fold::Fold;
 
-/// 左端を固定したときの区間和に関する境界を求める。
+/// 左端を固定したときの境界を求める。
 pub trait FoldBisect: Fold<Range<usize>> {
     /// 添字 `l` と述語 `pred` を引数に取り、次の条件を満たす `r` を返す。
     /// ただし、区間長を `n` とする。
@@ -37,14 +39,14 @@ pub trait FoldBisect: Fold<Range<usize>> {
     /// ```
     fn fold_bisect<F>(
         &self,
-        i: usize,
+        l: usize,
         pred: F,
     ) -> (usize, <Self::Output as Magma>::Set)
     where
         F: Fn(&<Self::Output as Magma>::Set) -> bool;
 }
 
-/// 右端を固定したときの区間和に関する境界を求める。
+/// 右端を固定したときの境界を求める。
 pub trait FoldBisectRev: Fold<Range<usize>> {
     /// 添字 `r` と述語 `pred` を引数に取り、次の条件を満たす `l` を返す。
     /// - `pred(&self.fold(l..r))`
@@ -75,7 +77,7 @@ pub trait FoldBisectRev: Fold<Range<usize>> {
     /// ```
     fn fold_bisect_rev<F>(
         &self,
-        i: usize,
+        r: usize,
         pred: F,
     ) -> (usize, <Self::Output as Magma>::Set)
     where
