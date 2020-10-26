@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 modint = { path = "../modint" }
+assoc_val = { path = "../../traits/assoc_val" }
