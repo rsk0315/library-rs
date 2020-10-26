@@ -1,5 +1,13 @@
 name: verify
 on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.cargo/config.toml'
+      - 'Cargo.toml'
+      - 'crates/**'
+      - 'verifiers/**'
   workflow_dispatch:
 
 jobs:
