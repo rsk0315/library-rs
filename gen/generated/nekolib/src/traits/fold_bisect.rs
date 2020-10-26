@@ -13,7 +13,7 @@ pub trait FoldBisect: Fold<Range<usize>> {
     /// 添字 `l` と述語 `pred` を引数に取り、次の条件を満たす `r` を返す。
     /// ただし、区間長を `n` とする。
     /// - `pred(&self.fold(l..r))`
-    /// - `r == n || pred(&self.fold(l..r + 1))`
+    /// - `r == n || !pred(&self.fold(l..r + 1))`
     ///
     /// # Requirements
     /// 対象のモノイドの単位元を `e` とするとき、 `pred(e)` が成り立つ。
@@ -51,7 +51,7 @@ pub trait FoldBisect: Fold<Range<usize>> {
 pub trait FoldBisectRev: Fold<Range<usize>> {
     /// 添字 `r` と述語 `pred` を引数に取り、次の条件を満たす `l` を返す。
     /// - `pred(&self.fold(l..r))`
-    /// - `l == 0 || pred(&self.fold(l - 1..r))`
+    /// - `l == 0 || !pred(&self.fold(l - 1..r))`
     ///
     /// # Requirements
     /// 対象のモノイドの単位元を `e` とするとき、`pred(e)` が成り立つ。
