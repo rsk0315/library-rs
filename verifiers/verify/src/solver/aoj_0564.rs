@@ -37,7 +37,7 @@ where
     D: From<Vec<Pair>>
         + Fold<Range<usize>, Output = OpAdd<Pair>>
         + SetValue<usize, Input = Pair>
-        + FoldBisect<Folded = OpAdd<Pair>>,
+        + FoldBisect,
 {
     type Jury = jury::Aoj0564;
     fn solve(mut ab: Vec<(u64, u64)>) -> u64 {
@@ -58,7 +58,7 @@ where
         for (a, b, i) in ab {
             let pred = |&Pair(a, k): &Pair| a <= b * k;
             dp.set_value(i, Pair(a, 1));
-            let ir = dp.fold_bisect(0, pred).unwrap_or(n);
+            let ir = dp.fold_bisect(0, pred).0;
             res = res.max(dp.fold(0..ir).1);
         }
 
