@@ -1,7 +1,7 @@
 //! ねこちゃんライブラリ。
 //!
-//! ![verify](https://github.com/rsk0315/library-rs/workflows/verify/badge.svg)
-//! ![doctest](https://github.com/rsk0315/library-rs/workflows/doctest/badge.svg)
+//! [![verify](https://github.com/rsk0315/library-rs/workflows/verify/badge.svg)](https://github.com/rsk0315/library-rs/actions?query=workflow%3Averify)
+//! [![doctest](https://github.com/rsk0315/library-rs/workflows/doctest/badge.svg)](https://github.com/rsk0315/library-rs/actions?query=workflow%3Adoctest)
 //!
 //! [<span style="font-family: Lato; color: #C0C000;">rsk0315</span>](https://atcoder.jp/users/rsk0315)
 //! の競プロライブラリです。
