@@ -7,6 +7,9 @@ pub use bisect::*;
 pub mod extremum;
 #[doc(inline)]
 pub use extremum::*;
+pub mod extremum_float;
+#[doc(inline)]
+pub use extremum_float::*;
 pub mod mo;
 #[doc(inline)]
 pub use mo::*;
