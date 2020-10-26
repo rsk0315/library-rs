@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 binop = { path = "../binop" }
+fold = { path = "../fold" }

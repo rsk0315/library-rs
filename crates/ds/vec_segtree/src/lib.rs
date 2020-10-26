@@ -39,15 +39,29 @@ use set_value::SetValue;
 /// *vs.get_mut(2).unwrap() = 1; // [2, 4, 1, 3, 5]
 /// assert_eq!(vs.fold(1..3), 5);
 /// assert_eq!(vs.fold(1..=3), 8);
-/// assert_eq!(vs.fold_bisect(1, |&x| x < 4), Some(1));
-/// assert_eq!(vs.fold_bisect(1, |&x| x <= 4), Some(2));
-/// assert_eq!(vs.fold_bisect(1, |&x| x < 13), Some(4));
-/// assert_eq!(vs.fold_bisect(1, |&x| x <= 13), None);
+/// assert_eq!(vs.fold_bisect(1, |&x| x < 4), (1_usize, 0));
+/// assert_eq!(vs.fold_bisect(1, |&x| x <= 4), (2_usize, 4));
+/// assert_eq!(vs.fold_bisect(1, |&x| x < 13), (4_usize, 8));
+/// assert_eq!(vs.fold_bisect(1, |&x| x <= 13), (5_usize, 13));
 ///
 /// assert_eq!(vs.fold(..), 15);
-/// assert_eq!(vs.fold_bisect_rev(5, |&x| x <= 0), Some(4));
-/// assert_eq!(vs.fold_bisect_rev(5, |&x| x < 15), Some(0));
-/// assert_eq!(vs.fold_bisect_rev(5, |&x| x <= 15), None);
+/// assert_eq!(vs.fold_bisect_rev(5, |&x| x <= 0), (5_usize, 0));
+/// assert_eq!(vs.fold_bisect_rev(5, |&x| x < 15), (1_usize, 13));
+/// assert_eq!(vs.fold_bisect_rev(5, |&x| x <= 15), (0_usize, 15));
+///
+/// let l = 1;
+/// let pred = |&x: &i32| x <= 12;
+/// let (r, x) = vs.fold_bisect(l, pred);
+/// assert_eq!(vs.fold(l..r), x);
+/// assert!(pred(&x));
+/// assert!(r == vs.len() || !pred(&vs.fold(l..r + 1)));
+///
+/// let r = 5;
+/// let pred = |&x: &i32| x <= 12;
+/// let (l, x) = vs.fold_bisect_rev(r, pred);
+/// assert_eq!(vs.fold(l..r), x);
+/// assert!(pred(&x));
+/// assert!(l == 0 || !pred(&vs.fold(l - 1..r)));
 /// ```
 #[derive(Clone)]
 pub struct VecSegtree<M>
@@ -72,6 +86,14 @@ where
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
     fn nodes(&self, l: usize, r: usize) -> Vec<usize> {
         let mut l = self.len + l;
         let mut r = self.len + r;
@@ -92,6 +114,10 @@ where
         vr.reverse();
         vl.append(&mut vr);
         vl
+    }
+
+    fn nodes_rev(&self, l: usize, r: usize) -> Vec<usize> {
+        self.nodes(l, r).into_iter().rev().collect()
     }
 }
 
@@ -254,8 +280,7 @@ where
     M: Monoid,
     M::Set: Clone,
 {
-    type Folded = M;
-    fn fold_bisect<F>(&self, l: usize, pred: F) -> Option<usize>
+    fn fold_bisect<F>(&self, l: usize, pred: F) -> (usize, M::Set)
     where
         F: Fn(&M::Set) -> bool,
     {
@@ -266,10 +291,10 @@ where
         );
 
         let mut x = M::id();
-        if !pred(&x) {
-            return Some(l);
-        } else if pred(&self.fold(l..)) {
-            return None;
+        assert!(pred(&x), "`pred(id)` must hold");
+        match self.fold(l..) {
+            x if pred(&x) => return (self.len, x),
+            _ => {}
         }
 
         for v in self.nodes(l, self.len) {
@@ -287,7 +312,7 @@ where
                     v += 1;
                 }
             }
-            return Some(v - self.len);
+            return (v - self.len, x);
         }
         unreachable!();
     }
@@ -298,8 +323,7 @@ where
     M: Monoid,
     M::Set: Clone,
 {
-    type Folded = M;
-    fn fold_bisect_rev<F>(&self, r: usize, pred: F) -> Option<usize>
+    fn fold_bisect_rev<F>(&self, r: usize, pred: F) -> (usize, M::Set)
     where
         F: Fn(&M::Set) -> bool,
     {
@@ -310,13 +334,13 @@ where
         );
 
         let mut x = M::id();
-        if !pred(&x) {
-            return Some(r);
-        } else if pred(&self.fold(..r)) {
-            return None;
+        assert!(pred(&x), "`pred(id)` must hold");
+        match self.fold(..r) {
+            x if pred(&x) => return (0, x),
+            _ => {}
         }
 
-        for v in self.nodes(0, r).into_iter().rev() {
+        for v in self.nodes_rev(0, r) {
             let tmp = M::op(self.buf[v].clone(), x.clone());
             if pred(&tmp) {
                 x = tmp;
@@ -324,15 +348,14 @@ where
             }
             let mut v = v;
             while v < self.len {
-                v <<= 1;
-                v += 1;
+                v = v << 1 | 1;
                 let tmp = M::op(self.buf[v].clone(), x.clone());
                 if pred(&tmp) {
                     x = tmp;
                     v -= 1;
                 }
             }
-            return Some(v - self.len);
+            return (v - self.len + 1, x);
         }
         unreachable!();
     }
