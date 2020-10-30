@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fmt::Debug;
 use std::io::{Read, Write};
@@ -14,9 +14,16 @@ struct Manifest {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+struct DependsMap {
+    name: (String, String),
+    direct: Vec<(String, String)>,
+    whole: Vec<(String, String)>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 struct DeclIndex {
     declared: BTreeMap<String, (String, String)>,
-    depends: BTreeMap<String, Vec<(String, String)>>,
+    depends: Vec<DependsMap>,
 }
 
 pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
@@ -46,15 +53,27 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
         }
 
         for (dep_crate, dep_mod) in parse_dep(&toml_path)? {
-            deps.entry(format!("{}::{}", &crate_mod.0, &crate_mod.1))
+            deps.entry(crate_mod.clone())
                 .or_insert(vec![])
                 .push((dep_crate, dep_mod));
         }
     }
 
+    let whole = dep_star(deps.clone());
+
     let res = DeclIndex {
         declared: decls,
-        depends: deps,
+        depends: deps
+            .into_iter()
+            .map(|(k, v)| {
+                let whole = whole[&k].clone();
+                DependsMap {
+                    name: k.clone(),
+                    direct: v,
+                    whole,
+                }
+            })
+            .collect(),
     };
 
     eprintln!("{:?}", res);
@@ -176,4 +195,63 @@ fn get_name(toml_path: &PathBuf) -> (String, String) {
     let mod_name = mod_name.replace("-", "_");
 
     (crate_name.to_string(), mod_name.to_string())
+}
+
+fn dep_star(
+    deps: BTreeMap<(String, String), Vec<(String, String)>>,
+) -> BTreeMap<(String, String), Vec<(String, String)>> {
+    let (enc, dec): (BTreeMap<_, _>, Vec<_>) = {
+        let mut s = BTreeSet::new();
+        for (k, v) in &deps {
+            s.insert(k.clone());
+            for vi in v {
+                s.insert(vi.clone());
+            }
+        }
+        let dec = s.iter().cloned().collect();
+        let enc = s.into_iter().enumerate().map(|(i, x)| (x, i)).collect();
+        (enc, dec)
+    };
+
+    // use Floyd--Warshall algorithm, as #vertices is not large.
+
+    let n = dec.len();
+    let mut d = vec![vec![false; n]; n];
+    for (k, v) in &deps {
+        for vi in v {
+            d[enc[k]][enc[vi]] = true;
+        }
+    }
+
+    for k in 0..n {
+        for i in 0..n {
+            for j in 0..n {
+                d[i][j] |= d[i][k] && d[k][j];
+            }
+        }
+    }
+
+    d.into_iter()
+        .enumerate()
+        .filter_map(|(i, v)| {
+            let v: Vec<_> = v
+                .into_iter()
+                .enumerate()
+                .filter_map(
+                    |(j, b)| {
+                        if b {
+                            Some(dec[j].clone())
+                        } else {
+                            None
+                        }
+                    },
+                )
+                .collect();
+            if v.is_empty() {
+                None
+            } else {
+                Some((dec[i].clone(), v))
+            }
+        })
+        .collect()
 }
