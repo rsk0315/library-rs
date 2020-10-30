@@ -62,6 +62,8 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
         depends: deps,
     };
 
+    eprintln!("{:?}", res);
+
     let toml = toml::ser::to_string(&res)?;
     let mut outfile = std::fs::OpenOptions::new()
         .create(true)
