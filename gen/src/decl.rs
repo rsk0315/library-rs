@@ -16,7 +16,7 @@ struct Manifest {
 #[derive(Debug, Deserialize, Serialize)]
 struct DeclIndex {
     declared: BTreeMap<String, (String, String)>,
-    depends: BTreeMap<(String, String), Vec<(String, String)>>,
+    depends: BTreeMap<String, Vec<(String, String)>>,
 }
 
 pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
@@ -33,25 +33,20 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
         let crate_path = mod_path.parent().unwrap();
 
         let mod_name = mod_path.file_stem().unwrap().to_str().unwrap();
-        let crate_name = crate_path
-            .file_stem()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
+        let crate_name = crate_path.file_stem().unwrap().to_str().unwrap();
 
         let mod_name = mod_name.replace("-", "_");
 
         eprintln!("parsing {}/{}", &crate_name, &mod_name);
 
-        let crate_mod = (crate_name, mod_name);
+        let crate_mod = (crate_name.to_string(), mod_name.to_string());
 
         for ident in parse(&mod_path.join("src/lib.rs"))? {
             decls.insert(ident, crate_mod.clone());
         }
 
         for (dep_crate, dep_mod) in parse_dep(&toml_path)? {
-            deps.entry(crate_mod.clone())
+            deps.entry(format!("{}::{}", &crate_mod.0, &crate_mod.1))
                 .or_insert(vec![])
                 .push((dep_crate, dep_mod));
         }
