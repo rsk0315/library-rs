@@ -11,7 +11,7 @@ struct Manifest {
     dependencies: BTreeMap<String, toml::Value>,
 }
 
-pub fn generate(src_glob: &str, dst: PathBuf) -> Result<(), std::io::Error> {
+pub fn generate(src_glob: &str, dst: &PathBuf) -> Result<(), std::io::Error> {
     eprintln!("Move {:?} => {:?}", src_glob, &dst);
 
     // for local

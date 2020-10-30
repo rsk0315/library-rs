@@ -1,14 +1,12 @@
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 
 use glob::glob;
 use syn::{parse_file, parse_quote};
 
-pub fn decl(
-    src_toml: &str,
-) -> Result<BTreeMap<String, (String, String)>, Box<dyn Error>> {
+pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
     let mut res = BTreeMap::new();
 
     for src_toml in glob(&src_toml).unwrap() {
@@ -32,7 +30,15 @@ pub fn decl(
         }
     }
 
-    Ok(res)
+    let toml = toml::ser::to_string(&res)?;
+    let mut outfile = std::fs::OpenOptions::new()
+        .create(true)
+        .write(true)
+        .open(&dst_toml)?;
+
+    outfile.write_all(toml.as_bytes())?;
+
+    Ok(())
 }
 
 fn parse(src: PathBuf) -> Result<Vec<String>, Box<dyn Error>> {

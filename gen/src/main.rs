@@ -10,7 +10,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         std::env::var("HOME").unwrap()
     );
     let dst = cd.join("generated/nekolib").into();
-    generate(&src_glob, dst)?;
+    generate(&src_glob, &dst)?;
 
     // XXX
     // let src_glob = format!(
@@ -21,8 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let dst = cd.join("generated/nekolib-verify").into();
     // generate(src_glob, dst)?;
 
-    let map = decl(&src_glob)?;
-    eprintln!("{:#?}", map);
+    decl(&src_glob, &dst.join("decl.toml"))?;
 
     Ok(())
 }
