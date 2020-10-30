@@ -65,10 +65,16 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
         declared: decls,
         depends: deps
             .into_iter()
-            .map(|(k, v)| {
-                let whole = whole[&k].clone();
+            .map(|(k, mut v)| {
+                let mut whole = whole[&k].clone();
+                v.sort_unstable();
+                whole.sort_unstable();
+                eprintln!(
+                    "name: {:?}\ndirect: {:#?}\nwhole: {:#?}",
+                    &k, &v, &whole
+                );
                 DependsMap {
-                    name: k.clone(),
+                    name: k,
                     direct: v,
                     whole,
                 }
