@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let dst = cd.join("generated/nekolib-verify").into();
     // generate(src_glob, dst)?;
 
-    decl(&src_glob, &dst.join("decl.toml"))?;
+    decl(&src_glob, &dst.join("decl-index.toml"))?;
 
     Ok(())
 }

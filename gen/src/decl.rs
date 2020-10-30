@@ -7,7 +7,7 @@ use glob::glob;
 use syn::{parse_file, parse_quote};
 
 pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
-    let mut res = BTreeMap::new();
+    let mut decls = BTreeMap::new();
 
     for src_toml in glob(&src_toml).unwrap() {
         let toml_path = match src_toml {
@@ -26,9 +26,13 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
         eprintln!("parsing {}/{}", &crate_name, &mod_name_);
 
         for ident in parse(mod_path.join("src/lib.rs"))? {
-            res.insert(ident, (crate_name.to_string(), mod_name_.clone()));
+            decls.insert(ident, (crate_name.to_string(), mod_name_.clone()));
         }
     }
+
+    let mut res = BTreeMap::new();
+
+    res.insert("declared-in", decls);
 
     let toml = toml::ser::to_string(&res)?;
     let mut outfile = std::fs::OpenOptions::new()
