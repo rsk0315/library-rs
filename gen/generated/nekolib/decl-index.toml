@@ -94,7 +94,7 @@ whole = [["traits", "elastic_slice"]]
 
 [[depends]]
 name = ["ds", "disjoint_sparse_table"]
-direct = [["traits", "binop"], ["utils", "buf_range"], ["traits", "fold"]]
+direct = [["traits", "binop"], ["traits", "fold"], ["utils", "buf_range"]]
 whole = [["traits", "binop"], ["traits", "fold"], ["utils", "buf_range"]]
 
 [[depends]]
@@ -114,7 +114,7 @@ whole = [["traits", "disjoint-set"]]
 
 [[depends]]
 name = ["ds", "vec_segtree"]
-direct = [["traits", "binop"], ["utils", "buf_range"], ["traits", "fold"], ["traits", "fold_bisect"], ["traits", "get_mut"], ["traits", "set_value"]]
+direct = [["traits", "binop"], ["traits", "fold"], ["traits", "fold_bisect"], ["traits", "get_mut"], ["traits", "set_value"], ["utils", "buf_range"]]
 whole = [["traits", "binop"], ["traits", "fold"], ["traits", "fold_bisect"], ["traits", "get_mut"], ["traits", "set_value"], ["utils", "buf_range"]]
 
 [[depends]]
@@ -124,7 +124,7 @@ whole = [["traits", "additive"], ["traits", "assoc_val"], ["traits", "multiplica
 
 [[depends]]
 name = ["math", "polynomial"]
-direct = [["traits", "assoc_val"], ["math", "modint"]]
+direct = [["math", "modint"], ["traits", "assoc_val"]]
 whole = [["math", "modint"], ["traits", "additive"], ["traits", "assoc_val"], ["traits", "multiplicative"]]
 
 [[depends]]
