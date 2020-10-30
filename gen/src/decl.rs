@@ -54,7 +54,9 @@ fn parse(src: PathBuf) -> Result<Vec<String>, Box<dyn Error>> {
             Fn(item) => vis_ident(&item.vis, &item.sig.ident),
             ForeignMod(_) => None,
             Impl(_) => None,
-            Macro(_) => None,  // XXX #[macro_export]
+            Macro(item) if item.ident.is_some() => {
+                exported_ident(&item.attrs, &item.ident.unwrap())
+            }
             Macro2(_) => None, // ?
             Mod(item) => vis_ident(&item.vis, &item.ident),
             Static(item) => vis_ident(&item.vis, &item.ident),
@@ -72,6 +74,17 @@ fn parse(src: PathBuf) -> Result<Vec<String>, Box<dyn Error>> {
 
 fn vis_ident(vis: &syn::Visibility, ident: &syn::Ident) -> Option<String> {
     if let syn::Visibility::Public(_) = vis {
+        Some(ident.to_string())
+    } else {
+        None
+    }
+}
+
+fn exported_ident(
+    attrs: &Vec<syn::Attribute>,
+    ident: &syn::Ident,
+) -> Option<String> {
+    if attrs.iter().any(|a| a.path.is_ident("macro_export")) {
         Some(ident.to_string())
     } else {
         None
