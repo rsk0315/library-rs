@@ -1,13 +1,27 @@
 use std::collections::BTreeMap;
 use std::error::Error;
+use std::fmt::Debug;
 use std::io::{Read, Write};
-use std::path::PathBuf;
+use std::path::{Component, PathBuf};
 
 use glob::glob;
+use serde::{Deserialize, Serialize};
 use syn::{parse_file, parse_quote};
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Manifest {
+    dependencies: BTreeMap<String, toml::Value>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DeclIndex {
+    declared: BTreeMap<String, (String, String)>,
+    depends: BTreeMap<(String, String), Vec<(String, String)>>,
+}
 
 pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
     let mut decls = BTreeMap::new();
+    let mut deps = BTreeMap::new();
 
     for src_toml in glob(&src_toml).unwrap() {
         let toml_path = match src_toml {
@@ -19,20 +33,34 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
         let crate_path = mod_path.parent().unwrap();
 
         let mod_name = mod_path.file_stem().unwrap().to_str().unwrap();
-        let crate_name = crate_path.file_stem().unwrap().to_str().unwrap();
+        let crate_name = crate_path
+            .file_stem()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
 
-        let mod_name_ = mod_name.replace("-", "_");
+        let mod_name = mod_name.replace("-", "_");
 
-        eprintln!("parsing {}/{}", &crate_name, &mod_name_);
+        eprintln!("parsing {}/{}", &crate_name, &mod_name);
 
-        for ident in parse(mod_path.join("src/lib.rs"))? {
-            decls.insert(ident, (crate_name.to_string(), mod_name_.clone()));
+        let crate_mod = (crate_name, mod_name);
+
+        for ident in parse(&mod_path.join("src/lib.rs"))? {
+            decls.insert(ident, crate_mod.clone());
+        }
+
+        for (dep_crate, dep_mod) in parse_dep(&toml_path)? {
+            deps.entry(crate_mod.clone())
+                .or_insert(vec![])
+                .push((dep_crate, dep_mod));
         }
     }
 
-    let mut res = BTreeMap::new();
-
-    res.insert("declared-in", decls);
+    let res = DeclIndex {
+        declared: decls,
+        depends: deps,
+    };
 
     let toml = toml::ser::to_string(&res)?;
     let mut outfile = std::fs::OpenOptions::new()
@@ -45,7 +73,7 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn parse(src: PathBuf) -> Result<Vec<String>, Box<dyn Error>> {
+fn parse(src: &PathBuf) -> Result<Vec<String>, Box<dyn Error>> {
     use syn::Item::*;
 
     let mut file = std::fs::File::open(&src)?;
@@ -99,4 +127,56 @@ fn exported_ident(
     } else {
         None
     }
+}
+
+fn parse_dep(
+    src_toml: &PathBuf,
+) -> Result<Vec<(String, String)>, Box<dyn Error>> {
+    let (crate_name, mod_name) = get_name(&src_toml);
+
+    let content =
+        String::from_utf8_lossy(&std::fs::read(&src_toml)?).to_string();
+    let man: Manifest = toml::de::from_str(&content)?;
+
+    Ok(man
+        .dependencies
+        .into_iter()
+        .filter_map(|(_, dep)| {
+            if let toml::Value::Table(table) = dep {
+                let path = match table.get("path") {
+                    Some(p) => PathBuf::from(p.as_str()?),
+                    None => return None,
+                };
+                let mut res = vec![crate_name.clone(), mod_name.clone()];
+                for c in path.components() {
+                    match c {
+                        Component::ParentDir => {
+                            res.pop();
+                        }
+                        Component::Normal(s) => {
+                            res.push(s.to_str().unwrap().to_string());
+                        }
+                        _ => todo!(),
+                    };
+                }
+                let mod_name = res.pop().unwrap();
+                let crate_name = res.pop().unwrap();
+                Some((crate_name, mod_name))
+            } else {
+                None
+            }
+        })
+        .collect())
+}
+
+fn get_name(toml_path: &PathBuf) -> (String, String) {
+    let mod_path = toml_path.parent().unwrap();
+    let crate_path = mod_path.parent().unwrap();
+
+    let mod_name = mod_path.file_stem().unwrap().to_str().unwrap();
+    let crate_name = crate_path.file_stem().unwrap().to_str().unwrap();
+
+    let mod_name = mod_name.replace("-", "_");
+
+    (crate_name.to_string(), mod_name.to_string())
 }
