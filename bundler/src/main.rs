@@ -3,8 +3,10 @@ use std::error::Error;
 use std::io::Read;
 use std::path::PathBuf;
 
-use bundler::{extract_uses_file, polish_file};
+use clap::{App, Arg};
 use serde::{Deserialize, Serialize};
+
+use bundler::{extract_uses_file, polish_file};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct DependsMap {
@@ -20,9 +22,13 @@ struct DeclIndex {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    for arg in std::env::args().skip(1) {
-        bundle(&arg)?;
-    }
+    let m = App::new("bundle")
+        .arg(Arg::with_name("SOURCE").default_value("src/main.rs"))
+        .get_matches();
+
+    let source = m.value_of("SOURCE").unwrap();
+    bundle(&source)?;
+
     Ok(())
 }
 
@@ -51,6 +57,8 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
         (decl_index.declared, deps)
     };
 
+    // まだ ::* をうまく扱えないと思う
+
     let mut includes = vec![];
     for mut crate_mod in extract_uses_file(&filename)? {
         let mod_name = crate_mod.pop().unwrap();
@@ -73,7 +81,6 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
     };
 
     println!("{}", src);
-    println!("");
     println!("// --- bundled automatically --- //");
     println!("");
 

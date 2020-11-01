@@ -12,3 +12,4 @@ quote = "1.0.7"
 proc-macro2 = "1.0.24"
 toml = "0.5.7"
 serde = { version = "1.0.117", features = ["derive"] }
+clap = "2.33.3"

@@ -35,6 +35,8 @@ pub fn extract_uses_file(
 
     res.sort_unstable();
     res.dedup();
+    res.retain(|v| v[0] == "nekolib");
+
     Ok(res)
 }
 
