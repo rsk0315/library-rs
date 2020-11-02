@@ -74,6 +74,7 @@ impl_assoc_val = ["traits", "assoc_val"]
 impl_mod_int = ["math", "modint"]
 mo = ["algo", "mo"]
 parallel_bisect = ["algo", "parallel_bisect"]
+scc = ["graph", "scc"]
 tortoise_hare = ["algo", "tortoise_hare"]
 window_bisect = ["algo", "window_bisect"]
 
