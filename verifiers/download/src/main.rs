@@ -20,6 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         AojDsl1A,
         AojDsl2B,
         AojGrl1A,
+        AojGrl3C,
         Yuki3287,
     }
 

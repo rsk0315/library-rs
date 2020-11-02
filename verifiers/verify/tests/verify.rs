@@ -34,4 +34,9 @@ mod verify {
     fn verify_parallel_bisect() {
         verify::<Aoj0575<UnionFind>>();
     }
+
+    #[test]
+    fn verify_scc() {
+        verify::<AojGrl3C>();
+    }
 }
