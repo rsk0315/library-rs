@@ -80,7 +80,13 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
         tmp
     };
 
-    println!("{}", src);
+    print!("{}", src);
+
+    if includes.is_empty() {
+        return Ok(());
+    }
+
+    println!("");
     println!("// --- bundled automatically --- //");
     println!("");
 
