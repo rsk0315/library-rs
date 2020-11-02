@@ -1,6 +1,18 @@
+//! 最短距離 (Dijkstra)。
+
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
+/// Dijkstra 法に基づく最短距離。
+///
+/// # Parameters
+/// 後でちゃんと書きます。
+///
+/// [これ](https://niuez.github.io/posts/impl_abstract_dijkstra/)
+/// をリスペクトしているつもり。
+///
+/// # Complexity
+/// 二分ヒープを用いる実装なので、$O(|E|\\log(|V|))$ 時間。
 pub fn dijkstra<V, W, I, D>(
     n: usize,
     s: V,

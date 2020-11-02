@@ -1,3 +1,19 @@
+//! 強連結成分分解。
+
+/// lowlink に基づく強連結成分分解。
+///
+/// # Parameters
+/// 後でちゃんと書きます。
+///
+/// [これ](https://niuez.github.io/posts/impl_abstract_dijkstra/)
+/// をリスペクトしているつもり。
+///
+/// # Return value
+/// `index(v)` 番目の要素が `v` の属する強連結成分の番号である配列。
+/// 番号づけはトポロジカル順に行われる。
+///
+/// # Complexity
+/// $O(|V|+|E|)$ 時間。
 pub fn scc<G, V, I, D>(n: usize, vs: G, index: I, delta: D) -> Vec<usize>
 where
     G: Iterator<Item = V>,
