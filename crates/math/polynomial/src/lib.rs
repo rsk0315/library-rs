@@ -1,5 +1,8 @@
 //! 多項式。
 
+// XXX
+#![allow(dead_code, unused_imports, unused_variables)]
+
 use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use assoc_val::AssocVal;

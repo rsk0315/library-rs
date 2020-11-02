@@ -65,7 +65,7 @@ where
     let mut yml = f(xml);
     let mut ymr = f(xmr);
 
-    for i in 0..iter {
+    for _ in 0..iter {
         if yml > ymr {
             xr = std::mem::replace(&mut xmr, xml);
             ymr = yml;

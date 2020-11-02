@@ -42,8 +42,7 @@ where
         state.num[vi] = state.t;
         state.s.push(vi);
         state.ins[vi] = true;
-        let delta_ = delta.clone();
-        delta_(&v, &mut |nv| {
+        delta(&v, &mut |nv| {
             let nvi = index(&nv);
             if state.num[nvi] == 0 {
                 dfs(nv, index, delta, state);
