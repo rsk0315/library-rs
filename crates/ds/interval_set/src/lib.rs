@@ -223,7 +223,7 @@ impl<T: Clone + Ord> IntervalSet<T> {
         }
         match self
             .buf
-            .range(..Interval(Included(x.clone()), Unbounded))
+            .range(..=Interval(Included(x.clone()), Unbounded))
             .next_back()
         {
             Some(Interval(_, Included(y))) if y < &x => Included(x),

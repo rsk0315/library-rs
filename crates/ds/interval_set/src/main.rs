@@ -54,4 +54,12 @@ fn main() {
     for &x in &[25, 26, 29, 30, 31] {
         eprintln!("mex of {}: {:?}", x, s.mex(x));
     }
+
+    s.clear();
+    s.insert(1..5);
+    s.insert(7..=10);
+    s.insert(15..);
+    eprintln!("{:?}", s);
+
+    eprintln!("{:?}", s.mex(15));
 }
