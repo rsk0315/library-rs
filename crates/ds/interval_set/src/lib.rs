@@ -201,6 +201,23 @@ impl<T: Clone + Ord + Debug> IntervalSet<T> {
     }
 
     /// `x` 以上の値で、集合中の区間に含まれない最小のものを返す。
+    ///
+    /// # Examples
+    /// ```
+    /// use std::ops::Bound::{Included, Excluded, Unbounded};
+    /// use nekolib::ds::IntervalSet;
+    ///
+    /// let mut s = IntervalSet::new();
+    /// s.insert(1..5);
+    /// s.insert(7..=10);
+    /// s.insert(15..);
+    ///
+    /// assert_eq!(s.mex(0), Included(0));
+    /// assert_eq!(s.mex(1), Included(5));
+    /// assert_eq!(s.mex(6), Included(6));
+    /// assert_eq!(s.mex(7), Excluded(10));
+    /// assert_eq!(s.mex(15), Unbounded);
+    /// ```
     pub fn mex(&self, x: T) -> Bound<T> {
         if self.buf.is_empty() {
             return Included(x);
