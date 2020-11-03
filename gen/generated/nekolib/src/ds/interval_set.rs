@@ -131,12 +131,14 @@ pub struct IntervalSet<T: Ord> {
 }
 
 impl<T: Clone + Ord + Debug> IntervalSet<T> {
+    /// 空集合で初期化する。
     pub fn new() -> Self {
         Self {
             buf: BTreeSet::new(),
         }
     }
 
+    /// 区間 `r` を追加する。
     pub fn insert<R: RangeBounds<T>>(&mut self, r: R) {
         let mut r: Interval<T> = (r.start_bound(), r.end_bound()).into();
         if r.is_empty() {
@@ -161,6 +163,7 @@ impl<T: Clone + Ord + Debug> IntervalSet<T> {
         self.buf.insert(r);
     }
 
+    /// 区間 `r` を削除する。
     pub fn remove<R: RangeBounds<T>>(&mut self, r: R) {
         let r: Interval<T> = (r.start_bound(), r.end_bound()).into();
         if r.is_empty() {
@@ -192,10 +195,12 @@ impl<T: Clone + Ord + Debug> IntervalSet<T> {
         }
     }
 
+    /// 空集合に戻す。
     pub fn clear(&mut self) {
         self.buf.clear();
     }
 
+    /// `x` 以上の値で、集合中の区間に含まれない最小のものを返す。
     pub fn mex(&self, x: T) -> Bound<T> {
         if self.buf.is_empty() {
             return Included(x);
