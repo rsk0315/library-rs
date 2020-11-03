@@ -1,0 +1,57 @@
+use std::ops::Bound::*;
+
+use interval_set::IntervalSet;
+
+fn main() {
+    let mut s = IntervalSet::<i32>::new();
+    eprintln!("{:?}", s);
+    s.insert(1..=1);
+    eprintln!("{:?}", s);
+    s.insert(2..4);
+    eprintln!("{:?}", s);
+    s.insert(5..7);
+    eprintln!("{:?}", s);
+    s.insert(4..6);
+    eprintln!("{:?}", s);
+
+    s.insert(10..20);
+    eprintln!("{:?}", s);
+    s.insert((Excluded(20), Included(30)));
+    eprintln!("{:?}", s);
+    s.insert(20..20);
+    eprintln!("{:?}", s);
+    s.insert(20..=20);
+    eprintln!("{:?}", s);
+
+    s.remove((Unbounded, Included(100)));
+    eprintln!("{:?}", s);
+
+    s.insert(10..20);
+    s.insert(12..=22);
+    eprintln!("{:?}", s);
+    s.insert(10..15);
+    eprintln!("{:?}", s);
+    s.insert(10..25);
+    eprintln!("{:?}", s);
+
+    s.remove(11..12);
+    eprintln!("{:?}", s);
+    s.remove(13..=13);
+    eprintln!("{:?}", s);
+
+    for &x in &[9, 10, 11, 12, 13, 14, 24, 25, 26] {
+        eprintln!("mex of {}: {:?}", x, s.mex(x));
+    }
+
+    s.insert(..=9);
+    eprintln!("{:?}", s);
+    for &x in &[8, 9, 10] {
+        eprintln!("mex of {}: {:?}", x, s.mex(x));
+    }
+
+    s.insert((Excluded(30), Unbounded));
+    eprintln!("{:?}", s);
+    for &x in &[25, 26, 29, 30, 31] {
+        eprintln!("mex of {}: {:?}", x, s.mex(x));
+    }
+}
