@@ -2,7 +2,6 @@
 
 use std::cmp::Ordering::{self, *};
 use std::collections::BTreeSet;
-use std::fmt::Debug;
 use std::ops::{
     Bound::{self, *},
     RangeBounds,
@@ -130,7 +129,7 @@ pub struct IntervalSet<T: Ord> {
     buf: BTreeSet<Interval<T>>,
 }
 
-impl<T: Clone + Ord + Debug> IntervalSet<T> {
+impl<T: Clone + Ord> IntervalSet<T> {
     /// 空集合で初期化する。
     pub fn new() -> Self {
         Self {
