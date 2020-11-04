@@ -7,6 +7,8 @@ use std::ops::Index;
 
 /// 接尾辞配列。
 ///
+/// 内部では高さ配列も持っている。
+///
 /// # Idea
 /// そのうち書く。
 ///
@@ -18,6 +20,8 @@ use std::ops::Index;
 /// # Complexity
 /// アルファベットサイズを $\\sigma$、文字列長を $n$ とする。
 /// SA-IS を用いて構築するため、前処理は $O(\\sigma\\log(\\sigma)+n)$ 時間。
+///
+/// 検索は、パターン長を $m$ として $O(m\\log(n))$ 時間。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SuffixArray<T: Ord> {
     buf: Vec<T>,
@@ -133,7 +137,7 @@ fn reduce(buf: &[usize], lms: Vec<usize>, ls: &[LsType]) -> Vec<usize> {
     let e = |(i0, i1)| {
         if (ls[i0], ls[i1]) == (SType(true), SType(true)) {
             Some(true)
-        } else if ls[i0] != ls[i1] || buf[i0] == buf[i1] {
+        } else if ls[i0] != ls[i1] || buf[i0] != buf[i1] {
             Some(false)
         } else {
             None
@@ -216,12 +220,12 @@ fn make_lcpa(sa: &[usize], buf: &[usize]) -> Vec<usize> {
     lcpa
 }
 
-impl<T: Ord + Debug> SuffixArray<T> {
+impl<T: Ord> SuffixArray<T> {
     pub fn search<'a, S: AsRef<[T]>>(&'a self, pat: S) -> &'a [usize] {
         let pat = pat.as_ref();
         let lo = {
             let mut lt = 1_usize.wrapping_neg();
-            let mut ge = self.buf.len();
+            let mut ge = self.sa.len();
             while ge.wrapping_sub(lt) > 1 {
                 let mid = lt.wrapping_add(ge.wrapping_sub(lt) / 2);
                 let pos = self.sa[mid];
@@ -232,9 +236,12 @@ impl<T: Ord + Debug> SuffixArray<T> {
             }
             ge
         };
+        if lo >= self.sa.len() {
+            return &self.sa[lo..lo];
+        }
         let hi = {
             let mut le = lo.wrapping_sub(1);
-            let mut gt = self.buf.len();
+            let mut gt = self.sa.len();
             while gt.wrapping_sub(le) > 1 {
                 let mid = le.wrapping_add(gt.wrapping_sub(le) / 2);
                 let pos = self.sa[mid];

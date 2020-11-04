@@ -39,4 +39,9 @@ mod verify {
     fn verify_scc() {
         verify::<AojGrl3C>();
     }
+
+    #[test]
+    fn verify_suffix_array() {
+        verify::<AojAldsOne14D>();
+    }
 }
