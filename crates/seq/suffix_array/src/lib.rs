@@ -69,11 +69,10 @@ fn ls_classify(buf: &[usize]) -> Vec<LsType> {
 }
 
 fn bucket_head(count: &[usize]) -> Vec<usize> {
-    let mut head = (&count[0..count.len() - 1]).to_vec();
+    let mut head = [&[0_usize], &count[0..count.len() - 1]].concat().to_vec();
     for i in 1..head.len() {
         head[i] += head[i - 1];
     }
-    head.insert(0_usize, 0);
     head
 }
 
