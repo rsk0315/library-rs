@@ -204,6 +204,7 @@ impl<T: Clone + Ord> IntervalSet<T> {
     /// # Examples
     /// ```
     /// use std::ops::Bound::{Included, Excluded, Unbounded};
+    ///
     /// use nekolib::ds::IntervalSet;
     ///
     /// let mut s = IntervalSet::new();
@@ -211,25 +212,25 @@ impl<T: Clone + Ord> IntervalSet<T> {
     /// s.insert(7..=10);
     /// s.insert(15..);
     ///
-    /// assert_eq!(s.mex(0), Included(0));
-    /// assert_eq!(s.mex(1), Included(5));
-    /// assert_eq!(s.mex(6), Included(6));
-    /// assert_eq!(s.mex(7), Excluded(10));
-    /// assert_eq!(s.mex(15), Unbounded);
+    /// assert_eq!(s.mex(&0), Included(&0));
+    /// assert_eq!(s.mex(&1), Included(&5));
+    /// assert_eq!(s.mex(&6), Included(&6));
+    /// assert_eq!(s.mex(&7), Excluded(&10));
+    /// assert_eq!(s.mex(&15), Unbounded);
     /// ```
-    pub fn mex(&self, x: T) -> Bound<T> {
+    pub fn mex<'a>(&'a self, x: &'a T) -> Bound<&'a T> {
         if self.buf.is_empty() {
-            return Included(x);
+            return Included(&x);
         }
         match self
             .buf
             .range(..=Interval(Included(x.clone()), Unbounded))
             .next_back()
         {
-            Some(Interval(_, Included(y))) if y < &x => Included(x),
-            Some(Interval(_, Included(y))) => Excluded(y.clone()),
-            Some(Interval(_, Excluded(y))) if y <= &x => Included(x),
-            Some(Interval(_, Excluded(y))) => Included(y.clone()),
+            Some(Interval(_, Included(y))) if y < x => Included(x),
+            Some(Interval(_, Included(y))) => Excluded(y),
+            Some(Interval(_, Excluded(y))) if y <= x => Included(x),
+            Some(Interval(_, Excluded(y))) => Included(y),
             Some(Interval(_, Unbounded)) => Unbounded,
             None => Included(x),
         }
