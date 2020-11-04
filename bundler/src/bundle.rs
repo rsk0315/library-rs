@@ -1,14 +1,10 @@
 use std::error::Error;
-use std::io::Read;
 
 use syn::{parse_file, parse_quote};
 
 pub fn extract_uses_file(
-    filename: &str,
+    src: &str,
 ) -> Result<Vec<Vec<String>>, Box<dyn Error>> {
-    let mut file = std::fs::File::open(&filename)?;
-    let mut src = String::new();
-    file.read_to_string(&mut src)?;
     let ast = parse_file(&src)?;
     let parsed: syn::File = parse_quote! { #ast };
     let uses: Vec<_> = parsed
