@@ -5,3 +5,6 @@
 pub mod seq_sentinel;
 #[doc(inline)]
 pub use seq_sentinel::*;
+pub mod suffix_array;
+#[doc(inline)]
+pub use suffix_array::*;
