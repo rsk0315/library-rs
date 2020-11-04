@@ -1,16 +1,32 @@
 //! 接尾辞配列。
-//!
-//! See [CS166](http://web.stanford.edu/class/archive/cs/cs166/cs166.1206/lectures/04/Small04.pdf).
 
-use std::cmp::Ordering::{Equal, Less};
+use std::cmp::Ordering::{Equal, Greater, Less};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Debug;
 use std::ops::Index;
 
+/// 接尾辞配列。
+///
+/// 内部では高さ配列も持っている。
+///
+/// # Idea
+/// そのうち書く。
+///
+/// ## See also
+/// [CS166](http://web.stanford.edu/class/archive/cs/cs166/cs166.1206/lectures/04/Slides04.pdf)。
+/// 差分スライドの関係でページ数がめちゃくちゃ多くて重いので注意。軽いのは
+/// [こっち](http://web.stanford.edu/class/archive/cs/cs166/cs166.1206/lectures/04/Small04.pdf)。
+///
+/// # Complexity
+/// アルファベットサイズを $\\sigma$、文字列長を $n$ とする。
+/// SA-IS を用いて構築するため、前処理は $O(\\sigma\\log(\\sigma)+n)$ 時間。
+///
+/// 検索は、パターン長を $m$ として $O(m\\log(n))$ 時間。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SuffixArray<T: Ord> {
     buf: Vec<T>,
     sa: Vec<usize>,
+    lcpa: Vec<usize>,
 }
 
 impl<T: Clone + Ord, S: AsRef<[T]>> From<S> for SuffixArray<T> {
@@ -18,7 +34,8 @@ impl<T: Clone + Ord, S: AsRef<[T]>> From<S> for SuffixArray<T> {
         let buf: Vec<_> = buf.as_ref().to_vec();
         let buf_usize = compress(&buf);
         let sa = sa_is(&buf_usize);
-        Self { buf, sa }
+        let lcpa = make_lcpa(&sa, &buf_usize[0..buf.len()]);
+        Self { buf, sa, lcpa }
     }
 }
 
@@ -69,11 +86,10 @@ fn ls_classify(buf: &[usize]) -> Vec<LsType> {
 }
 
 fn bucket_head(count: &[usize]) -> Vec<usize> {
-    let mut head = (&count[0..count.len() - 1]).to_vec();
+    let mut head = [&[0_usize], &count[0..count.len() - 1]].concat().to_vec();
     for i in 1..head.len() {
         head[i] += head[i - 1];
     }
-    head.insert(0_usize, 0);
     head
 }
 
@@ -121,7 +137,7 @@ fn reduce(buf: &[usize], lms: Vec<usize>, ls: &[LsType]) -> Vec<usize> {
     let e = |(i0, i1)| {
         if (ls[i0], ls[i1]) == (SType(true), SType(true)) {
             Some(true)
-        } else if ls[i0] != ls[i1] || buf[i0] == buf[i1] {
+        } else if ls[i0] != ls[i1] || buf[i0] != buf[i1] {
             Some(false)
         } else {
             None
@@ -184,6 +200,61 @@ fn sa_is(buf: &[usize]) -> Vec<usize> {
     induce(buf, &mut sa, &count, &ls);
 
     sa.into_iter().map(std::option::Option::unwrap).collect()
+}
+
+fn make_lcpa(sa: &[usize], buf: &[usize]) -> Vec<usize> {
+    let len = buf.len();
+    let rank = inv_perm(&sa);
+    let mut h = 0;
+    let mut lcpa = vec![0_usize; len];
+    for i in 0..len {
+        let j = sa[rank[i] - 1];
+        h = (h.max(1) - 1..)
+            .find(|&h| match (buf.get(i + h), buf.get(j + h)) {
+                (Some(x), Some(y)) => x != y,
+                _ => true,
+            })
+            .unwrap();
+        lcpa[rank[i] - 1] = h;
+    }
+    lcpa
+}
+
+impl<T: Ord> SuffixArray<T> {
+    pub fn search<'a, S: AsRef<[T]>>(&'a self, pat: S) -> &'a [usize] {
+        let pat = pat.as_ref();
+        let lo = {
+            let mut lt = 1_usize.wrapping_neg();
+            let mut ge = self.sa.len();
+            while ge.wrapping_sub(lt) > 1 {
+                let mid = lt.wrapping_add(ge.wrapping_sub(lt) / 2);
+                let pos = self.sa[mid];
+                match self.buf[pos..].cmp(pat) {
+                    Less => lt = mid,
+                    _ => ge = mid,
+                }
+            }
+            ge
+        };
+        if lo >= self.sa.len() {
+            return &self.sa[lo..lo];
+        }
+        let hi = {
+            let mut le = lo.wrapping_sub(1);
+            let mut gt = self.sa.len();
+            while gt.wrapping_sub(le) > 1 {
+                let mid = le.wrapping_add(gt.wrapping_sub(le) / 2);
+                let pos = self.sa[mid];
+                let len = pat.len().min(self.buf[pos..].len());
+                match self.buf[pos..pos + len].cmp(pat) {
+                    Greater => gt = mid,
+                    _ => le = mid,
+                }
+            }
+            gt
+        };
+        &self.sa[lo..hi]
+    }
 }
 
 impl<T: Ord> Index<usize> for SuffixArray<T> {
