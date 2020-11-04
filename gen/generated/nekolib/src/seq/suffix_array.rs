@@ -68,25 +68,30 @@ fn ls_classify(buf: &[usize]) -> Vec<LsType> {
     res
 }
 
-fn init_offset(count: &[usize]) -> (Vec<usize>, Vec<usize>) {
+fn bucket_head(count: &[usize]) -> Vec<usize> {
+    let mut head = (&count[0..count.len() - 1]).to_vec();
+    for i in 1..head.len() {
+        head[i] += head[i - 1];
+    }
+    head.insert(0_usize, 0);
+    head
+}
+
+fn bucket_tail(count: &[usize]) -> Vec<usize> {
     let mut tail = count.to_vec();
     for i in 1..count.len() {
         tail[i] += tail[i - 1];
     }
-    let head = std::iter::once(0)
-        .chain(tail.iter().take(tail.len() - 1).cloned())
-        .collect();
-    (head, tail)
+    tail
 }
 
 fn induce(
     buf: &[usize],
     sa: &mut [Option<usize>],
-    head: &mut [usize],
-    tail: &mut [usize],
     count: &[usize],
     ls: &[LsType],
 ) {
+    let mut head = bucket_head(count);
     for i in 0..sa.len() {
         match sa[i] {
             Some(j) if j > 0 && ls[j - 1] == LType => {
@@ -96,8 +101,7 @@ fn induce(
             _ => {}
         }
     }
-    tail.copy_from_slice(count);
-    (1..tail.len()).for_each(|i| tail[i] += tail[i - 1]);
+    let mut tail = bucket_tail(count);
     for i in (1..count.len()).rev() {
         match sa[i] {
             Some(j) if j > 0 && ls[j - 1] != LType => {
@@ -114,24 +118,22 @@ fn reduce(buf: &[usize], lms: Vec<usize>, ls: &[LsType]) -> Vec<usize> {
         return vec![0; lms.len()];
     }
 
+    let e = |(i0, i1)| {
+        if (ls[i0], ls[i1]) == (SType(true), SType(true)) {
+            Some(true)
+        } else if ls[i0] != ls[i1] || buf[i0] == buf[i1] {
+            Some(false)
+        } else {
+            None
+        }
+    };
+
     let mut map = vec![0; buf.len()]; // map[lms[0]] = 0
     map[lms[1]] = 1;
     let mut x = 1;
     for i in 2..lms.len() {
         let equiv = buf[lms[i]] == buf[lms[i - 1]]
-            && (lms[i] + 1..)
-                .zip(lms[i - 1] + 1..)
-                .find_map(|(i0, i1)| {
-                    if (ls[i0], ls[i1]) == (SType(true), SType(true)) {
-                        Some(true)
-                    } else if ls[i0] != ls[i1] || buf[i0] == buf[i1] {
-                        Some(false)
-                    } else {
-                        None
-                    }
-                })
-                .unwrap();
-
+            && (lms[i] + 1..).zip(lms[i - 1] + 1..).find_map(e).unwrap();
         if !equiv {
             x += 1;
         }
@@ -155,32 +157,31 @@ fn sa_is(buf: &[usize]) -> Vec<usize> {
 
     let ls = ls_classify(buf);
     let mut sa = vec![None; len];
-    let (mut head, mut tail) = init_offset(&count);
+    let mut tail = bucket_tail(&count);
     for i in (1..len).rev().filter(|&i| ls[i] == SType(true)) {
         tail[buf[i]] -= 1;
         sa[tail[buf[i]]] = Some(i);
     }
-    induce(buf, &mut sa, &mut head, &mut tail, &count, &ls);
+    induce(buf, &mut sa, &count, &ls);
 
     let lms: Vec<_> = sa
         .into_iter()
         .map(std::option::Option::unwrap)
-        .filter_map(|i| if ls[i] == SType(true) { Some(i) } else { None })
+        .filter(|&i| ls[i] == SType(true))
         .collect(); // in lexicographic order
     let rs_sa = sa_is(&reduce(buf, lms, &ls));
 
-    let lms: Vec<_> = (0..len)
-        .filter_map(|i| if ls[i] == SType(true) { Some(i) } else { None })
-        .collect(); // in appearing order
+    // in appearing order
+    let lms: Vec<_> = (0..len).filter(|&i| ls[i] == SType(true)).collect();
 
-    let (mut head, mut tail) = init_offset(&count);
+    let mut tail = bucket_tail(&count);
     let mut sa = vec![None; len];
     for i in rs_sa.into_iter().rev() {
         let j = lms[i];
         tail[buf[j]] -= 1;
         sa[tail[buf[j]]] = Some(j);
     }
-    induce(buf, &mut sa, &mut head, &mut tail, &count, &ls);
+    induce(buf, &mut sa, &count, &ls);
 
     sa.into_iter().map(std::option::Option::unwrap).collect()
 }
