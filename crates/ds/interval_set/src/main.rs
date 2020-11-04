@@ -39,19 +39,19 @@ fn main() {
     s.remove(13..=13);
     eprintln!("{:?}", s);
 
-    for &x in &[9, 10, 11, 12, 13, 14, 24, 25, 26] {
+    for x in &[9, 10, 11, 12, 13, 14, 24, 25, 26] {
         eprintln!("mex of {}: {:?}", x, s.mex(x));
     }
 
     s.insert(..=9);
     eprintln!("{:?}", s);
-    for &x in &[8, 9, 10] {
+    for x in &[8, 9, 10] {
         eprintln!("mex of {}: {:?}", x, s.mex(x));
     }
 
     s.insert((Excluded(30), Unbounded));
     eprintln!("{:?}", s);
-    for &x in &[25, 26, 29, 30, 31] {
+    for x in &[25, 26, 29, 30, 31] {
         eprintln!("mex of {}: {:?}", x, s.mex(x));
     }
 
@@ -61,5 +61,5 @@ fn main() {
     s.insert(15..);
     eprintln!("{:?}", s);
 
-    eprintln!("{:?}", s.mex(15));
+    eprintln!("{:?}", s.mex(&15));
 }
