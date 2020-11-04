@@ -143,8 +143,8 @@ impl<T: Clone + Ord> IntervalSet<T> {
         if r.is_empty() {
             return;
         }
-        self.remove_subset(r.clone());
-        match self.buf.range(..r.clone()).cloned().next_back() {
+        self.remove_subset(&r);
+        match self.buf.range(..&r).cloned().next_back() {
             Some(x) if x.is_superset(&r) => return,
             Some(x) if x.touches(&r) => {
                 self.buf.remove(&x);
@@ -152,7 +152,7 @@ impl<T: Clone + Ord> IntervalSet<T> {
             }
             _ => {}
         }
-        match self.buf.range(r.clone()..).cloned().next() {
+        match self.buf.range(&r..).cloned().next() {
             Some(x) if x.touches(&r) => {
                 self.buf.remove(&x);
                 r.1 = x.1;
@@ -168,8 +168,8 @@ impl<T: Clone + Ord> IntervalSet<T> {
         if r.is_empty() {
             return;
         }
-        self.remove_subset(r.clone());
-        match self.buf.range(..r.clone()).cloned().next_back() {
+        self.remove_subset(&r);
+        match self.buf.range(..&r).cloned().next_back() {
             Some(x) if x.is_superset(&r) => {
                 self.buf.remove(&x);
                 let Interval(r0, r1) = r;
@@ -184,10 +184,10 @@ impl<T: Clone + Ord> IntervalSet<T> {
             }
             _ => {}
         }
-        match self.buf.range(r.clone()..).cloned().next() {
+        match self.buf.range(&r..).cloned().next() {
             Some(mut x) if x.touches(&r) => {
                 self.buf.remove(&x);
-                x.0 = toggle_bound(r.1.clone());
+                x.0 = toggle_bound(r.1);
                 self.buf.insert(x);
             }
             _ => {}
@@ -236,8 +236,8 @@ impl<T: Clone + Ord> IntervalSet<T> {
         }
     }
 
-    fn remove_subset(&mut self, r: Interval<T>) {
-        let rem: Vec<Interval<T>> = match &r {
+    fn remove_subset(&mut self, r: &Interval<T>) {
+        let rem: Vec<Interval<T>> = match r {
             Interval(Unbounded, Unbounded) => {
                 self.buf.clear();
                 return;
