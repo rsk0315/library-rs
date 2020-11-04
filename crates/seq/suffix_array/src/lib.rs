@@ -110,38 +110,38 @@ fn induce(
 }
 
 fn reduce(buf: &[usize], lms: Vec<usize>, ls: &[LsType]) -> Vec<usize> {
-    let mut h = vec![0; lms.len()];
-    if h.len() > 1 {
-        h[1] = 1;
+    if lms.len() <= 1 {
+        return vec![0; lms.len()];
     }
-    for i in 2..h.len() {
-        let mut ident = buf[lms[i]] == buf[lms[i - 1]];
-        for j in 1.. {
-            if !ident {
-                break;
-            }
-            let cur = ls[lms[i] + j];
-            let prev = ls[lms[i - 1] + j];
-            if cur == SType(true) && prev == SType(true) {
-                break;
-            }
-            if cur != prev || buf[lms[i] + j] == buf[lms[i - 1] + j] {
-                ident = false;
-                break;
-            }
+
+    let mut map = vec![0; buf.len()]; // map[lms[0]] = 0
+    map[lms[1]] = 1;
+    let mut x = 1;
+    for i in 2..lms.len() {
+        let equiv = buf[lms[i]] == buf[lms[i - 1]]
+            && (lms[i] + 1..)
+                .zip(lms[i - 1] + 1..)
+                .find_map(|(i0, i1)| {
+                    if (ls[i0], ls[i1]) == (SType(true), SType(true)) {
+                        Some(true)
+                    } else if ls[i0] != ls[i1] || buf[i0] == buf[i1] {
+                        Some(false)
+                    } else {
+                        None
+                    }
+                })
+                .unwrap();
+
+        if !equiv {
+            x += 1;
         }
-        h[i] = if ident { h[i - 1] } else { h[i - 1] + 1 };
+        map[lms[i]] = x;
     }
-    let mut map = vec![0; buf.len()];
-    lms.iter().enumerate().for_each(|(i, &x)| map[x] = h[i]);
 
     (0..buf.len())
-        .filter_map(|i| {
-            if ls[i] == SType(true) {
-                Some(map[i])
-            } else {
-                None
-            }
+        .filter_map(|i| match ls[i] {
+            SType(true) => Some(map[i]),
+            _ => None,
         })
         .collect()
 }
