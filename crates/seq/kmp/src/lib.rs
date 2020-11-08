@@ -117,7 +117,9 @@ impl<T: Eq> PopBack for KmpSearcher<T> {
         } else {
             self.pat.pop();
             self.fail1.pop();
-            self.fail.pop()
+            let res = self.fail.pop();
+            *self.fail.last_mut().unwrap() = *self.fail1.last().unwrap();
+            res
         }
     }
 }
