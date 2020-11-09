@@ -57,7 +57,7 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
         (decl_index.declared, deps)
     };
 
-    // まだ ::* をうまく扱えないと思う
+    // まだ ::* をうまく扱えないと思う。扱わない方針になるかも
 
     let mut includes = vec![];
     for mut crate_mod in extract_uses_file(&src)? {
@@ -75,7 +75,13 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
     let includes = {
         let mut tmp = BTreeMap::new();
         for (crate_name, mod_name) in includes {
-            tmp.entry(crate_name).or_insert(vec![]).push(mod_name);
+            tmp.entry(crate_name)
+                .or_insert(vec![])
+                .push(mod_name.replace("-", "_"));
+        }
+        for (crate_name, v) in tmp.iter_mut() {
+            v.sort_unstable();
+            v.dedup();
         }
         tmp
     };
@@ -94,14 +100,15 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
     for (crate_name, v) in includes {
         println!("    pub mod {} {{", &crate_name);
         for mod_name in v {
-            println!("        pub mod {} {{", &mod_name);
-            let path = index_path
-                .parent()
-                .unwrap()
-                .join(&format!("src/{}/{}.rs", &crate_name, &mod_name));
+            println!("        pub mod {} {{", &mod_name.replace("-", "_"));
+            let path = index_path.parent().unwrap().join(&format!(
+                "src/{}/{}.rs",
+                &crate_name,
+                &mod_name.replace("-", "_") // ここあやしい
+            ));
             println!("{}", polish_file(&path.to_str().unwrap()).unwrap());
             println!("        }}");
-            println!("        pub use {}::*;", &mod_name);
+            println!("        pub use {}::*;", &mod_name.replace("-", "_"));
         }
         println!("    }}");
     }
