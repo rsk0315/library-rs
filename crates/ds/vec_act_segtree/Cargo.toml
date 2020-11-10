@@ -1,0 +1,20 @@
+[package]
+name = "vec_act_segtree"
+version = "0.1.0"
+authors = ["rsk0315 <rsk0315@icloud.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+act = { path = "../../traits/act" }
+action = { path = "../../traits/action" }
+binop = { path = "../../traits/binop" }
+buf_range = { path = "../../utils/buf_range" }
+fold = { path = "../../traits/fold" }
+fold_bisect = { path = "../../traits/fold_bisect" }
+
+op_max = { path = "../../utils/op_max" }
+op_add = { path = "../../utils/op_add" }
+min = { path = "../../traits/min" }
+additive = { path = "../../traits/additive" }
