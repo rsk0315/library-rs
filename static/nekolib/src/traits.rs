@@ -1,6 +1,8 @@
 //! トレイトたち。
 //!
 //! ここに何かを書く。
+pub mod act;
+pub mod action;
 pub mod additive;
 pub mod assoc_val;
 pub mod binop;

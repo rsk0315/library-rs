@@ -6,6 +6,7 @@ pub mod foldable_deque;
 pub mod foldable_queue;
 pub mod interval_set;
 pub mod union_find;
+pub mod vec_act_segtree;
 pub mod vec_segtree;
 
 #[doc(inline)]
