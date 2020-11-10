@@ -18,6 +18,10 @@ pub mod set_value;
 pub mod stateful_predicate;
 
 #[doc(inline)]
+pub use act::Act;
+#[doc(inline)]
+pub use action::MonoidAction;
+#[doc(inline)]
 pub use additive::{AddAssoc, AddComm, Zero};
 #[doc(inline)]
 pub use assoc_val::AssocVal;
