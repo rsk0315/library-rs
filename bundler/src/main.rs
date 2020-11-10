@@ -59,9 +59,12 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
 
     // まだ ::* をうまく扱えないと思う。扱わない方針になるかも
 
+    eprintln!("{:#?}", decl);
+
     let mut includes = vec![];
     for mut crate_mod in extract_uses_file(&src)? {
         let mod_name = crate_mod.pop().unwrap();
+        eprintln!("key: {:?}", mod_name);
         let decl_in = decl[&mod_name].clone();
         if let Some(mut v) = deps.remove(&decl_in) {
             includes.append(&mut v);
@@ -79,7 +82,7 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
                 .or_insert(vec![])
                 .push(mod_name.replace("-", "_"));
         }
-        for (crate_name, v) in tmp.iter_mut() {
+        for (_crate_name, v) in tmp.iter_mut() {
             v.sort_unstable();
             v.dedup();
         }
@@ -92,6 +95,14 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
+    let pub_uses = {
+        let mut tmp = BTreeMap::new();
+        for (ident, crate_mod) in decl {
+            tmp.entry(crate_mod).or_insert(vec![]).push(ident);
+        }
+        tmp
+    };
+
     println!("");
     println!("// --- bundled automatically --- //");
     println!("");
@@ -100,15 +111,16 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
     for (crate_name, v) in includes {
         println!("    pub mod {} {{", &crate_name);
         for mod_name in v {
-            println!("        pub mod {} {{", &mod_name.replace("-", "_"));
-            let path = index_path.parent().unwrap().join(&format!(
-                "src/{}/{}.rs",
-                &crate_name,
-                &mod_name.replace("-", "_") // ここあやしい
-            ));
+            println!("        pub mod {} {{", &mod_name);
+            let path = index_path
+                .parent()
+                .unwrap()
+                .join(&format!("src/{}/{}.rs", &crate_name, &mod_name));
             println!("{}", polish_file(&path.to_str().unwrap()).unwrap());
             println!("        }}");
-            println!("        pub use {}::*;", &mod_name.replace("-", "_"));
+            let uses =
+                pub_uses[&(crate_name.clone(), mod_name.clone())].join(", ");
+            println!("        pub use {}::{{{}}};", &mod_name, uses);
         }
         println!("    }}");
     }
