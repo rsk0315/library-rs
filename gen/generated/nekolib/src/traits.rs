@@ -2,47 +2,55 @@
 //!
 //! ここに何かを書く。
 pub mod additive;
-#[doc(inline)]
-pub use additive::*;
 pub mod assoc_val;
-#[doc(inline)]
-pub use assoc_val::*;
 pub mod binop;
-#[doc(inline)]
-pub use binop::*;
 pub mod disjoint_set;
-#[doc(inline)]
-pub use disjoint_set::*;
 pub mod elastic_slice;
-#[doc(inline)]
-pub use elastic_slice::*;
 pub mod fold;
-#[doc(inline)]
-pub use fold::*;
 pub mod fold_bisect;
-#[doc(inline)]
-pub use fold_bisect::*;
 pub mod get_mut;
-#[doc(inline)]
-pub use get_mut::*;
 pub mod max;
-#[doc(inline)]
-pub use max::*;
 pub mod min;
-#[doc(inline)]
-pub use min::*;
 pub mod multiplicative;
-#[doc(inline)]
-pub use multiplicative::*;
 pub mod push_pop;
-#[doc(inline)]
-pub use push_pop::*;
 pub mod range_bounds;
-#[doc(inline)]
-pub use range_bounds::*;
 pub mod set_value;
-#[doc(inline)]
-pub use set_value::*;
 pub mod stateful_predicate;
+
 #[doc(inline)]
-pub use stateful_predicate::*;
+pub use additive::{AddAssoc, AddComm, Zero};
+#[doc(inline)]
+pub use assoc_val::AssocVal;
+#[doc(inline)]
+pub use binop::{
+    Associative, CommutativeGroup, CommutativeMonoid, CommutativeRing,
+    Coomutative, Distributive, Field, Group, Identity, Magma, Monoid,
+    PartialRecip, Recip, Ring, Semigroup,
+};
+#[doc(inline)]
+pub use elastic_slice::{
+    ElasticSlice, ExpandBack, ExpandFront, ShrinkBack, ShrinkFront, SliceHash,
+};
+#[doc(inline)]
+pub use fold::Fold;
+#[doc(inline)]
+pub use fold_bisect::{FoldBisect, FoldBisectRev};
+#[doc(inline)]
+pub use get_mut::GetMut;
+#[doc(inline)]
+pub use max::Max;
+#[doc(inline)]
+pub use min::Min;
+#[doc(inline)]
+pub use multiplicative::{MulAssoc, MulComm, MulRecip, One};
+#[doc(inline)]
+pub use push_pop::{PopBack, PopFront, Push, PushFront};
+#[doc(inline)]
+pub use range_bounds::{
+    EndBounded, EndExclusive, EndInclusive, EndUnbounded, StartBounded,
+    StartInclusive, StartUnbounded,
+};
+#[doc(inline)]
+pub use set_value::SetValue;
+#[doc(inline)]
+pub use stateful_predicate::StatefulPred;
