@@ -50,7 +50,7 @@ pub fn decl(
     let mut decls = BTreeMap::new();
     for src_rs in glob(&src_rs)? {
         let src_rs = match src_rs {
-            Ok(s) => s,
+            Ok(s) if !s.ends_with("lib.rs") => s,
             _ => continue,
         };
         // nekolib/src/{crate_name}.rs
@@ -58,7 +58,7 @@ pub fn decl(
         let crate_name =
             file_name.file_stem().unwrap().to_str().unwrap().to_string();
         let content =
-            String::from_utf8_lossy(&std::fs::read(&crate_name)?).to_string();
+            String::from_utf8_lossy(&std::fs::read(&src_rs)?).to_string();
         for (mod_name, ident) in parse_pub_uses(&content)? {
             decls.insert(ident, (crate_name.clone(), mod_name.clone()));
         }
@@ -104,6 +104,7 @@ fn parse_dep(
 ) -> Result<Vec<(String, String)>, Box<dyn Error>> {
     let (crate_name, mod_name) = get_name(&src_toml);
 
+    eprintln!("parsing {:?}", src_toml);
     let content =
         String::from_utf8_lossy(&std::fs::read(&src_toml)?).to_string();
     let man: Manifest = toml::de::from_str(&content)?;

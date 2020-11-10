@@ -55,6 +55,7 @@ pub fn generate(src_glob: &str, dst: &PathBuf) -> Result<(), std::io::Error> {
     for c in crates {
         // add `pub mod {crate};` to src/lib.rs
         let pubmod = format!("pub mod {};\n", c);
+        eprintln!("writing: {:?}", pubmod);
         outfile.write_all(pubmod.as_bytes())?;
     }
 
