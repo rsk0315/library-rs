@@ -46,7 +46,7 @@ pub use min::Min;
 #[doc(inline)]
 pub use multiplicative::{MulAssoc, MulComm, MulRecip, One};
 #[doc(inline)]
-pub use push_pop::{Pop, PopBack, PopFront, Push, Push, PushFront};
+pub use push_pop::{Pop, PopBack, PopFront, Push, PushBack, PushFront};
 #[doc(inline)]
 pub use range_bounds::{
     EndBounded, EndExclusive, EndInclusive, EndUnbounded, StartBounded,
