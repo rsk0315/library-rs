@@ -46,6 +46,7 @@ pub fn generate(src_glob: &str, dst: &PathBuf) -> Result<(), std::io::Error> {
     }
 
     let lib_rs = dst.join("src/lib.rs");
+    eprintln!("appending to {:?}", lib_rs);
     let mut outfile = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -76,6 +77,7 @@ fn clone(toml_path: &PathBuf, dst: &PathBuf) -> Result<(), io::Error> {
 
     // {crate}/{mod}/src/lib.rs => src/{crate}/{mod}.rs
     let outfile_name = dst.join(format!("src/{}/{}.rs", crate_name, mod_name_));
+    eprintln!("cloning {:?}", outfile_name);
     let mut outfile = std::fs::OpenOptions::new()
         .create(true)
         .write(true)
@@ -84,22 +86,6 @@ fn clone(toml_path: &PathBuf, dst: &PathBuf) -> Result<(), io::Error> {
     let rs_path = mod_path.join("src/lib.rs");
     let lib_content = generate_lib_rs(man.dependencies, rs_path);
     outfile.write_all(lib_content.as_bytes())?;
-
-    // let outfile_name = dst.join(format!("src/{}.rs", crate_name));
-
-    // ここよくない
-    // // append `pub mod {mod};` to src/{crate}.rs
-    // let mut outfile = std::fs::OpenOptions::new()
-    //     .create(true)
-    //     .append(true)
-    //     .open(outfile_name)?;
-    // let mod_content = vec![
-    //     format!("pub mod {};", mod_name_),
-    //     "#[doc(inline)]".to_string(),
-    //     format!("pub use {}::*;\n", mod_name_),
-    // ]
-    // .join("\n");
-    // outfile.write_all(mod_content.as_bytes())?;
 
     Ok(())
 }
