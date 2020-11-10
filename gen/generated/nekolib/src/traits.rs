@@ -23,10 +23,12 @@ pub use additive::{AddAssoc, AddComm, Zero};
 pub use assoc_val::AssocVal;
 #[doc(inline)]
 pub use binop::{
-    Associative, CommutativeGroup, CommutativeMonoid, CommutativeRing,
-    Coomutative, Distributive, Field, Group, Identity, Magma, Monoid,
+    Associative, Commutative, CommutativeGroup, CommutativeMonoid,
+    CommutativeRing, Distributive, Field, Group, Identity, Magma, Monoid,
     PartialRecip, Recip, Ring, Semigroup,
 };
+#[doc(inline)]
+pub use disjoint_set::DisjointSet;
 #[doc(inline)]
 pub use elastic_slice::{
     ElasticSlice, ExpandBack, ExpandFront, ShrinkBack, ShrinkFront, SliceHash,
