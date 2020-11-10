@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fmt::Debug;
-use std::io::{Read, Write};
+use std::io::Write;
 use std::path::{Component, PathBuf};
 
 use glob::glob;
@@ -26,36 +26,41 @@ struct DeclIndex {
     depends: Vec<DependsMap>,
 }
 
-pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
-    let mut decls = BTreeMap::new();
+pub fn decl(
+    src_toml: &str,
+    src_rs: &str,
+    dst_toml: &PathBuf,
+) -> Result<(), Box<dyn Error>> {
+    // src_toml から、依存関係を読む。
     let mut deps = BTreeMap::new();
-
-    for src_toml in glob(&src_toml).unwrap() {
-        let toml_path = match src_toml {
-            Ok(t) => t,
+    for src_toml in glob(&src_toml)? {
+        let src_toml = match src_toml {
+            Ok(s) => s,
             _ => continue,
         };
-
-        let mod_path = toml_path.parent().unwrap();
-        let crate_path = mod_path.parent().unwrap();
-
-        let mod_name = mod_path.file_stem().unwrap().to_str().unwrap();
-        let crate_name = crate_path.file_stem().unwrap().to_str().unwrap();
-
-        let mod_name = mod_name.replace("-", "_");
-
-        eprintln!("parsing {}/{}", &crate_name, &mod_name);
-
-        let crate_mod = (crate_name.to_string(), mod_name.to_string());
-
-        for ident in parse(&mod_path.join("src/lib.rs"))? {
-            decls.insert(ident, crate_mod.clone());
-        }
-
-        for (dep_crate, dep_mod) in parse_dep(&toml_path)? {
+        let crate_mod = get_name(&src_toml);
+        for (dep_crate, dep_mod) in parse_dep(&src_toml)? {
             deps.entry(crate_mod.clone())
                 .or_insert(vec![])
                 .push((dep_crate, dep_mod));
+        }
+    }
+
+    // src_rs から、re-export された識別子を読む。
+    let mut decls = BTreeMap::new();
+    for src_rs in glob(&src_rs)? {
+        let src_rs = match src_rs {
+            Ok(s) => s,
+            _ => continue,
+        };
+        // nekolib/src/{crate_name}.rs
+        let file_name: PathBuf = src_rs.file_name().unwrap().into();
+        let crate_name =
+            file_name.file_stem().unwrap().to_str().unwrap().to_string();
+        let content =
+            String::from_utf8_lossy(&std::fs::read(&crate_name)?).to_string();
+        for (mod_name, ident) in parse_pub_uses(&content)? {
+            decls.insert(ident, (crate_name.clone(), mod_name.clone()));
         }
     }
 
@@ -69,10 +74,9 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
                 let mut whole = whole[&k].clone();
                 v.sort_unstable();
                 whole.sort_unstable();
-                eprintln!(
-                    "name: {:?}\ndirect: {:#?}\nwhole: {:#?}",
-                    &k, &v, &whole
-                );
+                eprintln!("name: {:?}", &k);
+                eprintln!("direct: {:#?}", &v);
+                eprintln!("whole: {:#?}", &whole);
                 DependsMap {
                     name: k,
                     direct: v,
@@ -82,7 +86,7 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
             .collect(),
     };
 
-    eprintln!("{:?}", res);
+    eprintln!("{:#?}", res);
 
     let toml = toml::ser::to_string(&res)?;
     let mut outfile = std::fs::OpenOptions::new()
@@ -91,64 +95,7 @@ pub fn decl(src_toml: &str, dst_toml: &PathBuf) -> Result<(), Box<dyn Error>> {
         .open(&dst_toml)?;
 
     outfile.write_all(toml.as_bytes())?;
-
     Ok(())
-}
-
-fn parse(src: &PathBuf) -> Result<Vec<String>, Box<dyn Error>> {
-    use syn::Item::*;
-
-    let mut file = std::fs::File::open(&src)?;
-    let mut src = String::new();
-    file.read_to_string(&mut src)?;
-    let ast = parse_file(&src)?;
-    let parsed: syn::File = parse_quote! { #ast };
-
-    let res = parsed
-        .items
-        .into_iter()
-        .filter_map(|item| match item {
-            Const(item) => vis_ident(&item.vis, &item.ident),
-            Enum(item) => vis_ident(&item.vis, &item.ident),
-            ExternCrate(_) => None,
-            Fn(item) => vis_ident(&item.vis, &item.sig.ident),
-            ForeignMod(_) => None,
-            Impl(_) => None,
-            Macro(item) if item.ident.is_some() => {
-                exported_ident(&item.attrs, &item.ident.unwrap())
-            }
-            Macro2(_) => None, // ?
-            Mod(item) => vis_ident(&item.vis, &item.ident),
-            Static(item) => vis_ident(&item.vis, &item.ident),
-            Struct(item) => vis_ident(&item.vis, &item.ident),
-            Trait(item) => vis_ident(&item.vis, &item.ident),
-            TraitAlias(item) => vis_ident(&item.vis, &item.ident),
-            Type(item) => vis_ident(&item.vis, &item.ident),
-            Union(item) => vis_ident(&item.vis, &item.ident),
-            _ => None,
-        })
-        .collect();
-
-    Ok(res)
-}
-
-fn vis_ident(vis: &syn::Visibility, ident: &syn::Ident) -> Option<String> {
-    if let syn::Visibility::Public(_) = vis {
-        Some(ident.to_string())
-    } else {
-        None
-    }
-}
-
-fn exported_ident(
-    attrs: &Vec<syn::Attribute>,
-    ident: &syn::Ident,
-) -> Option<String> {
-    if attrs.iter().any(|a| a.path.is_ident("macro_export")) {
-        Some(ident.to_string())
-    } else {
-        None
-    }
 }
 
 fn parse_dep(
@@ -260,4 +207,80 @@ fn dep_star(
             }
         })
         .collect()
+}
+
+pub fn parse_pub_uses(
+    src: &str,
+) -> Result<Vec<(String, String)>, Box<dyn Error>> {
+    let ast = parse_file(&src)?;
+    let parsed: syn::File = parse_quote! { #ast };
+    let uses: Vec<_> = parsed
+        .items
+        .into_iter()
+        .filter_map(|i| {
+            if let syn::Item::Use(u) = i {
+                if let syn::Visibility::Public(_) = u.vis {
+                    Some(u)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    let mut res = vec![];
+    for use_ in uses.iter() {
+        let mut cur = vec![];
+        if use_.leading_colon.is_some() {
+            cur.push("".to_string());
+        }
+        dfs_use_tree(&use_.tree, &mut cur, &mut res);
+    }
+
+    res.sort_unstable();
+    res.dedup();
+    let res = res.into_iter().map(|mut v| {
+        let ident = v.pop().unwrap();
+        let mod_name = v.pop().unwrap();
+        (mod_name, ident)
+    });
+
+    Ok(res.collect())
+}
+
+fn dfs_use_tree(
+    use_: &syn::UseTree,
+    cur: &mut Vec<String>,
+    res: &mut Vec<Vec<String>>,
+) {
+    use syn::UseTree::*;
+    match use_ {
+        Path(ref path) => {
+            cur.push(path.ident.to_string());
+            dfs_use_tree(&path.tree, cur, res);
+            cur.pop();
+        }
+        Name(ref name) => {
+            cur.push(name.ident.to_string());
+            res.push(cur.clone());
+            cur.pop();
+        }
+        Rename(ref rename) => {
+            cur.push(rename.ident.to_string());
+            res.push(cur.clone());
+            cur.pop();
+        }
+        Glob(_) => {
+            cur.push("*".to_string());
+            res.push(cur.clone());
+            cur.pop();
+        }
+        Group(ref group) => {
+            for item in &group.items {
+                dfs_use_tree(item, cur, res);
+            }
+        }
+    }
 }

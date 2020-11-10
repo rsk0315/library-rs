@@ -85,22 +85,21 @@ fn clone(toml_path: &PathBuf, dst: &PathBuf) -> Result<(), io::Error> {
     let lib_content = generate_lib_rs(man.dependencies, rs_path);
     outfile.write_all(lib_content.as_bytes())?;
 
-    let outfile_name = dst.join(format!("src/{}.rs", crate_name));
+    // let outfile_name = dst.join(format!("src/{}.rs", crate_name));
 
-    // append `pub mod {mod};` to src/{crate}.rs
-    let mut outfile = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(outfile_name)?;
-
-    let mod_content = vec![
-        format!("pub mod {};", mod_name_),
-        "#[doc(inline)]".to_string(),
-        format!("pub use {}::*;\n", mod_name_),
-    ]
-    .join("\n");
-
-    outfile.write_all(mod_content.as_bytes())?;
+    // ここよくない
+    // // append `pub mod {mod};` to src/{crate}.rs
+    // let mut outfile = std::fs::OpenOptions::new()
+    //     .create(true)
+    //     .append(true)
+    //     .open(outfile_name)?;
+    // let mod_content = vec![
+    //     format!("pub mod {};", mod_name_),
+    //     "#[doc(inline)]".to_string(),
+    //     format!("pub use {}::*;\n", mod_name_),
+    // ]
+    // .join("\n");
+    // outfile.write_all(mod_content.as_bytes())?;
 
     Ok(())
 }
