@@ -42,7 +42,7 @@ pub fn decl(
         for (dep_crate, dep_mod) in parse_dep(&src_toml)? {
             deps.entry(crate_mod.clone())
                 .or_insert(vec![])
-                .push((dep_crate, dep_mod));
+                .push((dep_crate, dep_mod.replace("-", "_")));
         }
     }
 

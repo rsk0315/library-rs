@@ -59,12 +59,9 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
 
     // まだ ::* をうまく扱えないと思う。扱わない方針になるかも
 
-    eprintln!("{:#?}", decl);
-
     let mut includes = vec![];
     for mut crate_mod in extract_uses_file(&src)? {
         let mod_name = crate_mod.pop().unwrap();
-        eprintln!("key: {:?}", mod_name);
         let decl_in = decl[&mod_name].clone();
         if let Some(mut v) = deps.remove(&decl_in) {
             includes.append(&mut v);
