@@ -19,4 +19,6 @@ pub use interval_set::IntervalSet;
 #[doc(inline)]
 pub use union_find::UnionFind;
 #[doc(inline)]
+pub use vec_act_segtree::VecActSegtree;
+#[doc(inline)]
 pub use vec_segtree::VecSegtree;
