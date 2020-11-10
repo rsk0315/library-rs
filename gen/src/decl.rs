@@ -89,6 +89,7 @@ pub fn decl(
     eprintln!("{:#?}", res);
 
     let toml = toml::ser::to_string(&res)?;
+    eprintln!("decl; writing to: {:?}", dst_toml);
     let mut outfile = std::fs::OpenOptions::new()
         .create(true)
         .write(true)
