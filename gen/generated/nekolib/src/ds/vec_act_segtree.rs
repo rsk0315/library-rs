@@ -2,21 +2,17 @@
 
 use super::super::traits::act;
 use super::super::traits::action;
-use super::super::traits::additive;
 use super::super::traits::binop;
 use super::super::traits::fold;
 use super::super::traits::fold_bisect;
-use super::super::traits::min;
 use super::super::utils::buf_range;
-use super::super::utils::op_add;
-use super::super::utils::op_max;
 
 use std::cell::RefCell;
 use std::ops::{Range, RangeBounds};
 
 use act::Act;
 use action::MonoidAction;
-use binop::{Identity, Magma, Monoid};
+use binop::{Identity, Magma};
 use buf_range::bounds_within;
 use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
@@ -81,13 +77,14 @@ where
         self.nodes(l, r).into_iter().rev().collect()
     }
 
-    fn build(&mut self, i: usize) {
-        let mut i = self.len + i;
+    fn build(&mut self, mut i: usize) {
         let mut buf = self.buf.borrow_mut();
+        let def = self.def.borrow();
         while i > 1 {
             i >>= 1;
             buf[i] =
                 A::Operand::op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
+            A::act(&mut buf[i], def[i].clone());
         }
     }
 
@@ -100,15 +97,18 @@ where
         }
     }
 
-    fn resolve(&self, i: usize) {
+    fn push_down(&self, i: usize) {
         let e = A::Operator::id();
+        let d = std::mem::replace(&mut self.def.borrow_mut()[i], e.clone());
+        if d != e {
+            self.apply(i << 1, d.clone());
+            self.apply(i << 1 | 1, d);
+        }
+    }
+
+    fn resolve(&self, i: usize) {
         for h in (1..=(i + 1).next_power_of_two().trailing_zeros() - 1).rev() {
-            let i = i >> h;
-            let d = std::mem::replace(&mut self.def.borrow_mut()[i], e.clone());
-            if &d != &e {
-                self.apply(i << 1, d.clone());
-                self.apply(i << 1 | 1, d);
-            }
+            self.push_down(i >> h);
         }
     }
 
@@ -220,31 +220,113 @@ where
             il >>= 1;
             ir >>= 1;
         }
+        self.build(self.len + start);
+        self.build(self.len + end - 1);
     }
 }
 
-// impl<M> FoldBisect for VecSegtree<M>
-// where
-//     M: Monoid,
-//     M::Set: Clone,
-// {
-//     fn fold_bisect<F>(&self, l: usize, pred: F) -> (usize, M::Set)
-//     where
-//         F: Fn(&M::Set) -> bool,
-//     {
-//         todo!()
-//     }
-// }
+impl<A> FoldBisect for VecActSegtree<A>
+where
+    A: MonoidAction,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone,
+{
+    fn fold_bisect<F>(
+        &self,
+        l: usize,
+        pred: F,
+    ) -> (usize, <A::Operand as Magma>::Set)
+    where
+        F: Fn(&<A::Operand as Magma>::Set) -> bool,
+    {
+        assert!(
+            l < self.len,
+            "index out of bound: the len is {} but the index is {}; valid range: 0..{}",
+            self.len, l, self.len
+        );
 
-// impl<M> FoldBisectRev for VecSegtree<M>
-// where
-//     M: Monoid,
-//     M::Set: Clone,
-// {
-//     fn fold_bisect_rev<F>(&self, r: usize, pred: F) -> (usize, M::Set)
-//     where
-//         F: Fn(&M::Set) -> bool,
-//     {
-//         todo!()
-//     }
-// }
+        let mut x = A::Operand::id();
+        assert!(pred(&x), "`pred(id)` must hold");
+        match self.fold(l..) {
+            x if pred(&x) => return (self.len, x),
+            _ => {}
+        }
+
+        self.resolve(self.len + l);
+        self.resolve(self.len + self.len - 1);
+
+        for v in self.nodes(l, self.len) {
+            let tmp = A::Operand::op(x.clone(), self.buf.borrow()[v].clone());
+            if pred(&tmp) {
+                x = tmp;
+                continue;
+            }
+            let mut v = v;
+            while v < self.len {
+                self.push_down(v);
+                v <<= 1;
+                let tmp =
+                    A::Operand::op(x.clone(), self.buf.borrow()[v].clone());
+                if pred(&x) {
+                    x = tmp;
+                    v += 1;
+                }
+            }
+            return (v - self.len, x);
+        }
+        unreachable!();
+    }
+}
+
+impl<A> FoldBisectRev for VecActSegtree<A>
+where
+    A: MonoidAction,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone,
+{
+    fn fold_bisect_rev<F>(
+        &self,
+        r: usize,
+        pred: F,
+    ) -> (usize, <A::Operand as Magma>::Set)
+    where
+        F: Fn(&<A::Operand as Magma>::Set) -> bool,
+    {
+        assert!(
+            r <= self.len,
+            "index out of bounds: the len is {} but the index is {}; valid range: 0..={}",
+            self.len, r, self.len
+        );
+
+        let mut x = A::Operand::id();
+        assert!(pred(&x), "`pred(id)` must hold");
+        match self.fold(..r) {
+            x if pred(&x) => return (0, x),
+            _ => {}
+        }
+
+        self.resolve(self.len);
+        self.resolve(self.len + r - 1);
+
+        for v in self.nodes_rev(0, r) {
+            let tmp = A::Operand::op(self.buf.borrow()[v].clone(), x.clone());
+            if pred(&tmp) {
+                x = tmp;
+                continue;
+            }
+            let mut v = v;
+            while v < self.len {
+                self.push_down(v);
+                v = v << 1 | 1;
+                let tmp =
+                    A::Operand::op(self.buf.borrow()[v].clone(), x.clone());
+                if pred(&tmp) {
+                    x = tmp;
+                    v -= 1;
+                }
+            }
+            return (v - self.len + 1, x);
+        }
+        unreachable!();
+    }
+}

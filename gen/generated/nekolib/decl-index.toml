@@ -116,8 +116,8 @@ whole = [["traits", "disjoint_set"]]
 
 [[depends]]
 name = ["ds", "vec_act_segtree"]
-direct = [["traits", "act"], ["traits", "action"], ["traits", "additive"], ["traits", "binop"], ["traits", "fold"], ["traits", "fold_bisect"], ["traits", "min"], ["utils", "buf_range"], ["utils", "op_add"], ["utils", "op_max"]]
-whole = [["traits", "act"], ["traits", "action"], ["traits", "additive"], ["traits", "binop"], ["traits", "fold"], ["traits", "fold_bisect"], ["traits", "min"], ["utils", "buf_range"], ["utils", "op_add"], ["utils", "op_max"]]
+direct = [["traits", "act"], ["traits", "action"], ["traits", "binop"], ["traits", "fold"], ["traits", "fold_bisect"], ["utils", "buf_range"]]
+whole = [["traits", "act"], ["traits", "action"], ["traits", "binop"], ["traits", "fold"], ["traits", "fold_bisect"], ["utils", "buf_range"]]
 
 [[depends]]
 name = ["ds", "vec_segtree"]
