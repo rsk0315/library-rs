@@ -14,6 +14,7 @@ buf_range = { path = "../../utils/buf_range" }
 fold = { path = "../../traits/fold" }
 fold_bisect = { path = "../../traits/fold_bisect" }
 
+[dev-dependencies]
 op_max = { path = "../../utils/op_max" }
 op_add = { path = "../../utils/op_add" }
 min = { path = "../../traits/min" }
