@@ -67,6 +67,7 @@ SuffixArray = ["seq", "suffix_array"]
 UnionFind = ["ds", "union_find"]
 VecActSegtree = ["ds", "vec_act_segtree"]
 VecSegtree = ["ds", "vec_segtree"]
+ZSearcher = ["seq", "z_algo"]
 Zero = ["traits", "additive"]
 bisect = ["algo", "bisect"]
 bounds_within = ["utils", "buf_range"]
@@ -136,11 +137,6 @@ whole = [["math", "modint"], ["traits", "additive"], ["traits", "assoc_val"], ["
 
 [[depends]]
 name = ["seq", "kmp"]
-direct = [["traits", "push_pop"]]
-whole = [["traits", "push_pop"]]
-
-[[depends]]
-name = ["seq", "z_algo"]
 direct = [["traits", "push_pop"]]
 whole = [["traits", "push_pop"]]
 
