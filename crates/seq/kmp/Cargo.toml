@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 push_pop = { path = "../../traits/push_pop" }
+# pat_searcher = { path = "../../traits/pat_searcher" }

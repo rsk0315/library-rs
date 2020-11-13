@@ -4,9 +4,11 @@
 //! 文字列アルゴリズムというよりは列アルゴリズムっぽい名前にしてみました。
 pub mod kmp;
 pub mod suffix_array;
-// pub mod z_algo;
+pub mod z_algo;
 
 #[doc(inline)]
 pub use kmp::KmpSearcher;
 #[doc(inline)]
 pub use suffix_array::SuffixArray;
+#[doc(inline)]
+pub use z_algo::ZSearcher;

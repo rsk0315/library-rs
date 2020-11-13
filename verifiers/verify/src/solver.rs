@@ -20,6 +20,8 @@ uses! {
     aoj_0575,
     aoj_1180,
     aoj_alds1_14_b,
+    aoj_alds1_14_b_kmp,
+    aoj_alds1_14_b_z,
     aoj_alds1_14_d,
     aoj_dsl_1_a,
     aoj_dsl_2_b,

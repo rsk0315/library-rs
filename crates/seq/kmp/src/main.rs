@@ -7,19 +7,28 @@ fn main() {
     eprintln!("{:?}", kmp);
 
     let mut kmp: KmpSearcher<_> = vec![].into();
-    for x in vec![0, 0, 1, 0, 0, 1, 0, 0, 0] {
+    for &x in &[0, 0, 1, 0, 0, 1, 0, 0, 0] {
         kmp.push_back(x);
         // eprintln!("{:#?}", kmp);
     }
 
     let kmp = kmp;
     let text = [2, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0];
-    for r in kmp.occurrences(text) {
+    for r in kmp.occurrences(&text) {
         eprintln!("{:?}", r);
     }
 
-    let kmp: KmpSearcher<i32> = vec![].into();
-    for r in kmp.occurrences(text) {
+    // let kmp: KmpSearcher<i32> = vec![].into();
+    let kmp = KmpSearcher::<i32>::from(vec![]);
+    for r in kmp.occurrences(&text) {
         eprintln!("{:?}", r);
     }
+
+    let kmp = KmpSearcher::<i32>::from(vec![0, 0, 1, 0, 0, 1, 0, 0, 0]);
+    eprintln!("{:?}", kmp);
+    for r in kmp.occurrences(&text) {
+        eprintln!("{:?}", r);
+    }
+    let o: Vec<_> = kmp.occurrences(&text).collect();
+    eprintln!("{:?}", o);
 }

@@ -39,10 +39,7 @@ impl<T: Eq> KmpSearcher<T> {
         }
     }
 
-    pub fn occurrences<'a, S: 'a + AsRef<[T]>>(
-        &'a self,
-        s: S,
-    ) -> Occurrences<T, S> {
+    pub fn occurrences<'a>(&'a self, s: &'a [T]) -> Occurrences<'a, T> {
         Occurrences {
             text_index: 0,
             pat_index: 0,
@@ -52,17 +49,17 @@ impl<T: Eq> KmpSearcher<T> {
     }
 }
 
-pub struct Occurrences<'a, T: Eq, S: 'a + AsRef<[T]>> {
+pub struct Occurrences<'a, T: Eq> {
     text_index: usize,
     pat_index: usize,
     kmp: &'a KmpSearcher<T>,
-    text: S,
+    text: &'a [T],
 }
 
-impl<T: Eq, S: AsRef<[T]>> Iterator for Occurrences<'_, T, S> {
+impl<T: Eq> Iterator for Occurrences<'_, T> {
     type Item = Range<usize>;
     fn next(&mut self) -> Option<Self::Item> {
-        let text = self.text.as_ref();
+        let text = self.text;
         let pat = &self.kmp.pat;
 
         if pat.is_empty() {

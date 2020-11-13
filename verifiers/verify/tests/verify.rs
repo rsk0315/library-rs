@@ -39,4 +39,14 @@ mod verify {
     fn verify_scc() {
         verify::<AojGrl3C>();
     }
+
+    #[test]
+    fn verify_kmp() {
+        verify::<AojAldsOne14BKmp>();
+    }
+
+    #[test]
+    fn verify_z() {
+        verify::<AojAldsOne14BZ>();
+    }
 }
