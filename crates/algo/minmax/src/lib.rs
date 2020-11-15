@@ -18,7 +18,7 @@ use std::cmp::Ordering::{self, Equal, Greater, Less};
 /// use nekolib::algo::minmax;
 ///
 /// assert_eq!(minmax(&[3, 2, 4, 1, 2, 0, 6]), Some((&0, &6)));
-/// assert_eq!(minmax(&[]), None);
+/// assert_eq!(minmax(&Vec::<i32>::new()), None);
 /// ```
 pub fn minmax<T: Ord>(buf: &[T]) -> Option<(&T, &T)> {
     minmax_by(buf, |x: &T, y: &T| x.cmp(y))
@@ -42,9 +42,8 @@ pub fn minmax<T: Ord>(buf: &[T]) -> Option<(&T, &T)> {
 /// ```
 /// use nekolib::algo::minmax_by_key;
 ///
-/// let buf =
+/// let buf: Vec<_> =
 ///     vec![3, 5, 0, 1, 2, 0, 5].into_iter().enumerate().collect();
-///
 /// assert_eq!(minmax_by_key(&buf, |&(_, x)| x), Some((&(2, 0), &(6, 5))));
 ///
 /// let buf: Vec<i32> = vec![];
@@ -76,7 +75,7 @@ where
 /// let rev = |&(_, x): &(usize, i32), &(_, y): &(usize, i32)| y.cmp(&x);
 /// assert_eq!(minmax_by(&buf, rev), Some((&(1, 9), &(5, 0))));
 ///
-/// let buf: Vec<(usize, i32)> = vec![];
+/// let buf = vec![];
 /// assert_eq!(minmax_by(&buf, rev), None);
 /// ```
 pub fn minmax_by<T, F: FnMut(&T, &T) -> Ordering>(
@@ -146,4 +145,8 @@ fn test() {
     test_inner(Some((&(1, &0), &(2, &10))), &[10, 0, 10, 0]);
     test_inner(Some((&(0, &0), &(3, &10))), &[0, 0, 10, 10]);
     test_inner(Some((&(2, &0), &(1, &10))), &[10, 10, 0, 0]);
+
+    let rev = |&(_, x): &(usize, i32), &(_, y): &(usize, i32)| y.cmp(&x);
+    let buf = vec![];
+    assert_ne!(minmax_by(&buf, rev), None);
 }
