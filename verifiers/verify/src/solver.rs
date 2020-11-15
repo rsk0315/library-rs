@@ -24,6 +24,7 @@ uses! {
     aoj_alds1_14_b_z,
     aoj_alds1_14_d,
     aoj_dsl_1_a,
+    aoj_dsl_1_b,
     aoj_dsl_2_b,
     aoj_grl_1_a,
     aoj_grl_3_c,

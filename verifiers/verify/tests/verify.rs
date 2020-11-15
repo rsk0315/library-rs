@@ -3,7 +3,9 @@ mod verify {
     use verify::solver::*;
     use verify::test_set::verify;
 
-    use union_find::*;
+    use op_add::OpAdd;
+    use potentialized_union_find::PotentializedUnionFind;
+    use union_find::UnionFind;
 
     #[test]
     fn verify_bisect() {
@@ -48,5 +50,9 @@ mod verify {
     #[test]
     fn verify_z() {
         verify::<AojAldsOne14BZ>();
+    }
+    #[test]
+    fn verify_potentialized_uf() {
+        verify::<AojDsl1B<PotentializedUnionFind<OpAdd<i32>>>>();
     }
 }
