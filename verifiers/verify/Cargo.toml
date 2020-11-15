@@ -33,6 +33,7 @@ suffix_array = { path = "../../crates/seq/suffix_array" }
 z_algo = { path = "../../crates/seq/z_algo" }
 kmp = { path = "../../crates/seq/kmp" }
 potential_function = { path = "../../crates/traits/potential_function" }
+interval_set = { path = "../../crates/ds/interval_set" }
 
 [dev-dependencies]
 vec_segtree = { path = "../../crates/ds/vec_segtree" }

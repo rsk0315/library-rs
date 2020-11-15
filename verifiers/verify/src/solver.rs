@@ -19,6 +19,7 @@ uses! {
     aoj_0564,
     aoj_0575,
     aoj_1180,
+    aoj_2880,
     aoj_alds1_14_b,
     aoj_alds1_14_b_kmp,
     aoj_alds1_14_b_z,

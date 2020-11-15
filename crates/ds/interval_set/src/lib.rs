@@ -7,6 +7,11 @@ use std::ops::{
     RangeBounds,
 };
 
+/// 区間の集合。
+///
+/// # Notes
+/// 整数のとき、Excluded(x) と Included(x-1) などの扱いに注意。
+/// あくまで実数の区間であるかのように扱われる。
 #[derive(Clone, Debug, Eq)]
 struct Interval<T: Ord>(Bound<T>, Bound<T>);
 
@@ -37,19 +42,37 @@ impl<T: Ord> Interval<T> {
         }
     }
     fn is_superset(&self, other: &Self) -> bool {
-        match self.cmp(&other) {
-            Less if self.1 == other.1 => true,
-            Less => match (&self.1, &other.1) {
-                (_, Unbounded) => false,
-                (Unbounded, _) => true,
-                (Excluded(lhs), Included(rhs)) if lhs == rhs => false,
-                (Included(lhs), Included(rhs))
-                | (Included(lhs), Excluded(rhs))
-                | (Excluded(lhs), Included(rhs))
-                | (Excluded(lhs), Excluded(rhs)) => lhs.cmp(rhs) != Less,
-            },
-            Equal => true,
-            Greater => false,
+        if other.is_empty() {
+            return true;
+        }
+        if self.is_empty() {
+            return false;
+        }
+
+        // self.0 <= other.0
+        match (&self.0, &other.0) {
+            (Unbounded, _) => {}
+            (_, Unbounded) => return false,
+            (Excluded(lhs), Included(rhs)) if lhs == rhs => return false,
+            (Included(lhs), Included(rhs))
+            | (Included(lhs), Excluded(rhs))
+            | (Excluded(lhs), Included(rhs))
+            | (Excluded(lhs), Excluded(rhs))
+                if lhs > rhs =>
+            {
+                return false
+            }
+            _ => {}
+        }
+
+        // other.1 <= self.1
+        match (&self.1, &other.1) {
+            (Unbounded, _) => true,
+            (_, Unbounded) => false,
+            (Excluded(lhs), Included(rhs)) => lhs > rhs,
+            (Included(lhs), Included(rhs))
+            | (Included(lhs), Excluded(rhs))
+            | (Excluded(lhs), Excluded(rhs)) => lhs >= rhs,
         }
     }
     fn touches(&self, other: &Self) -> bool {
@@ -81,7 +104,7 @@ impl<T: Ord> Ord for Interval<T> {
         if self.is_empty() && other.is_empty() {
             return Equal;
         }
-        if &self.0 != &other.0 {
+        if self.0 != other.0 {
             return match (&self.0, &other.0) {
                 (Unbounded, _) => Less,
                 (_, Unbounded) => Greater,
@@ -93,7 +116,7 @@ impl<T: Ord> Ord for Interval<T> {
                 | (Excluded(lhs), Excluded(rhs)) => lhs.cmp(rhs),
             };
         }
-        if &self.1 != &other.1 {
+        if self.1 != other.1 {
             return match (&self.1, &other.1) {
                 (_, Unbounded) => Less,
                 (Unbounded, _) => Greater,
@@ -233,6 +256,25 @@ impl<T: Clone + Ord> IntervalSet<T> {
             Some(Interval(_, Excluded(y))) => Included(y),
             Some(Interval(_, Unbounded)) => Unbounded,
             None => Included(x),
+        }
+    }
+
+    /// 区間 `r` を含んでいれば `true` を返す。
+    pub fn has_range<R: RangeBounds<T>>(&self, r: &R) -> bool {
+        if self.buf.is_empty() {
+            return false;
+        }
+        let r: Interval<T> = (r.start_bound(), r.end_bound()).into();
+        if r.is_empty() {
+            return true;
+        }
+        match self
+            .buf
+            .range(..=&Interval(r.0.clone(), Unbounded))
+            .next_back()
+        {
+            Some(s) => s.is_superset(&r),
+            None => false,
         }
     }
 
