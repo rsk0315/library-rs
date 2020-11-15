@@ -56,9 +56,4 @@ mod verify {
     fn verify_potentialized_uf() {
         verify::<AojDsl1B<PotentializedUnionFind<OpAdd<i32>>>>();
     }
-
-    #[test]
-    fn verify_interval_set() {
-        verify::<Aoj2880>();
-    }
 }
