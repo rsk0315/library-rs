@@ -43,7 +43,7 @@ pub fn minmax<T: Ord>(buf: &[T]) -> Option<(&T, &T)> {
 /// use nekolib::algo::minmax_by_key;
 ///
 /// let buf =
-///     vec![3, 5, 0, 1, 2, 0, 5]into_iter().enumerate().collect();
+///     vec![3, 5, 0, 1, 2, 0, 5].into_iter().enumerate().collect();
 ///
 /// assert_eq!(minmax_by_key(&buf, |&(_, x)| x), Some((&(2, 0), &(6, 5))));
 ///
