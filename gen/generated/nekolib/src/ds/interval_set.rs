@@ -259,23 +259,33 @@ impl<T: Clone + Ord> IntervalSet<T> {
         }
     }
 
+    /// 区間 `r` を含む区間の両端を返す。
+    pub fn covering<R: RangeBounds<T>>(
+        &self,
+        r: &R,
+    ) -> Option<(&Bound<T>, &Bound<T>)> {
+        let r: Interval<T> = (r.start_bound(), r.end_bound()).into();
+        if self.buf.is_empty() {
+            return None;
+        }
+        (if r.is_empty() {
+            self.buf.range(..).next()
+        } else {
+            match self
+                .buf
+                .range(..=&Interval(r.0.clone(), Unbounded))
+                .next_back()
+            {
+                Some(s) if s.is_superset(&r) => Some(s),
+                _ => None,
+            }
+        })
+        .map(|r| (&r.0, &r.1))
+    }
+
     /// 区間 `r` を含んでいれば `true` を返す。
     pub fn has_range<R: RangeBounds<T>>(&self, r: &R) -> bool {
-        if self.buf.is_empty() {
-            return false;
-        }
-        let r: Interval<T> = (r.start_bound(), r.end_bound()).into();
-        if r.is_empty() {
-            return true;
-        }
-        match self
-            .buf
-            .range(..=&Interval(r.0.clone(), Unbounded))
-            .next_back()
-        {
-            Some(s) => s.is_superset(&r),
-            None => false,
-        }
+        self.covering(r).is_some()
     }
 
     fn remove_subset(&mut self, r: &Interval<T>) {
