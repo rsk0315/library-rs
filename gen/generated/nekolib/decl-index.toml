@@ -114,6 +114,11 @@ direct = [["traits", "binop"], ["traits", "fold"], ["traits", "push_pop"]]
 whole = [["traits", "binop"], ["traits", "fold"], ["traits", "push_pop"]]
 
 [[depends]]
+name = ["ds", "potentialized_union_find"]
+direct = [["traits", "binop"], ["traits", "potential_function"]]
+whole = [["traits", "binop"], ["traits", "potential_function"]]
+
+[[depends]]
 name = ["ds", "union_find"]
 direct = [["traits", "disjoint_set"]]
 whole = [["traits", "disjoint_set"]]
@@ -162,6 +167,11 @@ whole = [["traits", "binop"]]
 name = ["traits", "fold_bisect"]
 direct = [["traits", "binop"], ["traits", "fold"]]
 whole = [["traits", "binop"], ["traits", "fold"]]
+
+[[depends]]
+name = ["traits", "potential_function"]
+direct = [["traits", "binop"]]
+whole = [["traits", "binop"]]
 
 [[depends]]
 name = ["utils", "op_add"]
