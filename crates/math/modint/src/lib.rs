@@ -12,7 +12,7 @@ use assoc_val::AssocVal;
 use multiplicative::{MulAssoc, MulComm, MulRecip, One};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct ModInt<M: AssocVal<i64>>(pub i64, PhantomData<M>);
+pub struct ModInt<M: AssocVal<i64>>(i64, PhantomData<M>);
 
 impl<M: AssocVal<i64>> Display for ModInt<M> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
