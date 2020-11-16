@@ -1,7 +1,7 @@
 //! 法 $m$ での演算をする。
 
 use std::convert::TryInto;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::marker::PhantomData;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
@@ -15,6 +15,12 @@ use multiplicative::{MulAssoc, MulComm, MulRecip, One};
 pub struct ModInt<M: AssocVal<i64>> {
     n: i64,
     _m: PhantomData<M>,
+}
+
+impl<M: AssocVal<i64>> Display for ModInt<M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.n)
+    }
 }
 
 macro_rules! impl_from {
