@@ -30,6 +30,12 @@ impl<M: AssocVal<i64>> Debug for ModInt<M> {
     }
 }
 
+impl<M: AssocVal<i64>> ModInt<M> {
+    pub fn get(&self) -> &i64 {
+        &self.0
+    }
+}
+
 macro_rules! impl_from {
     ( $t:ty ) => {
         impl<M: AssocVal<i64>> From<$t> for ModInt<M> {
