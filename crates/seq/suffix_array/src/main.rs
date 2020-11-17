@@ -33,4 +33,8 @@ fn main() {
 
     let sa: Vec<_> = SuffixArray::from("abababab").into();
     assert_eq!(sa, [8, 6, 4, 2, 0, 7, 5, 3, 1]);
+
+    let text = "abracadabra";
+    let sa = SuffixArray::from(&text);
+    eprintln!("{:?}", sa);
 }
