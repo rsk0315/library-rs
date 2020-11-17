@@ -7,10 +7,17 @@ use std::ops::Index;
 
 /// 接尾辞配列。
 ///
-/// 内部では高さ配列も持っている。
+/// 文字列 $S$ の各接尾辞を辞書順でソートしたもの。
+/// より正確には、$i$ ($0\\le i\\le |S|$) を $S[i:]$ をキーとしてソートした配列 $A$ である。
+///
+/// 内部では高さ配列 (LCPA; Longest Common Prefix Array) $L$ も持っている。
+/// $L[i]$ ($0\\le i < |S|$) は $S[A[i-1]:]$ と $S[A[i]:]$ の最長共通接頭辞の長さである。
 ///
 /// # Idea
-/// そのうち書く。
+/// そのうち書く：
+///
+/// - SA-IS の概要
+/// - SA/LCPA を用いた文字列検索の概要
 ///
 /// ## See also
 /// [CS166](http://web.stanford.edu/class/archive/cs/cs166/cs166.1206/lectures/04/Slides04.pdf)。
@@ -18,10 +25,13 @@ use std::ops::Index;
 /// [こっち](http://web.stanford.edu/class/archive/cs/cs166/cs166.1206/lectures/04/Small04.pdf)。
 ///
 /// # Complexity
-/// アルファベットサイズを $\\sigma$、文字列長を $n$ とする。
+/// 入力中の文字の種類を $\\sigma$、文字列長を $n$ とする。
 /// SA-IS を用いて構築するため、前処理は $O(\\sigma\\log(\\sigma)+n)$ 時間。
 ///
 /// 検索は、パターン長を $m$ として $O(m\\log(n))$ 時間。
+///
+/// # Notes
+/// 工夫をすると、検索は $O(m+\\log(n))$ 時間にできるらしい？
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SuffixArray<T: Ord> {
     buf: Vec<T>,
