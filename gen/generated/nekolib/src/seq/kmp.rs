@@ -1,9 +1,46 @@
+//! KMP 法。
+
 use super::super::traits::push_pop;
+
 use std::fmt::Debug;
 use std::ops::Range;
 
 use push_pop::{PopBack, PushBack};
 
+/// KMP 法 (Knuth–Morris–Pratt algorithm)。
+///
+/// 文字列 $S$ を入力とする。
+/// 各 $S[\\dots i]$ ($0\\le i\\le |S|$) の最長 border と最長 tagged border
+/// の長さを求める。該当する border が存在しない要素は $-1$ とする。
+///
+/// 文字列 $S[\\dots i]$ の _border_ とは、$S[\\dots i]$ の真部分文字列であり、$S[\\dots i]$
+/// の接頭辞かつ接尾辞であるような文字列である。
+///
+/// 文字列 $S[\\dots i]$ の border $S[\\dots j]$ (0\\le j < i$) が $S[j] \\neq S[i]$
+/// を満たすとき、$S[\\dots j]$ は $S[\\dots i]$ の _tagged border_ (_strict border_,
+/// _strong border_) であると言う。ただし、$S[|S|]$ は $S$ 中に含まれない文字として定義する。
+///
+/// ```text
+///     0 1 2 3 4 5 6 7 8   9
+///   +-------------------+-------+
+/// S | a a b a c a a b a | c ... |
+///   +-------------------+-------+
+/// ```
+///
+/// この例において、$S[\\dots 4] = \\mathtt{aaba}$ は $S[\\dots 9] = \\mathtt{aabacaabac}$
+/// の border だが tagged border ではない ($S[4] = S[9] = \\mathtt{c}$)。一方、
+/// $S[\\dots 2] = \\mathtt{aa}$ は tagged border である
+/// ($S[2] = \\mathtt{b} \\neq S[9] = \\mathtt{c})。
+///
+/// この tagged border を用いることで、パターン検索を高速に行う。
+///
+/// # Implementation notes
+/// パターンが静的であれば最長 border を求める必要はない。
+/// パターンの末尾に対する push/pop を行える実装になっており、その更新の際に最長
+/// border の長さが必要になる（はず）。
+///
+/// # Complexity
+/// 構築は $O(|S|) 時間。パターン末尾における更新は $O(\\log(|S|))$ 時間。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KmpSearcher<T: Eq> {
     pat: Vec<T>,
