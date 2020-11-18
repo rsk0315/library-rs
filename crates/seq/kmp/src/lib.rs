@@ -37,18 +37,23 @@ use push_pop::{PopBack, PushBack};
 /// 時間で行う方法について書く。
 ///
 /// # Implementation notes
-/// パターンが静的であれば最長 border を求める必要はない。
-/// パターンの末尾に対する push/pop を行える実装になっており、その更新の際に最長
-/// border の長さが必要になる（はず）。
+/// パターンが静的な場合であれば最長 border を求める必要はない。
+/// パターンの末尾に対する push のみを考慮する場合も同様のはず。
+/// ここではパターンの末尾に対する pop を行える実装になっており、その更新の際には最長
+/// border の長さが必要になるはず。
+///
+/// # Complexity
+/// 構築は $O(|S|)$ 時間。パターン末尾における更新は $O(\\log(|S|))$ 時間。
+/// ただし、末尾への追加はこれに worst $O(|S|)$ (amortized $O(1)$) 時間が加わる。
+///
+/// # References
+/// - Knuth, D. E., Morris, Jr, J. H., & Pratt, V. R. (1977). Fast pattern matching in strings. _SIAM journal on computing, 6_(2), 323-350.
 ///
 /// # See also
 /// - <https://snuke.hatenablog.com/entry/2014/12/01/235807>
 /// - <https://snuke.hatenablog.com/entry/2017/07/18/101026>
 /// - <https://potetisensei.hatenablog.com/entry/2017/07/10/174908>
 /// - <http://www-igm.univ-mlv.fr/~lecroq/string/node8.html>
-///
-/// # Complexity
-/// 構築は $O(|S|)$ 時間。パターン末尾における更新は $O(\\log(|S|))$ 時間。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KmpSearcher<T: Eq> {
     pat: Vec<T>,
@@ -142,10 +147,14 @@ impl<T: Eq> PushBack for KmpSearcher<T> {
     type Input = T;
     fn push_back(&mut self, x: T) {
         let len = self.pat.len();
-        self.pat.push(x);
         if len > 0 {
-            *self.fail.last_mut().unwrap() = self.calc_fail(len - 1).0;
+            let j = self.fail1[len];
+            if &self.pat[j] == &x {
+                let tmp = self.fail[j];
+                self.fail[len] = tmp;
+            }
         }
+        self.pat.push(x);
         let (f, f1) = self.calc_fail(len);
         self.fail1.push(f1);
         self.fail.push(f);

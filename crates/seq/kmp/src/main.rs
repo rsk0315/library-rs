@@ -38,4 +38,14 @@ fn main() {
     );
 
     eprintln!("{:?}", KmpSearcher::from(vec![0; 5]));
+
+    // s[1] = "b"; s[2] = "a"; s[n] = s[n-1] s[n-2]
+    // b a ab aba abaab abaababa abaababaabaab
+    let buf = vec![0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1];
+    let mut k_dyn: KmpSearcher<i32> = vec![].into();
+    for i in 0..buf.len() {
+        k_dyn.push_back(buf[i]);
+        let k: KmpSearcher<_> = buf[..=i].to_vec().into();
+        assert_eq!(k, k_dyn);
+    }
 }
