@@ -5,6 +5,9 @@ use std::ops::Range;
 
 /// Z algorithm。
 ///
+/// 文字列 $S$ について、$Z[i]$ ($0\\le i < |S|$) が
+/// $S$ と $S[i\\dots]$ の最長共通接頭辞の長さであるような配列 $Z$ を構築する。
+///
 /// # Implementation notes
 /// テキスト `T` 中のパターン `P` を探すとき、`T` と `P` に含まれない文字 `'$'`
 /// を用いて作った文字列 `P + '$' + T` の Z value を計算することで求められる。
@@ -22,6 +25,9 @@ use std::ops::Range;
 /// [`std::str::matches`](https://doc.rust-lang.org/std/primitive.str.html#method.matches)
 /// の実装を参考にするなどして、`fn occurrences(&self)` を持つような trait
 /// を作るとよさそう。テストを KMP に対して再利用できるので。
+///
+/// # Complexity
+/// 構築は $O(|S|)$ 時間。検索は、テキスト $T$ に対して $O(|T|)$ 時間。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ZSearcher<T: Eq> {
     pat: Vec<T>,
