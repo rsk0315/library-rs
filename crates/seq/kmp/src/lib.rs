@@ -56,7 +56,7 @@ pub struct KmpSearcher<T: Eq> {
     fail1: Vec<usize>,
 }
 
-impl<T: Clone + Eq> From<Vec<T>> for KmpSearcher<T> {
+impl<T: Eq> From<Vec<T>> for KmpSearcher<T> {
     fn from(pat: Vec<T>) -> Self {
         let len = pat.len();
         let fail1 = vec![1_usize.wrapping_neg(); len + 1];
