@@ -31,4 +31,11 @@ fn main() {
     }
     let o: Vec<_> = kmp.occurrences(&text).collect();
     eprintln!("{:?}", o);
+
+    eprintln!(
+        "{:?}",
+        KmpSearcher::from(vec![0, 0, 1, 0, 2, 0, 0, 1, 0, 2])
+    );
+
+    eprintln!("{:?}", KmpSearcher::from(vec![0; 5]));
 }
