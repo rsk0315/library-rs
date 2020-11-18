@@ -19,7 +19,7 @@ use push_pop::{PopBack, PushBack};
 /// _strong border_) であると言う。ただし、$S[|S|]$ は $S$ 中に含まれない文字として定義する。
 ///
 /// ```text
-///     0 1 2 3 4 5 6 7 8   9
+///     0 1 2 3 4 5 6 7 8   9 ...
 ///   +-------------------+-------+
 /// S | a a b a c a a b a | c ... |
 ///   +-------------------+-------+
@@ -31,6 +31,10 @@ use push_pop::{PopBack, PushBack};
 /// ($S[2] = \\mathtt{b} \\neq S[9] = \\mathtt{c}$)。
 ///
 /// この tagged border を用いることで、パターン検索を高速に行う。
+///
+/// # Idea
+/// tagged border を $O(|S|)$ 時間で求める方法と、パターン検索を $O(|T|)$
+/// 時間で行う方法について書く。
 ///
 /// # Implementation notes
 /// パターンが静的であれば最長 border を求める必要はない。
@@ -44,7 +48,7 @@ use push_pop::{PopBack, PushBack};
 /// - <http://www-igm.univ-mlv.fr/~lecroq/string/node8.html>
 ///
 /// # Complexity
-/// 構築は $O(|S|) 時間。パターン末尾における更新は $O(\\log(|S|))$ 時間。
+/// 構築は $O(|S|)$ 時間。パターン末尾における更新は $O(\\log(|S|))$ 時間。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KmpSearcher<T: Eq> {
     pat: Vec<T>,
