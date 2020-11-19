@@ -1,14 +1,14 @@
 use std::marker::PhantomData;
 use std::ops::{Index, Range};
 
-use fold::Fold;
-use op_add::OpAdd;
-use set_value::SetValue;
-
 use crate::jury;
 use crate::test_set::Solver;
 
 use jury::aoj_dsl_2_b::Query;
+
+use fold::Fold;
+use op_add::OpAdd;
+use set_value::SetValue;
 
 pub struct AojDsl2B<D> {
     _d: PhantomData<D>,
