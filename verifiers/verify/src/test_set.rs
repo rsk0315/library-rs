@@ -70,6 +70,41 @@ pub trait Jury {
     }
 }
 
+pub fn judge_vec<T: Debug + Eq>(output: &Vec<T>, jury: &Vec<T>) -> Verdict {
+    let i = match output
+        .iter()
+        .zip(jury.iter())
+        .enumerate()
+        .find_map(|(i, (o, j))| if o != j { Some(i) } else { None })
+    {
+        Some(i) => i,
+        None => return Ac(1),
+    };
+
+    let mut msg = "".to_string();
+    if output.len() != jury.len() {
+        msg.push_str(&format!(
+            "len differs; got: {}, expected: {}",
+            output.len(),
+            jury.len()
+        ));
+    }
+    let c = 5;
+    let range_got =
+        (if i > c { i - c } else { 0 })..output.len().min(i + c + 1);
+    let range_expected =
+        (if i > c { i - c } else { 0 })..jury.len().min(i + c + 1);
+
+    msg.push_str(&format!(
+        "got[{:?}]: {:#?},\nexpected[{:?}]: {:#?}",
+        &range_got,
+        &output[range_got.clone()],
+        &range_expected,
+        &jury[range_expected.clone()]
+    ));
+    Wa(0, msg)
+}
+
 #[must_use]
 pub fn test<S: Solver>() -> Verdict
 where
