@@ -92,4 +92,14 @@ fn main() {
         s.remove((Excluded(0), Included(1)));
         eprintln!("{:?}", s);
     }
+
+    {
+        let mut s = IntervalSet::new();
+        s.insert(0..3);
+        s.remove(2..3);
+        s.insert(4..6);
+        s.remove(5..6);
+        eprintln!("{:?}", s);
+        eprintln!("{:?}", s.covering(&(4..=4)));
+    }
 }

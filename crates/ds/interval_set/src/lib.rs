@@ -2,6 +2,7 @@
 
 use std::cmp::Ordering::{self, *};
 use std::collections::BTreeSet;
+use std::fmt::Debug;
 use std::ops::{
     Bound::{self, *},
     RangeBounds,
@@ -12,9 +13,6 @@ use std::ops::{
 /// # Notes
 /// 整数のとき、Excluded(x) と Included(x-1) などの扱いに注意。
 /// あくまで実数の区間であるかのように扱われる。
-///
-/// # Known bugs
-/// 案の定、`remove` がこわれている。再現条件は調査中。
 #[derive(Clone, Debug, Eq)]
 struct Interval<T: Ord>(Bound<T>, Bound<T>);
 
@@ -155,7 +153,7 @@ pub struct IntervalSet<T: Ord> {
     buf: BTreeSet<Interval<T>>,
 }
 
-impl<T: Clone + Ord> IntervalSet<T> {
+impl<T: Clone + Debug + Ord> IntervalSet<T> {
     /// 空集合で初期化する。
     pub fn new() -> Self {
         Self {
@@ -193,6 +191,12 @@ impl<T: Clone + Ord> IntervalSet<T> {
         self.buf.insert(r);
     }
 
+    fn insert_if_nonempty(&mut self, x: Interval<T>) {
+        if !x.is_empty() {
+            self.buf.insert(x);
+        }
+    }
+
     /// 区間 `r` を削除する。
     pub fn remove<R: RangeBounds<T>>(&mut self, r: R) {
         let r: Interval<T> = (r.start_bound(), r.end_bound()).into();
@@ -204,14 +208,14 @@ impl<T: Clone + Ord> IntervalSet<T> {
             Some(x) if x.is_superset(&r) => {
                 self.buf.remove(&x);
                 let Interval(r0, r1) = r;
-                self.buf.insert(Interval(x.0, toggle_bound(r0)));
-                self.buf.insert(Interval(toggle_bound(r1), x.1));
+                self.insert_if_nonempty(Interval(x.0, toggle_bound(r0)));
+                self.insert_if_nonempty(Interval(toggle_bound(r1), x.1));
                 return;
             }
             Some(mut x) if x.touches(&r) => {
                 self.buf.remove(&x);
                 x.1 = toggle_bound(r.0.clone());
-                self.buf.insert(x);
+                self.insert_if_nonempty(x);
             }
             _ => {}
         }
@@ -219,7 +223,7 @@ impl<T: Clone + Ord> IntervalSet<T> {
             Some(mut x) if x.touches(&r) => {
                 self.buf.remove(&x);
                 x.0 = toggle_bound(r.1);
-                self.buf.insert(x);
+                self.insert_if_nonempty(x);
             }
             _ => {}
         }
