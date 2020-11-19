@@ -48,4 +48,6 @@ fn main() {
         let k: KmpSearcher<_> = buf[..=i].to_vec().into();
         assert_eq!(k, k_dyn);
     }
+
+    eprintln!("{:?}", k_dyn);
 }
