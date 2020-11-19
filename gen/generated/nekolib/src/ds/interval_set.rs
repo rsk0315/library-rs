@@ -12,6 +12,9 @@ use std::ops::{
 /// # Notes
 /// 整数のとき、Excluded(x) と Included(x-1) などの扱いに注意。
 /// あくまで実数の区間であるかのように扱われる。
+///
+/// # Known bugs
+/// 案の定、`remove` がこわれている。再現条件は調査中。
 #[derive(Clone, Debug, Eq)]
 struct Interval<T: Ord>(Bound<T>, Bound<T>);
 
@@ -158,6 +161,11 @@ impl<T: Clone + Ord> IntervalSet<T> {
         Self {
             buf: BTreeSet::new(),
         }
+    }
+
+    /// 集合が空であれば `true` を返す。
+    pub fn is_empty(&self) -> bool {
+        self.buf.is_empty()
     }
 
     /// 区間 `r` を追加する。
