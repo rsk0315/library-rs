@@ -9,6 +9,11 @@ mod verify_interval_set {
     }
 
     #[test]
+    fn verify_with_aoj_dsl_2_d_iset() {
+        verify::<AojDsl2DIset>();
+    }
+
+    #[test]
     fn verify_yuki_1601() {
         verify::<Yuki1601>();
     }

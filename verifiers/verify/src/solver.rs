@@ -27,6 +27,7 @@ uses! {
     aoj_dsl_1_a,
     aoj_dsl_1_b,
     aoj_dsl_2_b,
+    aoj_dsl_2_d_iset,
     aoj_grl_1_a,
     aoj_grl_3_c,
     yuki_1601,
