@@ -62,4 +62,34 @@ fn main() {
     eprintln!("{:?}", s);
 
     eprintln!("{:?}", s.mex(&15));
+
+    {
+        let mut s = IntervalSet::<u32>::new();
+        s.insert(0..3);
+        eprintln!("{:?}", s);
+        s.insert(0..2);
+        eprintln!("{:?}", s);
+        s.insert(1..3);
+        eprintln!("{:?}", s);
+        s.remove(2..3);
+        eprintln!("{:?}", s);
+    }
+
+    {
+        let mut s = IntervalSet::new();
+        s.insert(0..=3);
+        eprintln!("{:?}", s);
+        s.remove(2..3);
+        eprintln!("{:?}", s);
+        s.insert(2..3);
+        eprintln!("{:?}", s);
+        s.remove(2..=3);
+        eprintln!("{:?}", s);
+        s.insert(2..=3);
+        eprintln!("{:?}", s);
+        s.remove(0..=0);
+        eprintln!("{:?}", s);
+        s.remove((Excluded(0), Included(1)));
+        eprintln!("{:?}", s);
+    }
 }
