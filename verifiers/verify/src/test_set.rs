@@ -78,17 +78,21 @@ pub fn judge_vec<T: Debug + Eq>(output: &Vec<T>, jury: &Vec<T>) -> Verdict {
         .find_map(|(i, (o, j))| if o != j { Some(i) } else { None })
     {
         Some(i) => i,
-        None => return Ac(1),
+        None if output.len() == jury.len() => return Ac(1),
+        None => output.len().min(jury.len()),
     };
 
     let mut msg = "".to_string();
     if output.len() != jury.len() {
         msg.push_str(&format!(
-            "len differs; got: {}, expected: {}",
+            "len differs; got: {}, expected: {}. ",
             output.len(),
             jury.len()
         ));
     }
+
+    msg.push_str(&format!("{}-th element differs:\n", i));
+
     let c = 5;
     let range_got =
         (if i > c { i - c } else { 0 })..output.len().min(i + c + 1);
