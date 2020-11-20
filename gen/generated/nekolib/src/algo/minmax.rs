@@ -5,6 +5,7 @@ use std::cmp::Ordering::{self, Equal, Greater, Less};
 /// スライスの最小値および最大値を求める。
 ///
 /// 該当する要素が複数個あった場合、最小値は最左のもの、最大値は最右のものが選ばれる。
+/// スライスが空の場合は `None` を返す。
 ///
 /// # Suggestions
 /// 最小値・最大値の添字ではなく最小値・最大値自体を返すようになっている。
@@ -13,6 +14,9 @@ use std::cmp::Ordering::{self, Equal, Greater, Less};
 /// # Complexity
 /// [`minmax_by`] における `compare` の呼び出し回数と同じだけ、要素間の比較を行う。
 ///
+/// # Notes
+/// 詳細については [`minmax_by`] を参照。
+///
 /// # Examples
 /// ```
 /// use nekolib::algo::minmax;
@@ -20,6 +24,9 @@ use std::cmp::Ordering::{self, Equal, Greater, Less};
 /// assert_eq!(minmax(&[3, 2, 4, 1, 2, 0, 6]), Some((&0, &6)));
 /// assert_eq!(minmax(&Vec::<i32>::new()), None);
 /// ```
+///
+/// [`minmax_by`]: fn.minmax_by.html
+/// [`minmax_by_key`]: fn.minmax_by_key.html
 pub fn minmax<T: Ord>(buf: &[T]) -> Option<(&T, &T)> {
     minmax_by(buf, |x: &T, y: &T| x.cmp(y))
 }
@@ -27,16 +34,20 @@ pub fn minmax<T: Ord>(buf: &[T]) -> Option<(&T, &T)> {
 /// キー `key` におけるスライスの最小値および最大値を求める。
 ///
 /// 該当する要素が複数個あった場合、最小値は最左のもの、最大値は最右のものが選ばれる。
+/// スライスが空の場合は `None` を返す。
 ///
 /// # Complexity
 /// [`minmax_by`] における `compare` の呼び出し回数と同じだけ、要素間の比較を行う。
 /// また、`key` の呼び出しをその $2$ 倍の回数だけ行う。
 ///
 /// # Implementation notes
-/// 実装を `minmax_by` に丸投げしているので `key` を $3n$ 回程度呼び出しうるが、
+/// 実装を [`minmax_by`] に丸投げしているので `key` を $3n$ 回程度呼び出しうるが、
 /// 適切に実装することで $n$ 回に抑えられるはず。
 ///
 /// `key` のコストが大きい場合は予め別の配列を作る方がよさそう。
+///
+/// # Notes
+/// 詳細については [`minmax_by`] を参照。
 ///
 /// # Examples
 /// ```
@@ -49,6 +60,8 @@ pub fn minmax<T: Ord>(buf: &[T]) -> Option<(&T, &T)> {
 /// let buf: Vec<i32> = vec![];
 /// assert_eq!(minmax_by_key(&buf, |&x| x), None);
 /// ```
+///
+/// [`minmax_by`]: fn.minmax_by.html
 pub fn minmax_by_key<T, K, U>(buf: &[T], mut key: K) -> Option<(&T, &T)>
 where
     K: FnMut(&T) -> U,
@@ -60,11 +73,26 @@ where
 /// 比較関数 `compare` におけるスライスの最小値および最大値を求める。
 ///
 /// 該当する要素が複数個あった場合、最小値は最左のもの、最大値は最右のものが選ばれる。
+/// スライスが空の場合は `None` を返す。
 ///
 /// # Complexity
-/// 要素数を $n$ として、`compare` の呼び出しを高々
-/// $\\max\\{0, \\lfloor\\frac{n}{2}\\rfloor + 2\\cdot\\lfloor{n-1}{2}\\rfloor\\} \\le 1.5n$
+/// 要素数を $n \\gt 0$ として、`compare` の呼び出しを
+/// $\\lceil\\frac{3n}{2}\\rceil -2 \\lt 1.5n$
 /// 回行う。
+/// スライスが空の場合は $0$ 回の呼び出しを行う。
+///
+/// この比較回数は最適であり、下界は [adversary argument] によって示すことができる。
+///
+/// [adversary argument]: https://jeffe.cs.illinois.edu/teaching/algorithms/notes/13-adversary.pdf
+///
+/// # Notes
+///
+/// C++ では比較を `bool` の二値で行うため [`std::minmax_element`] は等価な要素の扱いに困る。
+/// 最小値も最大値も最左のものを返そうとすると、比較回数の下界を達成できないはず。
+/// 一方 Rust では、[`Ordering`] の三値を返すので、実装を変えることで任意のペアを返すことが可能。
+///
+/// [`std::minmax_element`]: https://en.cppreference.com/w/cpp/algorithm/minmax_element
+/// [`Ordering`]: https://doc.rust-lang.org/std/cmp/enum.Ordering.html
 ///
 /// # Examples
 /// ```
@@ -126,7 +154,11 @@ fn test() {
         let buf: Vec<_> = buf.iter().enumerate().collect();
         let n = buf.len();
         assert_eq!(minmax_by(&buf, counted_cmp), expected);
-        assert!(cmped <= n / 2 + (n - 1) / 2 * 2);
+        if n == 0 {
+            assert_eq!(cmped, 0);
+        } else {
+            assert_eq!(cmped, n / 2 + (n - 1) / 2 * 2);
+        }
     }
 
     test_inner(Some((&(0, &0), &(0, &0))), &[0]);
@@ -148,5 +180,5 @@ fn test() {
 
     let rev = |&(_, x): &(usize, i32), &(_, y): &(usize, i32)| y.cmp(&x);
     let buf = vec![];
-    assert_ne!(minmax_by(&buf, rev), None);
+    assert_eq!(minmax_by(&buf, rev), None);
 }
