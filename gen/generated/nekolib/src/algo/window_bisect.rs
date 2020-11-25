@@ -120,9 +120,6 @@ where
             }
             slice.expand_back();
         }
-        if slice.is_empty() {
-            slice.expand_back();
-        }
         slice.shrink_front();
     }
     res
