@@ -101,9 +101,8 @@ fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
     };
 
     println!("");
-    println!("// --- bundled automatically --- //");
-    println!("");
-
+    println!("/// This module is bundled automatically.");
+    println!("/// See <https://rsk0315.github.io/library-rs/nekolib/> for documentation.");
     println!("pub mod nekolib {{");
     for (crate_name, v) in includes {
         println!("    pub mod {} {{", &crate_name);
