@@ -28,7 +28,7 @@ where
         s: Vec<usize>,
         ins: Vec<bool>,
         t: usize,
-    };
+    }
 
     fn dfs<V, I, D>(v: V, index: I, delta: D, state: &mut State)
     where
