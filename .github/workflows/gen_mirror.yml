@@ -47,7 +47,7 @@ jobs:
           git commit -m '[auto-generated]' || true
 
       - name: Push
-        uses: cpina/github-action-push-to-another-repository@master
+        uses: cpina/github-action-push-to-another-repository@main
         # run: |
         #   cd doc
         #   git log
