@@ -37,7 +37,7 @@ jobs:
           git commit -m '[auto-generated]' || true
 
       - name: Push to github.io
-        uses: cpina/github-action-push-to-another-repository@master
+        uses: cpina/github-action-push-to-another-repository@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
