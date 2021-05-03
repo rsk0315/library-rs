@@ -43,4 +43,4 @@ jobs:
           github_token: ${{ secrets.GH_TOKEN }}
           branch: master
           directory: gh
-          repository: 'rsk0315.github.io'
+          repository: 'rsk0315/rsk0315.github.io'
