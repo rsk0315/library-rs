@@ -22,6 +22,8 @@ jobs:
         with:
           repository: rsk0315/rsk0315.github.io
           path: gh
+          persist-credentials: false
+          fetch-depth: 0
 
       - name: Generate doc
         run: |
