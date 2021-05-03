@@ -60,3 +60,16 @@ jobs:
           destination-github-username: 'rsk0315'
           destination-repository-name: 'library-rs'
           user-email: 'github-actions@github.com'
+
+      - name: Invoke doctest
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: doctest
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Invoke generate document
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: generate document
+          token: ${{ secrets.GH_TOKEN }}
+
