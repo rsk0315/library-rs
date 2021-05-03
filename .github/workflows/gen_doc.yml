@@ -35,15 +35,17 @@ jobs:
           git add .
           git config user.name github-actions
           git config user.email github-actions@github.com
+          git log -p -n 1
           git commit -m '[auto-generated]' || true
 
       - name: Push to github.io
         uses: cpina/github-action-push-to-another-repository@main
         env:
-          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
           source-directory: gh
           destination-github-username: 'rsk0315'
           destination-repository-name: 'rsk0315.github.io'
+          user-name: 'github-actions'
           user-email: 'github-actions@github.com'
           target-branch: master
