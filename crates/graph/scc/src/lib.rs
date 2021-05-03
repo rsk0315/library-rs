@@ -3,17 +3,58 @@
 /// lowlink に基づく強連結成分分解。
 ///
 /// # Parameters
-/// 後でちゃんと書きます。
+/// - `n`: 頂点数
+/// - `vs`: 頂点集合
+/// - `index`: 頂点から添字への番号づけをする関数
+/// - `delta`: 頂点 `v` と関数 `search` を受け取る関数
 ///
-/// [これ](https://niuez.github.io/posts/impl_abstract_dijkstra/)
-/// をリスペクトしているつもり。
+/// `delta` は、`v` の各隣接頂点 `nv` に対して、`search(nv)`
+/// を呼び出す必要がある。
 ///
 /// # Return value
 /// `index(v)` 番目の要素が `v` の属する強連結成分の番号である配列。
 /// 番号づけはトポロジカル順に行われる。
 ///
+/// # Examples
+///
+/// ```text
+/// (0) ---> (1) ---> (3) ---> (5) ---> (6) ---> (7)
+///  ^        |        |        ^        ^        |
+///  |        v        v        |        |        |
+/// (4) <--- (2)      (9)       +------ (8) <-----+
+/// ```
+///
+/// ```
+/// use nekolib::graph::scc;
+///
+/// let g = vec![
+///     vec![1],
+///     vec![2, 3],
+///     vec![4],
+///     vec![5, 9],
+///     vec![0],
+///     vec![6],
+///     vec![7],
+///     vec![8],
+///     vec![5, 6],
+///     vec![],
+/// ];
+/// let index = |&v: &usize| v;
+/// let delta = |&v: &usize, search: &mut dyn FnMut(usize)| {
+///     for &nv in &g[v] {
+///         search(nv);
+///     }
+/// };
+/// let comp_id = scc(10, 0..10, index, delta);
+///
+/// assert_eq!(comp_id, vec![0, 0, 0, 1, 0, 3, 3, 3, 3, 2]);
+/// ```
+///
 /// # Complexity
 /// $O(|V|+|E|)$ 時間。
+///
+/// # References
+/// - <https://niuez.github.io/posts/impl_abstract_dijkstra/>
 pub fn scc<G, V, I, D>(n: usize, vs: G, index: I, delta: D) -> Vec<usize>
 where
     G: Iterator<Item = V>,
