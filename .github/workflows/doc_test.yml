@@ -6,6 +6,7 @@ on:
       - doc
     paths:
       - 'trigger/doc_test'
+  workflow_dispatch:
 
 jobs:
   test:

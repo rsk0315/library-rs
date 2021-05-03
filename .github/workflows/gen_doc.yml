@@ -6,6 +6,7 @@ on:
       - doc
     paths:
       - 'trigger/gen_doc'
+  workflow_dispatch:
 
 jobs:
   generate:
