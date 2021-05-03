@@ -1,0 +1,23 @@
+name: doctest
+
+on:
+  push:
+    branches:
+      - doc
+    paths:
+      - 'trigger/doc_test'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: doc
+          path: doc
+
+      - name: Test doc
+        run: |
+          cd doc/gen/generated
+          cargo t --doc
