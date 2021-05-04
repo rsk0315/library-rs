@@ -1,7 +1,7 @@
 # See https://doc.rust-lang.org/cargo/reference/config.html
 
 [alias]
-d = "doc"
+d = "doc --no-deps"
 p = "clippy -- -W clippy::pedantic -A clippy::doc_markdown -A clippy::module_name_repetitions"
 
 [build]
