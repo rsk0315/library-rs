@@ -1,0 +1,7 @@
+[package]
+name = "floor_sum"
+version = "0.1.0"
+authors = ["rsk0315 <rsk0315@icloud.com>"]
+edition = "2018"
+
+[dependencies]
