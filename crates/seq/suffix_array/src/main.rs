@@ -8,11 +8,11 @@ fn main() {
     let text = "mississippi";
     let sa = SuffixArray::from(text);
 
-    for &i in sa.search("is") {
+    for i in sa.search(&"is".chars().collect::<Vec<_>>()) {
         eprintln!("{:?}", &text[i..]);
     }
 
-    for &i in sa.search("i") {
+    for i in sa.search(&"i".chars().collect::<Vec<_>>()) {
         eprintln!("{:?}", &text[i..]);
     }
 
@@ -24,9 +24,8 @@ fn main() {
     for pat in &["a", "aa", "b", "ba", "bb", "xyz"] {
         eprintln!(
             "{:?}",
-            sa.search(pat)
-                .iter()
-                .map(|&i| &text[i..])
+            sa.search(&pat.chars().collect::<Vec<_>>())
+                .map(|i| &text[i..])
                 .collect::<Vec<_>>()
         );
     }
@@ -35,6 +34,6 @@ fn main() {
     assert_eq!(sa, [8, 6, 4, 2, 0, 7, 5, 3, 1]);
 
     let text = "abracadabra";
-    let sa = SuffixArray::from(&text);
+    let sa = SuffixArray::from(text.chars().collect::<Vec<_>>());
     eprintln!("{:?}", sa);
 }
