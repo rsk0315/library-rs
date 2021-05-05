@@ -3,7 +3,6 @@
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Debug;
-use std::ops::Index;
 
 /// 接尾辞配列。
 ///
@@ -534,5 +533,22 @@ mod tests {
                 1, 12, 7
             ]
         );
+    }
+
+    #[test]
+    fn test_naive() {
+        let n = 1000;
+        let f = |x: &i32| Some((x * 29 + 71) % 143);
+        let buf: Vec<_> =
+            std::iter::successors(Some(2_i32), f).take(n).collect();
+        eprintln!("{:?}", buf);
+        let naive_sa = {
+            let mut sa: Vec<_> = (0..=n).collect();
+            sa.sort_unstable_by_key(|&i| &buf[i..]);
+            sa
+        };
+        let sa: SuffixArray<_> = buf.into();
+        let sa: Vec<_> = sa.into();
+        assert_eq!(sa, naive_sa);
     }
 }
