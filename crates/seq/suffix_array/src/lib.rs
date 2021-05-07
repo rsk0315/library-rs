@@ -9,9 +9,6 @@ use std::fmt::Debug;
 /// 文字列 $S$ の各接尾辞を辞書順でソートしたもの。
 /// より正確には、$i$ ($0\\le i\\le |S|$) を $S\[i\\dots\]$ をキーとしてソートした配列 $A$ である。
 ///
-/// 内部では高さ配列 (LCPA; Longest Common Prefix Array) $L$ も持っている。
-/// $L\[i\]$ ($0\\le i < |S|$) は $S\[A\[i\]\\dots\]$ と $S\[A\[i+1\]\\dots\]$ の最長共通接頭辞の長さである。
-///
 /// # Idea
 /// ## 用語の定義など
 ///
@@ -95,8 +92,8 @@ use std::fmt::Debug;
 /// $S\[i\\dots j\]$ に辞書順最大の文字を連結したものを指して、単に部分文字列 $S\[i\\dots j\]$
 /// と呼ぶことにする。
 ///
-/// [^1]: よくある説明では suffix $S\[i\\dots\]$ だと思いますが、それだと納得のいく説明が
-/// できなかったのでこういう説明になりました。
+/// [^1]: よくある説明では suffix $S\[i\\dots\]$ だと思いますが、
+/// それだと納得のいく説明ができなかったのでこういう説明になりました。
 ///
 /// まず、LMS suffix たちの添字 $i$ は得られているとし、それらを対応するバケットの
 /// 末尾に適当な順に入れる。このとき $j = i$ とする。
@@ -339,15 +336,13 @@ use std::fmt::Debug;
 pub struct SuffixArray<T: Ord> {
     buf: Vec<T>,
     sa: Vec<usize>,
-    lcpa: Vec<usize>,
 }
 
 impl<T: Ord> From<Vec<T>> for SuffixArray<T> {
     fn from(buf: Vec<T>) -> Self {
         let buf_usize = hash(&buf);
         let sa = sa_is(&buf_usize);
-        let lcpa = make_lcpa(&sa, &buf_usize[..buf.len()]);
-        Self { buf, sa, lcpa }
+        Self { buf, sa }
     }
 }
 
@@ -557,25 +552,37 @@ fn sa_is(buf: &[usize]) -> Vec<usize> {
     sa.into_iter().map(std::option::Option::unwrap).collect()
 }
 
-fn make_lcpa(sa: &[usize], buf: &[usize]) -> Vec<usize> {
-    let len = buf.len();
-    let rank = inv_perm(&sa);
-    let mut h = 0_usize;
-    let mut lcpa = vec![0_usize; len];
-    for i in 0..len {
-        let j = sa[rank[i] - 1];
-        h = (h.saturating_sub(1)..)
-            .find(|&h| match (buf.get(i + h), buf.get(j + h)) {
-                (Some(x), Some(y)) => x != y,
-                _ => true,
-            })
-            .unwrap();
-        lcpa[rank[i] - 1] = h;
-    }
-    lcpa
-}
-
 impl<T: Ord> SuffixArray<T> {
+    /// パターン検索を行う。
+    ///
+    /// # Complexity
+    ///
+    /// $O(|T|\\log(|S|))$ 時間。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::seq::SuffixArray;
+    ///
+    /// let s: Vec<_> = "abracadabra".chars().collect();
+    /// let sa: SuffixArray<_> = s.into();
+    ///
+    /// assert_eq!(sa.search(&['a']).collect::<Vec<_>>(), vec![10, 7, 0, 3, 5]);
+    /// assert_eq!(
+    ///     sa.search(&"abra".chars().collect::<Vec<_>>()).nth(1),
+    ///     Some(0)
+    /// );
+    /// assert_eq!(sa.search(&['a', 'e']).next(), None);
+    /// ```
+    ///
+    /// # Implementation notes
+    ///
+    /// 次のように書けると楽だが...。
+    ///
+    /// ```ignore
+    /// let sa: SuffixArray<_> = "mississippi".into();
+    /// let occ: Vec<_> = sa.search("is").collect();
+    /// ```
     pub fn search(&self, pat: &[T]) -> impl Iterator<Item = usize> + '_ {
         let lo = {
             let mut lt = 1_usize.wrapping_neg();
@@ -608,6 +615,22 @@ impl<T: Ord> SuffixArray<T> {
             gt
         };
         self.sa[lo..hi].iter().cloned()
+    }
+
+    /// 自身を消費し、内部表現を返す。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::seq::SuffixArray;
+    ///
+    /// let s: Vec<_> = "abracadabra".chars().collect();
+    /// let sa: SuffixArray<_> = s.into();
+    /// let sa = sa.into_inner();
+    /// assert_eq!(sa, vec![11, 10, 7, 0, 3, 5, 8, 1, 4, 6, 9, 2]);
+    /// ```
+    pub fn into_inner(self) -> Vec<usize> {
+        self.sa
     }
 }
 
