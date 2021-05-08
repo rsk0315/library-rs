@@ -56,6 +56,14 @@ pub struct LinearSieve {
 
 impl LinearSieve {
     /// $n$ 以下の自然数に対する篩を用意する。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// ```
     pub fn new(n: usize) -> Self {
         let mut lpf = vec![1; n + 1];
         let mut pr = vec![];
@@ -73,11 +81,34 @@ impl LinearSieve {
     }
 
     /// $n$ が素数であれば `true` を返す。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert!(!sieve.is_prime(1));
+    /// assert!(sieve.is_prime(2));
+    /// assert!(sieve.is_prime(23));
+    /// assert!(!sieve.is_prime(24));
+    /// ```
     pub fn is_prime(&self, n: usize) -> bool {
         n >= 2 && self.lpf[n] == n
     }
 
     /// $n$ の最小素因数を返す。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.least_factor(1), None);
+    /// assert_eq!(sieve.least_factor(3), Some(3));
+    /// assert_eq!(sieve.least_factor(24), Some(2));
+    /// ```
     pub fn least_factor(&self, n: usize) -> Option<usize> {
         if n < 2 {
             None
@@ -87,6 +118,16 @@ impl LinearSieve {
     }
 
     /// $n$ の素因数を列挙する。重複あり。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.factors(1).next(), None);
+    /// assert_eq!(sieve.factors(60).collect::<Vec<_>>(), vec![2, 2, 3, 5]);
+    /// ```
     pub fn factors(&self, n: usize) -> impl Iterator<Item = usize> + '_ {
         std::iter::successors(Some(n), move |&n| Some(n / self.lpf[n]))
             .take_while(|&n| n > 1)
@@ -94,6 +135,18 @@ impl LinearSieve {
     }
 
     /// 素数を列挙する。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(
+    ///     sieve.primes().take(10).collect::<Vec<_>>(),
+    ///     vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+    /// );
+    /// ```
     pub fn primes(&self) -> impl Iterator<Item = usize> + '_ {
         self.pr.iter().copied()
     }
