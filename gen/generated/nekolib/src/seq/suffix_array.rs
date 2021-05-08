@@ -94,6 +94,9 @@ use std::fmt::Debug;
 ///
 /// [^1]: よくある説明では suffix $S\[i\\dots\]$ だと思いますが、
 /// それだと納得のいく説明ができなかったのでこういう説明になりました。
+/// 「LMS suffix がソート順に並んでいるときに IS をすると SA
+/// が得られます」というのが示されたあと、適当な順で LMS suffix を入力して
+/// IS を実行されると、もやもやします。
 ///
 /// まず、LMS suffix たちの添字 $i$ は得られているとし、それらを対応するバケットの
 /// 末尾に適当な順に入れる。このとき $j = i$ とする。
@@ -213,7 +216,7 @@ use std::fmt::Debug;
 /// ```
 ///
 /// 各 LMS $i$ に対応する部分文字列が LMS block と等しくなることは簡単に示せて、
-/// 以上より LMS block のソート順が得られることがわかった。また、初めに LMS
+/// 以上より LMS block のソート順が得られることがわかった。なお、初めに LMS
 /// をバケットに入れるときにソート順に入れていれば、$j = |S|$
 /// としても同様の議論ができ、接尾辞配列が得られる。
 ///
@@ -272,7 +275,7 @@ use std::fmt::Debug;
 /// 再帰的に SA-IS によって求めることができ、`6 5 3 1 0 4 2` となる。
 ///
 /// LMS block たちをそのまま連結させると境界部分の文字が重複するのが気になる。
-/// reduced string 中に暗黙にあるそれらの重複が許されることに触れておく。
+/// reduced string 中にも暗黙にそれらの重複があるが、それが許されることに触れておく。
 /// 等しいペアについては、重複の 1 文字目で等しければ 2 文字目でも等しいので、
 /// 辞書順比較には影響しない。等しくないペアについて、`$` 以外の LMS block の形は
 /// `SS..SLL..LS` であり、最悪時でも片方に `LS` が現れた時点で大小関係が決まるので、
@@ -321,12 +324,9 @@ use std::fmt::Debug;
 ///
 /// 検索は、パターン長を $m$ として $O(m\\log(n))$ 時間。
 ///
-/// # Notes
-/// 工夫をすると、検索は $O(m+\\log(n))$ 時間にできるらしい？
-///
 /// # References
-/// - Nong, Ge, Sen Zhang, and Wai Hong Chan. "Two efficient algorithms for linear time suffix array construction." _IEEE Transactions on Computers_ 60, no. 10 (2010): 1471-1484.
-/// - Ko, Pang, and Srinivas Aluru. "Space efficient linear time construction of suffix arrays." In _Annual Symposium on Combinatorial Pattern Matching_, pp. 200-210. Springer, Berlin, Heidelberg, 2003.
+/// - Nong, Ge, Sen Zhang, and Wai Hong Chan. "Two efficient algorithms for linear time suffix array construction." _IEEE Transactions on Computers_ 60, no. 10 (2010): 1471--1484.
+/// - Ko, Pang, and Srinivas Aluru. "Space efficient linear time construction of suffix arrays." In _Annual Symposium on Combinatorial Pattern Matching_, pp. 200--210. Springer, Berlin, Heidelberg, 2003.
 ///
 /// ## See also
 /// [CS166](http://web.stanford.edu/class/archive/cs/cs166/cs166.1206/lectures/04/Slides04.pdf)。
