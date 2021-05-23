@@ -3,8 +3,7 @@
 //! [![verify](https://github.com/rsk0315/library-rs/workflows/verify/badge.svg)](https://github.com/rsk0315/library-rs/actions?query=workflow%3Averify)
 //! [![doctest](https://github.com/rsk0315/library-rs/workflows/doctest/badge.svg)](https://github.com/rsk0315/library-rs/actions?query=workflow%3Adoctest)
 //!
-//! <a style="font-family: Lato; color: #C0C000;" href="https://atcoder.jp/users/rsk0315">rsk0315</a>
-//! の競プロライブラリです。
+//! [えびちゃん](https://twitter.com/rsk0315_h4x) の競プロライブラリですにゃ。
 //!
 //! 各種スニペットを個別クレートとして分けて作ったもの
 //! ([`library-rs`](https://github.com/rsk0315/library-rs))
