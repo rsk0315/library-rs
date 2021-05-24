@@ -15,19 +15,19 @@
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::sum_divided;
+/// use nekolib::math::linear_floor_sum;
 ///
-/// assert_eq!(sum_divided(4, 10, 6, 3), 3);
-/// assert_eq!(sum_divided(6, 5, 4, 3), 13);
-/// assert_eq!(sum_divided(1, 1, 0, 0), 0);
-/// assert_eq!(sum_divided(31415, 92653, 58979, 32384), 314095480);
+/// assert_eq!(linear_floor_sum(4, 10, 6, 3), 3);
+/// assert_eq!(linear_floor_sum(6, 5, 4, 3), 13);
+/// assert_eq!(linear_floor_sum(1, 1, 0, 0), 0);
+/// assert_eq!(linear_floor_sum(31415, 92653, 58979, 32384), 314095480);
 /// assert_eq!(
-///     sum_divided(1000000000, 1000000000, 999999999, 999999999),
+///     linear_floor_sum(1000000000, 1000000000, 999999999, 999999999),
 ///     499999999500000000
 /// );
-/// assert_eq!(sum_divided(14, 23, -7, -39), -58);
+/// assert_eq!(linear_floor_sum(14, 23, -7, -39), -58);
 /// ```
-pub fn sum_divided(n: i128, m: i128, a: i128, b: i128) -> i128 {
+pub fn linear_floor_sum(n: i128, m: i128, a: i128, b: i128) -> i128 {
     assert!(m > 0);
     assert!(n > 0);
     let mut res = 0;
@@ -45,10 +45,10 @@ pub fn sum_divided(n: i128, m: i128, a: i128, b: i128) -> i128 {
     } else {
         b
     } as u128;
-    res + sum_divided_unsigned(n as u128, m as u128, a, b) as i128
+    res + linear_floor_sum_unsigned(n as u128, m as u128, a, b) as i128
 }
 
-fn sum_divided_unsigned(
+fn linear_floor_sum_unsigned(
     mut n: u128,
     mut m: u128,
     mut a: u128,
