@@ -1,4 +1,4 @@
-//! $\\sum\_{i=1}^n \\lfloor\\frac{m}{i}\\rfloor$ および $\\sum\_{i=1}^n (m\\bmod i)$.
+//! $\\sum\_{i=1}^n \\lfloor m/i\\rfloor$ および $\\sum\_{i=1}^n (m\\bmod i)$.
 
 use std::fmt::Debug;
 use std::ops::{
@@ -6,21 +6,21 @@ use std::ops::{
     RangeBounds,
 };
 
-/// $\\sum\_{i=1}^n \\lfloor\\frac{m}{i}\\rfloor$ および $\\sum\_{i=1}^n (m\\bmod i)$.
+/// $\\sum\_{i=1}^n \\lfloor m/i\\rfloor$ および $\\sum\_{i=1}^n (m\\bmod i)$.
 ///
 /// # Idea
 /// $\\lfloor m/\\bullet\\rfloor$ の値は $O(\\sqrt{m})$ 通りである。
 /// $i\\in[q\_l, q\_r]$ において $\\lfloor m/i\\rfloor$ の値が共通であるとき、
-/// $\\sum\_{i=q\_l}^{q\_r} \\lfloor\\frac{m}{i}\\rfloor$ の値は簡単に求められる。
+/// $\\sum\_{i=q\_l}^{q\_r} \\lfloor m/i\\rfloor$ の値は簡単に求められる。
 /// また、この範囲で $(m\\bmod i)$ は等差数列を成すことから、
 /// $\\sum\_{i=q\_l}^{q\_r} (m\\bmod i)$ も簡単に求められる。
-/// 前計算でこれらの累積和を求めておき、二分探索と差分計算によってクエリ処理を行う。
+/// 前計算でこれらの累積和を求めておき、差分計算によってクエリ処理を行う。
 ///
 /// # Notes
 /// 考察を進めれば $\\sum\_{i=1}^n \\lfloor\\frac{m}{ai+b}\\rfloor$ を求めることも可能？
 ///
 /// # Complexity
-/// $O(\\sqrt{m})$ preprocess, $O(\\log(m))$ query time.
+/// $O(\\sqrt{m})$ preprocess, $O(1)$ query time.
 ///
 /// # Examples
 /// ```
@@ -43,7 +43,7 @@ pub struct HarmonicSum {
 }
 
 impl HarmonicSum {
-    /// 前処理。
+    /// 前処理を行う。
     pub fn new(m: i128) -> Self {
         let mut q = vec![0];
         let mut tmp = vec![];
@@ -66,16 +66,31 @@ impl HarmonicSum {
         }
         Self { m, q, qsum, rsum }
     }
+    fn search(&self, n: i128) -> usize {
+        let res = if n > self.m {
+            self.q.len()
+        } else if n * n <= self.m {
+            n as usize
+        } else {
+            self.q.len() - (self.m / n) as usize
+        };
+        eprintln!("self.m: {}, search({}) = {}", self.m, n, res);
+        res
+    }
     fn quot_internal(&self, n: i128) -> i128 {
         if n <= 0 {
             return 0;
         }
-        match self.q.binary_search(&n) {
-            Ok(i) => self.qsum[i],
-            Err(i) => self.qsum[i - 1] + (n - self.q[i - 1]) * (self.m / n),
+        let i = self.search(n);
+        if i == self.q.len() {
+            *self.qsum.last().unwrap()
+        } else if self.q[i] == n {
+            self.qsum[i]
+        } else {
+            self.qsum[i - 1] + (n - self.q[i - 1]) * (self.m / n)
         }
     }
-    /// $\\sum\_{i=s}^e \\lfloor\\frac{m}{i}\\rfloor$.
+    /// $\\sum\_{i=s}^e \\lfloor m/i\\rfloor$ を返す。
     ///
     /// # Examples
     /// ```
@@ -89,7 +104,7 @@ impl HarmonicSum {
         let end = match r.end_bound() {
             Included(&e) => self.quot_internal(e),
             Excluded(&e) => self.quot_internal(e - 1),
-            Unbounded => self.quot_internal(self.m),
+            Unbounded => *self.qsum.last().unwrap(),
         };
         let start = match r.start_bound() {
             Included(&s) => self.quot_internal(s - 1),
@@ -102,16 +117,18 @@ impl HarmonicSum {
         if n <= 0 {
             return 0;
         }
-        match self.q.binary_search(&n) {
-            Ok(i) => self.rsum[i],
-            Err(i) => {
-                let ql = self.q[i - 1] + 1;
-                let len = n - self.q[i - 1];
-                self.rsum[i - 1] + (self.m % n + self.m % ql) * len / 2
-            }
+        let i = self.search(n);
+        if i == self.q.len() {
+            *self.rsum.last().unwrap() + (n - self.m) * self.m
+        } else if self.q[i] == n {
+            self.rsum[i]
+        } else {
+            let ql = self.q[i - 1] + 1;
+            let len = n - self.q[i - 1];
+            self.rsum[i - 1] + (self.m % n + self.m % ql) * len / 2
         }
     }
-    /// $\\sum\_{i=s}^e (m\\bmod i)$.
+    /// $\\sum\_{i=s}^e (m\\bmod i)$ を返す。
     ///
     /// # Examples
     /// ```
@@ -125,7 +142,7 @@ impl HarmonicSum {
         let end = match r.end_bound() {
             Included(&e) => self.rem_internal(e),
             Excluded(&e) => self.rem_internal(e - 1),
-            Unbounded => self.rem_internal(self.m),
+            Unbounded => *self.rsum.last().unwrap(),
         };
         let start = match r.start_bound() {
             Included(&s) => self.rem_internal(s - 1),
