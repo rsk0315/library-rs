@@ -24,25 +24,25 @@ use std::ops::{
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::SumDividing;
+/// use nekolib::math::HarmonicSum;
 ///
 /// let m = 100;
-/// let sd = SumDividing::new(m);
-/// assert_eq!(sd.quot(1..=m), (1..=m).map(|i| m / i).sum());
-/// assert_eq!(sd.rem(1..=m), (1..=m).map(|i| m % i).sum());
+/// let hs = HarmonicSum::new(m);
+/// assert_eq!(hs.quot(1..=m), (1..=m).map(|i| m / i).sum());
+/// assert_eq!(hs.rem(1..=m), (1..=m).map(|i| m % i).sum());
 ///
 /// let n = 60;
-/// assert_eq!(sd.quot(..=n), (1..=n).map(|i| m / i).sum());
+/// assert_eq!(hs.quot(..=n), (1..=n).map(|i| m / i).sum());
 /// ```
 #[derive(Clone, Debug)]
-pub struct SumDividing {
+pub struct HarmonicSum {
     m: i128,
     q: Vec<i128>,
     qsum: Vec<i128>,
     rsum: Vec<i128>,
 }
 
-impl SumDividing {
+impl HarmonicSum {
     /// 前処理。
     pub fn new(m: i128) -> Self {
         let mut q = vec![0];
@@ -79,11 +79,11 @@ impl SumDividing {
     ///
     /// # Examples
     /// ```
-    /// use nekolib::math::SumDividing;
+    /// use nekolib::math::HarmonicSum;
     ///
     /// let m = 100;
-    /// let sd = SumDividing::new(m);
-    /// assert_eq!(sd.quot(1..=m), (1..=m).map(|i| m / i).sum());
+    /// let hs = HarmonicSum::new(m);
+    /// assert_eq!(hs.quot(1..=m), (1..=m).map(|i| m / i).sum());
     /// ```
     pub fn quot(&self, r: impl RangeBounds<i128>) -> i128 {
         let end = match r.end_bound() {
@@ -115,11 +115,11 @@ impl SumDividing {
     ///
     /// # Examples
     /// ```
-    /// use nekolib::math::SumDividing;
+    /// use nekolib::math::HarmonicSum;
     ///
     /// let m = 100;
-    /// let sd = SumDividing::new(m);
-    /// assert_eq!(sd.rem(1..=m), (1..=m).map(|i| m % i).sum());
+    /// let hs = HarmonicSum::new(m);
+    /// assert_eq!(hs.rem(1..=m), (1..=m).map(|i| m % i).sum());
     /// ```
     pub fn rem(&self, r: impl RangeBounds<i128>) -> i128 {
         let end = match r.end_bound() {
@@ -139,37 +139,34 @@ impl SumDividing {
 #[test]
 fn test_quot() {
     let m = 300;
-    let sd = SumDividing::new(m);
+    let hs = HarmonicSum::new(m);
     for start in 1..=m + 10 {
         let mut sum = 0;
         for end in start..=m + 10 {
             sum += m / end;
-            assert_eq!(sd.quot(start..=end), sum);
+            assert_eq!(hs.quot(start..=end), sum);
         }
         let mut sum = 0;
         for end in start..=m + 10 {
-            assert_eq!(sd.quot(start..end), sum);
+            assert_eq!(hs.quot(start..end), sum);
             sum += m / end;
         }
-    }
-    for n in 1..=m + 10 {
-        assert_eq!(sum_dividing(m, n), sd.quot(1..=n));
     }
 }
 
 #[test]
 fn test_rem() {
     let m = 300;
-    let sd = SumDividing::new(m);
+    let hs = HarmonicSum::new(m);
     for start in 1..=m + 10 {
         let mut sum = 0;
         for end in start..=m + 10 {
             sum += m % end;
-            assert_eq!(sd.rem(start..=end), sum);
+            assert_eq!(hs.rem(start..=end), sum);
         }
         let mut sum = 0;
         for end in start..=m + 10 {
-            assert_eq!(sd.rem(start..end), sum);
+            assert_eq!(hs.rem(start..end), sum);
             sum += m % end;
         }
     }
