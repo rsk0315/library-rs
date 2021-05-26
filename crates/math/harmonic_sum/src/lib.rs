@@ -44,6 +44,14 @@ pub struct HarmonicSum {
 
 impl HarmonicSum {
     /// 前処理を行う。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::math::HarmonicSum;
+    ///
+    /// let m = 100;
+    /// let hs = HarmonicSum::new(m);
+    /// ```
     pub fn new(m: i128) -> Self {
         let mut q = vec![0];
         let mut tmp = vec![];
@@ -92,6 +100,10 @@ impl HarmonicSum {
     }
     /// $\\sum\_{i=s}^e \\lfloor m/i\\rfloor$ を返す。
     ///
+    /// $\\sum\_{i=s}^{\\infty} \\lfloor m/i\\rfloor = \\sum\_{i=s}^m \\lfloor m/i\\rfloor$
+    /// なので、上限を指定しない場合は $m$ までの和を求める。下限を指定しない場合は
+    /// $1$ からの和を求める。
+    ///
     /// # Examples
     /// ```
     /// use nekolib::math::HarmonicSum;
@@ -99,6 +111,8 @@ impl HarmonicSum {
     /// let m = 100;
     /// let hs = HarmonicSum::new(m);
     /// assert_eq!(hs.quot(1..=m), (1..=m).map(|i| m / i).sum());
+    /// assert_eq!(hs.quot(..), (1..=m).map(|i| m / i).sum());
+    /// assert_eq!(hs.quot(1..=m), hs.quot(1..=m + 1));
     /// ```
     pub fn quot(&self, r: impl RangeBounds<i128>) -> i128 {
         let end = match r.end_bound() {
@@ -130,6 +144,12 @@ impl HarmonicSum {
     }
     /// $\\sum\_{i=s}^e (m\\bmod i)$ を返す。
     ///
+    /// 下限を指定しない場合は $1$ からの和を求める。
+    ///
+    /// # Panics
+    /// $\\sum\_{i=s}^{\\infty} (m\\bmod i) = \\infty$ なので、上限が `Unbounded` の場合は
+    /// panic する。
+    ///
     /// # Examples
     /// ```
     /// use nekolib::math::HarmonicSum;
@@ -137,12 +157,21 @@ impl HarmonicSum {
     /// let m = 100;
     /// let hs = HarmonicSum::new(m);
     /// assert_eq!(hs.rem(1..=m), (1..=m).map(|i| m % i).sum());
+    /// assert_eq!(hs.rem(..=m), (1..=m).map(|i| m % i).sum());
+    /// assert_ne!(hs.rem(1..=m), hs.rem(1..=m + 1)); // m % (m + 1) = m > 0
+    /// ```
+    ///
+    /// ```should_panic
+    /// use nekolib::math::HarmonicSum;
+    /// let m = 100;
+    /// let hs = HarmonicSum::new(m);
+    /// let infty = hs.rem(1..); // diverges
     /// ```
     pub fn rem(&self, r: impl RangeBounds<i128>) -> i128 {
         let end = match r.end_bound() {
             Included(&e) => self.rem_internal(e),
             Excluded(&e) => self.rem_internal(e - 1),
-            Unbounded => *self.rsum.last().unwrap(),
+            Unbounded => panic!("the infinite sum does not converge"),
         };
         let start = match r.start_bound() {
             Included(&s) => self.rem_internal(s - 1),
