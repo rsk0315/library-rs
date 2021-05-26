@@ -82,7 +82,6 @@ impl HarmonicSum {
         } else {
             self.q.len() - (self.m / n) as usize
         };
-        eprintln!("self.m: {}, search({}) = {}", self.m, n, res);
         res
     }
     fn quot_internal(&self, n: i128) -> i128 {
