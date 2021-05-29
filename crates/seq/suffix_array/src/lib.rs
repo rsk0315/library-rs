@@ -346,9 +346,12 @@ impl<T: Ord> From<Vec<T>> for SuffixArray<T> {
     }
 }
 
-impl From<&str> for SuffixArray<char> {
-    fn from(buf: &str) -> Self {
-        Self::from(buf.chars().map(|c| c).collect::<Vec<_>>())
+impl From<String> for SuffixArray<char> {
+    fn from(buf: String) -> Self {
+        let buf: Vec<_> = buf.as_str().chars().collect();
+        let buf_usize = hash_chars(&buf);
+        let sa = sa_is(&buf_usize);
+        Self { buf, sa }
     }
 }
 
@@ -361,6 +364,30 @@ fn hash<T: Ord>(buf: &[T]) -> Vec<usize> {
         enc.into_iter().enumerate().map(|(i, x)| (x, i)).collect();
     buf.iter()
         .map(|x| enc[x] + 1)
+        .chain(std::iter::once(0)) // for '$'
+        .collect()
+}
+
+/// 座標圧縮をする。
+///
+/// `buf` の末尾に辞書順最小の文字 `$` を付加した列を、座標圧縮して返す。`char`
+/// の列を受け取り、バケットソートの要領で行う。
+fn hash_chars(buf: &[char]) -> Vec<usize> {
+    let max = match buf.iter().max() {
+        Some(&c) => c as usize,
+        None => return vec![0], // "$"
+    };
+    let enc = {
+        let mut enc = vec![0; max + 1];
+        for &c in buf {
+            enc[c as usize] = 1;
+        }
+        for i in 1..=max {
+            enc[i] += enc[i - 1];
+        }
+        enc
+    };
+    buf.iter().map(|&x| enc[x as usize])
         .chain(std::iter::once(0)) // for '$'
         .collect()
 }
@@ -574,15 +601,6 @@ impl<T: Ord> SuffixArray<T> {
     /// );
     /// assert_eq!(sa.search(&['a', 'e']).next(), None);
     /// ```
-    ///
-    /// # Implementation notes
-    ///
-    /// 次のように書けると楽だが...。
-    ///
-    /// ```ignore
-    /// let sa: SuffixArray<_> = "mississippi".into();
-    /// let occ: Vec<_> = sa.search("is").collect();
-    /// ```
     pub fn search(&self, pat: &[T]) -> impl Iterator<Item = usize> + '_ {
         let lo = {
             let mut lt = 1_usize.wrapping_neg();
@@ -634,51 +652,66 @@ impl<T: Ord> SuffixArray<T> {
     }
 }
 
+impl SuffixArray<char> {
+    /// パターン文字列検索を行う。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::seq::SuffixArray;
+    ///
+    /// let sa: SuffixArray<_> = "abracadabra".to_string().into();
+    /// let occ: Vec<_> = sa.search_str("ab").collect();
+    /// assert_eq!(occ, vec![7, 0]);
+    /// let occ: Vec<_> = sa.search_str("a").collect();
+    /// assert_eq!(occ, vec![10, 7, 0, 3, 5]);
+    /// assert_eq!(sa.search_str("e").next(), None);
+    /// ```
+    pub fn search_str(&self, pat: &str) -> impl Iterator<Item = usize> + '_ {
+        let pat: Vec<_> = pat.chars().collect();
+        self.search(&pat)
+    }
+}
+
 impl<T: Ord> From<SuffixArray<T>> for Vec<usize> {
     fn from(sa: SuffixArray<T>) -> Self {
         sa.sa
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::SuffixArray;
-    #[test]
-    fn test_simple() {
-        let buf: Vec<_> = "abracadabra".chars().collect();
-        let sa: SuffixArray<_> = buf.into();
-        let sa: Vec<_> = sa.into();
-        assert_eq!(sa, [11, 10, 7, 0, 3, 5, 8, 1, 4, 6, 9, 2])
-    }
+#[test]
+fn test_simple() {
+    let buf = "abracadabra".to_string();
+    let sa: SuffixArray<_> = buf.into();
+    let sa: Vec<_> = sa.into();
+    assert_eq!(sa, [11, 10, 7, 0, 3, 5, 8, 1, 4, 6, 9, 2])
+}
 
-    #[test]
-    fn test_lms() {
-        let buf: Vec<_> = "GTCCCGATGTCATGTCAGGA".chars().collect();
-        let sa: SuffixArray<_> = buf.into();
-        let sa: Vec<_> = sa.into();
-        assert_eq!(
-            sa,
-            [
-                20, 19, 16, 11, 6, 15, 10, 2, 3, 4, 18, 5, 17, 13, 8, 0, 14, 9,
-                1, 12, 7
-            ]
-        );
-    }
+#[test]
+fn test_empty_text() {
+    let sa: SuffixArray<_> = "".to_string().into();
+    let occ: Vec<_> = sa.search_str("").collect();
+    assert_eq!(occ, [0]);
+    assert_eq!(sa.search_str("x").next(), None);
+}
 
-    #[test]
-    fn test_naive() {
-        let n = 1000;
-        let f = |x: &i32| Some((x * 29 + 71) % 143);
-        let buf: Vec<_> =
-            std::iter::successors(Some(2_i32), f).take(n).collect();
-        eprintln!("{:?}", buf);
-        let naive_sa = {
-            let mut sa: Vec<_> = (0..=n).collect();
-            sa.sort_unstable_by_key(|&i| &buf[i..]);
-            sa
-        };
-        let sa: SuffixArray<_> = buf.into();
-        let sa: Vec<_> = sa.into();
-        assert_eq!(sa, naive_sa);
-    }
+#[test]
+fn test_empty_pat() {
+    let sa: SuffixArray<_> = "empty".to_string().into();
+    let occ: Vec<_> = sa.search_str("").collect();
+    assert_eq!(occ, [5, 0, 1, 2, 3, 4]);
+}
+
+#[test]
+fn test_naive() {
+    let n = 1000;
+    let f = |x: &i32| Some((x * 29 + 71) % 143);
+    let buf: Vec<_> = std::iter::successors(Some(2_i32), f).take(n).collect();
+    let naive_sa = {
+        let mut sa: Vec<_> = (0..=n).collect();
+        sa.sort_unstable_by_key(|&i| &buf[i..]);
+        sa
+    };
+    let sa: SuffixArray<_> = buf.into();
+    let sa: Vec<_> = sa.into();
+    assert_eq!(sa, naive_sa);
 }

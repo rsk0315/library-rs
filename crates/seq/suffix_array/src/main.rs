@@ -1,12 +1,12 @@
 use suffix_array::SuffixArray;
 
 fn main() {
-    let text = "abracadabra";
+    let text = "abracadabra".to_string();
     let sa: Vec<_> = SuffixArray::from(text).into();
     assert_eq!(sa, [11, 10, 7, 0, 3, 5, 8, 1, 4, 6, 9, 2]);
 
-    let text = "mississippi";
-    let sa = SuffixArray::from(text);
+    let text = "mississippi".to_string();
+    let sa = SuffixArray::from(text.clone());
 
     for i in sa.search(&"is".chars().collect::<Vec<_>>()) {
         eprintln!("{:?}", &text[i..]);
@@ -19,8 +19,8 @@ fn main() {
     let sa: Vec<_> = sa.into();
     assert_eq!(sa, [11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2]);
 
-    let text = "aabaaa";
-    let sa = SuffixArray::from(text);
+    let text = "aabaaa".to_string();
+    let sa = SuffixArray::from(text.clone());
     for pat in &["a", "aa", "b", "ba", "bb", "xyz"] {
         eprintln!(
             "{:?}",
@@ -30,10 +30,10 @@ fn main() {
         );
     }
 
-    let sa: Vec<_> = SuffixArray::from("abababab").into();
+    let sa: Vec<_> = SuffixArray::from("abababab".to_string()).into();
     assert_eq!(sa, [8, 6, 4, 2, 0, 7, 5, 3, 1]);
 
-    let text = "abracadabra";
+    let text = "abracadabra".to_string();
     let sa = SuffixArray::from(text.chars().collect::<Vec<_>>());
     eprintln!("{:?}", sa);
 }
