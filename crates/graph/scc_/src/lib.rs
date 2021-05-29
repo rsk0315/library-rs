@@ -40,11 +40,7 @@
 ///     vec![],
 /// ];
 /// let index = |&v: &usize| v;
-/// let delta = |&v: &usize, search: &mut dyn FnMut(usize)| {
-///     for &nv in &g[v] {
-///         search(nv);
-///     }
-/// };
+/// let delta = |&v: &usize| g[v].iter().cloned();
 /// let comp_id = scc(10, 0..10, index, delta);
 ///
 /// assert_eq!(comp_id, vec![0, 0, 0, 1, 0, 3, 3, 3, 3, 2]);
@@ -55,12 +51,14 @@
 ///
 /// # References
 /// - <https://niuez.github.io/posts/impl_abstract_dijkstra/>
-pub fn scc<G, V, I, D>(n: usize, vs: G, index: I, delta: D) -> Vec<usize>
+pub fn scc<V, E>(
+    n: usize,
+    vs: impl Iterator<Item = V>,
+    index: impl Fn(&V) -> usize + Copy,
+    delta: impl Fn(&V) -> E + Copy,
+) -> Vec<usize>
 where
-    G: Iterator<Item = V>,
-    V: Clone,
-    I: Fn(&V) -> usize + Copy,
-    D: Fn(&V, &mut dyn FnMut(V)) + Copy,
+    E: Iterator<Item = V>,
 {
     struct State {
         scc: Vec<Vec<usize>>,
@@ -71,11 +69,13 @@ where
         t: usize,
     }
 
-    fn dfs<V, I, D>(v: V, index: I, delta: D, state: &mut State)
-    where
-        V: Clone,
-        I: Fn(&V) -> usize + Copy,
-        D: Fn(&V, &mut dyn FnMut(V)) + Copy,
+    fn dfs<V, E>(
+        v: V,
+        index: impl Fn(&V) -> usize + Copy,
+        delta: impl Fn(&V) -> E + Copy,
+        state: &mut State,
+    ) where
+        E: Iterator<Item = V>,
     {
         state.t += 1;
         let vi = index(&v);
@@ -83,7 +83,7 @@ where
         state.num[vi] = state.t;
         state.s.push(vi);
         state.ins[vi] = true;
-        delta(&v, &mut |nv| {
+        for nv in delta(&v) {
             let nvi = index(&nv);
             if state.num[nvi] == 0 {
                 dfs(nv, index, delta, state);
@@ -91,7 +91,7 @@ where
             } else if state.ins[nvi] {
                 state.low[vi] = state.low[vi].min(state.num[nvi]);
             }
-        });
+        }
         if state.low[vi] == state.num[vi] {
             let mut tmp = vec![];
             loop {

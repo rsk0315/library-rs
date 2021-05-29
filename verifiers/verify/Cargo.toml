@@ -27,7 +27,7 @@ mo = { path = "../../crates/algo/mo" }
 dijkstra_ = { path = "../../crates/graph/dijkstra_" }
 parallel_bisect = { path = "../../crates/algo/parallel_bisect" }
 stateful_predicate = { path = "../../crates/traits/stateful_predicate" }
-scc = { path = "../../crates/graph/scc" }
+scc_ = { path = "../../crates/graph/scc_" }
 suffix_array = { path = "../../crates/seq/suffix_array" }
 # pat_searcher = { path = "../../crates/traits/pat_searcher" }
 z_algo = { path = "../../crates/seq/z_algo" }

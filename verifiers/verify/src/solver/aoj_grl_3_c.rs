@@ -1,7 +1,7 @@
 use crate::jury;
 use crate::test_set::{Jury, Solver};
 
-use scc::scc;
+use scc_::scc;
 
 pub struct AojGrl3C {}
 
@@ -17,9 +17,7 @@ impl Solver for AojGrl3C {
         };
 
         let index = |&i: &usize| -> usize { i };
-        let delta = |&v: &usize, f: &mut dyn FnMut(usize)| {
-            g[v].iter().for_each(|&nv| f(nv));
-        };
+        let delta = |&v: &usize| g[v].iter().cloned();
         let scc_id = scc(n, 0..n, index, delta);
         qs.into_iter()
             .map(|(u, v)| scc_id[u] == scc_id[v])
