@@ -54,6 +54,7 @@ use std::collections::BinaryHeap;
 ///
 /// # References
 /// - <https://niuez.github.io/posts/impl_abstract_dijkstra/>
+///     - これを意識していますが、辺の取得にイテレータを使っているので少々異なります。
 pub fn dijkstra<V, W, E>(
     n: usize,
     s: V,

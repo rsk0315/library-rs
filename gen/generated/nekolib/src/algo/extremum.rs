@@ -97,7 +97,7 @@ pub fn extremum<T: Ord>(
         panic!("range must be non-empty");
     }
     if n == 1 {
-        return (0, f(0));
+        return (start, f(start));
     }
 
     let mut i0 = 0;
