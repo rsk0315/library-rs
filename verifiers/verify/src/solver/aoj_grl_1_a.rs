@@ -1,7 +1,7 @@
 use crate::jury;
 use crate::test_set::{Jury, Solver};
 
-use dijkstra::dijkstra;
+use dijkstra_::dijkstra;
 
 pub struct AojGrl1A {}
 
@@ -17,11 +17,7 @@ impl Solver for AojGrl1A {
         };
 
         let index = |&i: &usize| -> usize { i };
-        let delta = |&v: &usize, f: &mut dyn FnMut(usize, i32)| {
-            for &(nv, ew) in &g[v] {
-                f(nv, ew);
-            }
-        };
+        let delta = |&v: &usize| g[v].iter().cloned();
         dijkstra(n, r, 0, index, delta)
     }
 }

@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::jury;
 use crate::test_set::{Jury, Solver};
 
-use dijkstra::dijkstra;
+use dijkstra_::dijkstra;
 use disjoint_set::DisjointSet;
 use parallel_bisect::parallel_bisect;
 use stateful_predicate::StatefulPred;
@@ -31,11 +31,7 @@ where
         };
 
         let index = |&i: &usize| -> usize { i };
-        let delta = |&v: &usize, f: &mut dyn FnMut(usize, i32)| {
-            for &(nv, ew) in &g[v] {
-                f(nv, ew);
-            }
-        };
+        let delta = |&v: &usize| g[v].iter().cloned();
 
         let dist: Vec<_> = dijkstra(n + 1, n, 0, index, delta)
             .into_iter()

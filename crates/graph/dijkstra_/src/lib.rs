@@ -39,11 +39,7 @@ use std::collections::BinaryHeap;
 ///     vec![],
 /// ];
 /// let index = |&v: &usize| v;
-/// let delta = |&v: &usize, search: &mut dyn FnMut(usize, i32)| {
-///     for &(nv, ew) in &g[v] {
-///         search(nv, ew);
-///     }
-/// };
+/// let delta = |&v: &usize| g[v].iter().cloned();
 /// let dist = dijkstra(5, 0, 0_i32, index, delta);
 ///
 /// assert_eq!(dist, vec![Some(0), Some(2), Some(5), None, Some(9)]);
@@ -58,18 +54,17 @@ use std::collections::BinaryHeap;
 ///
 /// # References
 /// - <https://niuez.github.io/posts/impl_abstract_dijkstra/>
-pub fn dijkstra<V, W, I, D>(
+pub fn dijkstra<V, W, E>(
     n: usize,
     s: V,
     zero: W,
-    index: I,
-    delta: D,
+    index: impl Fn(&V) -> usize,
+    delta: impl Fn(&V) -> E,
 ) -> Vec<Option<W>>
 where
-    D: Fn(&V, &mut dyn FnMut(V, W)),
-    I: Fn(&V) -> usize,
+    V: Ord,
     W: Ord + std::ops::Add<W, Output = W> + Clone,
-    V: Ord + Clone,
+    E: Iterator<Item = (V, W)>,
 {
     let mut dist: Vec<Option<W>> = vec![None; n];
     let si = index(&s);
@@ -82,7 +77,7 @@ where
             Some(cw) if cw < &w => continue,
             _ => {}
         }
-        delta(&v, &mut |nv, ew| {
+        for (nv, ew) in delta(&v) {
             let nw = w.clone() + ew;
             match &dist[index(&nv)] {
                 Some(cw) if cw <= &nw => {}
@@ -91,7 +86,7 @@ where
                     pq.push(Reverse((nw, nv)));
                 }
             }
-        });
+        }
     }
     dist
 }

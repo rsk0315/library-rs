@@ -24,7 +24,7 @@ union-find = { path = "../../crates/ds/union_find" }
 disjoint-set = { path = "../../crates/traits/disjoint-set" }
 elastic_slice = { path = "../../crates/traits/elastic_slice" }
 mo = { path = "../../crates/algo/mo" }
-dijkstra = { path = "../../crates/graph/dijkstra" }
+dijkstra_ = { path = "../../crates/graph/dijkstra_" }
 parallel_bisect = { path = "../../crates/algo/parallel_bisect" }
 stateful_predicate = { path = "../../crates/traits/stateful_predicate" }
 scc = { path = "../../crates/graph/scc" }

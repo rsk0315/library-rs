@@ -1,5 +1,5 @@
 [package]
-name = "dijkstra"
+name = "dijkstra_"
 version = "0.1.0"
 authors = ["rsk0315 <rsk0315@icloud.com>"]
 edition = "2018"
