@@ -43,6 +43,11 @@ mod verify {
     }
 
     #[test]
+    fn verify_dinic() {
+        verify::<AojGrl6A>();
+    }
+
+    #[test]
     fn verify_kmp() {
         verify::<AojAldsOne14BKmp>();
     }

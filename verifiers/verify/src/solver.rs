@@ -30,6 +30,7 @@ uses! {
     aoj_dsl_2_d_iset,
     aoj_grl_1_a,
     aoj_grl_3_c,
+    aoj_grl_6_a,
     yuki_1601,
     yuki_3287,
 }
