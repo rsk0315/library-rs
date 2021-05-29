@@ -11,7 +11,7 @@ pub mod tortoise_hare;
 pub mod window_bisect;
 
 #[doc(inline)]
-pub use bisect::bisect;
+pub use bisect::{bisect, bisect_slice};
 #[doc(inline)]
 pub use extremum::extremum;
 #[doc(inline)]
