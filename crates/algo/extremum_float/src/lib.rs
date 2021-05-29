@@ -1,28 +1,23 @@
 //! 三分探索（実数）。
 
-use std::ops::Range;
+use std::ops::RangeInclusive;
 
 /// 三分探索で極値を探す。
 ///
-/// # Requirements
-/// 凸である。
+/// 関数 $f$ の $[x\_l, x\_r]$ における極大値を $x\^\\ast$ として、
+/// $|x-x\^\\ast| \\le \\varepsilon$ なる $x$ を求め、$(x, f(x))$ を返す。
 ///
-/// # Implementation notes
+/// # Requirements
+/// $f$ は凸である。
+///
+/// # Notes
 /// 黄金比を用いて分割する実装のため、関数値を使い回すことができる。
 ///
-/// 関数 $f$ の呼び出し回数を、区間を三等分する素直な実装と比較する。
-///
-/// `todo!()`
-///
-/// # Parameters
-/// `todo!()`
-///
 /// # Complexity
-/// `todo!()`
+/// `f` の呼び出しを $\\log\_{\\varphi}(\\frac{x\_r-x\_l}{\\varepsilon}) + 1$ 回行う。
 ///
 /// # Suggestions
-/// `f64` に限らずジェネリックにするべき？ `NonNan` とかを渡したいときもありそう。
-/// 関数の返り値も `T: PartialOrd` にする？
+/// `f64` に限らずジェネリックにするべき？ 関数の返り値も `T: PartialOrd` にする？
 ///
 /// # Examples
 /// $f(x) = x\^x$ の最小値を求める。
@@ -38,27 +33,25 @@ use std::ops::Range;
 /// let xl = 0.0;
 /// let xr = 140.0;
 /// let eps = 1.0e-8;
-/// let (x, y) = extremum_float(xl..xr, eps, f);
+/// let (x, y) = extremum_float(xl..=xr, eps, f);
 /// let y = -y;
 ///
 /// let e = std::f64::consts::E;
 /// assert!(((1.0 / e) - x).abs() < eps);
 /// assert!((e.powf(-1.0 / e) - y).abs() < eps);
 /// ```
-pub fn extremum_float<F>(range: Range<f64>, eps: f64, f: F) -> (f64, f64)
-where
-    F: Fn(f64) -> f64,
-{
+pub fn extremum_float(
+    range: RangeInclusive<f64>,
+    eps: f64,
+    mut f: impl FnMut(f64) -> f64,
+) -> (f64, f64) {
     let phi: f64 = (1.0 + 5.0_f64.sqrt()) / 2.0;
     let phi_p1 = phi + 1.0;
 
-    let Range {
-        start: mut xl,
-        end: mut xr,
-    } = range;
+    let &(mut xl) = range.start();
+    let &(mut xr) = range.end();
 
-    let iter =
-        unsafe { ((xr - xl) / eps).log(phi).to_int_unchecked::<u32>() } + 1;
+    let iter = ((xr - xl) / eps).log(phi) as u32 + 1;
 
     let mut xml = (phi * xl + xr) / phi_p1;
     let mut xmr = (xl + phi * xr) / phi_p1;
