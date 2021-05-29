@@ -1,4 +1,4 @@
-use bisect::bisect;
+use bisect::bisect_slice;
 
 use crate::jury;
 use crate::test_set::Solver;
@@ -19,7 +19,7 @@ impl Solver for Aoj0270 {
                 for i in 1.. {
                     let y = i * q;
                     let pred = |&x: &u32| x < y;
-                    let b = bisect(&c, pred);
+                    let b = bisect_slice(&c, pred);
                     if b == n {
                         break;
                     }
