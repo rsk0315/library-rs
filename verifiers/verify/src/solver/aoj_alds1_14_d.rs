@@ -8,13 +8,9 @@ pub struct AojAldsOne14D {}
 impl Solver for AojAldsOne14D {
     type Jury = jury::AojAldsOne14D;
     fn solve((t, p): (String, Vec<String>)) -> Vec<bool> {
-        let t: Vec<_> = t.as_str().chars().collect();
-        let sa = SuffixArray::from(t);
+        let sa: SuffixArray<_> = t.into();
         p.into_iter()
-            .map(|p| {
-                let p: Vec<_> = p.as_str().chars().collect();
-                sa.search(&p).next().is_some()
-            })
+            .map(|p| sa.search_str(&p).next().is_some())
             .collect()
     }
 }
