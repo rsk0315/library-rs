@@ -194,7 +194,5 @@ impl<M: Monoid> Default for FoldableDeque<M>
 where
     M::Set: Clone,
 {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }

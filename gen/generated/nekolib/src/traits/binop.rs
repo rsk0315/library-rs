@@ -99,9 +99,7 @@ pub trait PartialRecip: Magma {
 /// assert_eq!(OpAdd::op(x, y), 0);
 /// ```
 pub trait Recip: PartialRecip {
-    fn recip(x: Self::Set) -> Self::Set {
-        Self::partial_recip(x).unwrap()
-    }
+    fn recip(x: Self::Set) -> Self::Set { Self::partial_recip(x).unwrap() }
 }
 
 /// 分配法則を満たす。
@@ -172,27 +170,19 @@ pub trait Ring {
     type Multiplicative: Monoid<Set = Self::Set> + Distributive<Self::Additive>;
 
     /// 和 $x \\circ y$ を返す。
-    fn add(x: Self::Set, y: Self::Set) -> Self::Set {
-        Self::Additive::op(x, y)
-    }
+    fn add(x: Self::Set, y: Self::Set) -> Self::Set { Self::Additive::op(x, y) }
     /// 加法 $\\circ$ の単位元 $0$ を返す。
     #[must_use]
-    fn zero() -> Self::Set {
-        Self::Additive::id()
-    }
+    fn zero() -> Self::Set { Self::Additive::id() }
     /// 加法 $\\circ$ に関する $x$ の逆元 $-x$ を返す。
-    fn neg(x: Self::Set) -> Self::Set {
-        Self::Additive::recip(x)
-    }
+    fn neg(x: Self::Set) -> Self::Set { Self::Additive::recip(x) }
     /// 積 $x \\ast y$ を返す。
     fn mul(x: Self::Set, y: Self::Set) -> Self::Set {
         Self::Multiplicative::op(x, y)
     }
     /// 乗法 $\\ast$ の単位元 $1$ を返す。
     #[must_use]
-    fn one() -> Self::Set {
-        Self::Multiplicative::id()
-    }
+    fn one() -> Self::Set { Self::Multiplicative::id() }
 }
 
 /// 可換環。

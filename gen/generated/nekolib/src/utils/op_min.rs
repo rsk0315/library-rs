@@ -23,17 +23,13 @@ where
     T: Ord + Eq + Sized,
 {
     type Set = T;
-    fn op(x: Self::Set, y: Self::Set) -> Self::Set {
-        x.min(y)
-    }
+    fn op(x: Self::Set, y: Self::Set) -> Self::Set { x.min(y) }
 }
 impl<T> Identity for OpMin<T>
 where
     T: Ord + Eq + Sized + Max,
 {
-    fn id() -> Self::Set {
-        <T as Max>::max()
-    }
+    fn id() -> Self::Set { <T as Max>::max() }
 }
 
 impl<T> Associative for OpMin<T> where T: Ord + Eq + Sized {}

@@ -31,25 +31,19 @@ where
     T: Mul<Output = T> + Eq + Sized,
 {
     type Set = T;
-    fn op(x: Self::Set, y: Self::Set) -> Self::Set {
-        x * y
-    }
+    fn op(x: Self::Set, y: Self::Set) -> Self::Set { x * y }
 }
 impl<T> Identity for OpMul<T>
 where
     T: Mul<Output = T> + Eq + Sized + One,
 {
-    fn id() -> Self::Set {
-        Self::Set::one()
-    }
+    fn id() -> Self::Set { Self::Set::one() }
 }
 impl<T> PartialRecip for OpMul<T>
 where
     T: Mul<Output = T> + Eq + Sized + MulRecip<Output = T>,
 {
-    fn partial_recip(x: Self::Set) -> Option<Self::Set> {
-        Some(x.mul_recip())
-    }
+    fn partial_recip(x: Self::Set) -> Option<Self::Set> { Some(x.mul_recip()) }
 }
 impl<T> Recip for OpMul<T> where
     T: Mul<Output = T> + Eq + Sized + MulRecip<Output = T>

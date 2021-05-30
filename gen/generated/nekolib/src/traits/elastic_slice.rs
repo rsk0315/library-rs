@@ -19,12 +19,8 @@ pub trait ElasticSlice {
     fn full_len(&self) -> usize;
     fn start(&self) -> usize;
     fn end(&self) -> usize;
-    fn len(&self) -> usize {
-        self.end() - self.start()
-    }
-    fn is_empty(&self) -> bool {
-        self.start() == self.end()
-    }
+    fn len(&self) -> usize { self.end() - self.start() }
+    fn is_empty(&self) -> bool { self.start() == self.end() }
 }
 
 pub trait SliceHash {

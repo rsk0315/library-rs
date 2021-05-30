@@ -93,9 +93,7 @@ impl LinearSieve {
     /// assert!(sieve.is_prime(23));
     /// assert!(!sieve.is_prime(24));
     /// ```
-    pub fn is_prime(&self, n: usize) -> bool {
-        n >= 2 && self.lpf[n] == n
-    }
+    pub fn is_prime(&self, n: usize) -> bool { n >= 2 && self.lpf[n] == n }
 
     /// $n$ の最小素因数を返す。
     ///

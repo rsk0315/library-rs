@@ -647,9 +647,7 @@ impl<T: Ord> SuffixArray<T> {
     /// let sa = sa.into_inner();
     /// assert_eq!(sa, vec![11, 10, 7, 0, 3, 5, 8, 1, 4, 6, 9, 2]);
     /// ```
-    pub fn into_inner(self) -> Vec<usize> {
-        self.sa
-    }
+    pub fn into_inner(self) -> Vec<usize> { self.sa }
 }
 
 impl SuffixArray<char> {
@@ -673,9 +671,7 @@ impl SuffixArray<char> {
 }
 
 impl<T: Ord> From<SuffixArray<T>> for Vec<usize> {
-    fn from(sa: SuffixArray<T>) -> Self {
-        sa.sa
-    }
+    fn from(sa: SuffixArray<T>) -> Self { sa.sa }
 }
 
 #[test]

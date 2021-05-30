@@ -45,9 +45,7 @@ where
         }
     }
 
-    fn len(&self) -> usize {
-        self.n
-    }
+    fn len(&self) -> usize { self.n }
 
     fn relate(&mut self, u: usize, v: usize, w: T::Set) -> Option<bool> {
         let ru = self.repr(u);
