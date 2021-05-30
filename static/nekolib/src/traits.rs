@@ -16,6 +16,7 @@ pub mod min;
 pub mod multiplicative;
 pub mod push_pop;
 pub mod range_bounds;
+pub mod rank_select;
 pub mod set_value;
 pub mod stateful_predicate;
 
@@ -58,6 +59,8 @@ pub use range_bounds::{
     EndBounded, EndExclusive, EndInclusive, EndUnbounded, StartBounded,
     StartInclusive, StartUnbounded,
 };
+#[doc(inline)]
+pub use rank_select::RankSelect;
 #[doc(inline)]
 pub use set_value::SetValue;
 #[doc(inline)]

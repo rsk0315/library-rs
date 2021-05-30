@@ -5,7 +5,7 @@ use std::ops::RangeBounds;
 /// rank/select クエリ。
 pub trait RankSelect {
     /// 計数の対象となる型。
-    type Input: Ord;
+    type Input: Eq;
 
     /// 区間 `r` 中の `x` の個数を返す。
     fn rank(&self, r: impl RangeBounds<usize>, x: Self::Input) -> usize;
