@@ -196,7 +196,5 @@ where
     M::Set: Clone,
 {
     type Output = M::Set;
-    fn index(&self, i: usize) -> &Self::Output {
-        &self.buf[0][i]
-    }
+    fn index(&self, i: usize) -> &Self::Output { &self.buf[0][i] }
 }

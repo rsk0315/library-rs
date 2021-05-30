@@ -60,9 +60,7 @@ where
     T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero + One,
     B: AssocVal<T>,
 {
-    fn id() -> Self::Set {
-        (T::zero(), T::one())
-    }
+    fn id() -> Self::Set { (T::zero(), T::one()) }
 }
 
 impl<T, B> Associative for OpRollHash<T, B>

@@ -26,33 +26,25 @@ where
     T: Add<Output = T> + Eq + Sized,
 {
     type Set = T;
-    fn op(x: Self::Set, y: Self::Set) -> Self::Set {
-        x + y
-    }
+    fn op(x: Self::Set, y: Self::Set) -> Self::Set { x + y }
 }
 impl<T> Identity for OpAdd<T>
 where
     T: Add<Output = T> + Eq + Sized + Zero,
 {
-    fn id() -> Self::Set {
-        T::zero()
-    }
+    fn id() -> Self::Set { T::zero() }
 }
 impl<T> PartialRecip for OpAdd<T>
 where
     T: Add<Output = T> + Eq + Sized + Neg<Output = T>,
 {
-    fn partial_recip(x: Self::Set) -> Option<Self::Set> {
-        Some(-x)
-    }
+    fn partial_recip(x: Self::Set) -> Option<Self::Set> { Some(-x) }
 }
 impl<T> Recip for OpAdd<T>
 where
     T: Add<Output = T> + Eq + Sized + Neg<Output = T>,
 {
-    fn recip(x: Self::Set) -> Self::Set {
-        -x
-    }
+    fn recip(x: Self::Set) -> Self::Set { -x }
 }
 impl<T> Associative for OpAdd<T> where T: Add<Output = T> + Eq + Sized + AddAssoc
 {}

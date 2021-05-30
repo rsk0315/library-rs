@@ -36,9 +36,7 @@ pub struct Scanner {
 }
 
 impl From<String> for Scanner {
-    fn from(buf: String) -> Self {
-        Self { buf, pos: 0 }
-    }
+    fn from(buf: String) -> Self { Self { buf, pos: 0 } }
 }
 
 impl Scanner {
@@ -85,9 +83,7 @@ impl Scanner {
         self.pos += len;
         s
     }
-    pub fn ignore(&mut self) {
-        self.ignore_while(char::is_whitespace);
-    }
+    pub fn ignore(&mut self) { self.ignore_while(char::is_whitespace); }
     pub fn ignore_while<P>(&mut self, pat: P)
     where
         P: Fn(char) -> bool,

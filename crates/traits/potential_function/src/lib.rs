@@ -12,9 +12,7 @@ pub trait PotentialFunction {
     /// 集合の要素数 $n$ を返す。
     fn len(&self) -> usize;
     /// 集合が空であれば `true` を返す。
-    fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
+    fn is_empty(&self) -> bool { self.len() == 0 }
 
     /// ポテンシャルの差を定義する。
     ///

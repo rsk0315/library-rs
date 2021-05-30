@@ -140,9 +140,7 @@ impl<T: Ord> PartialOrd for Interval<T> {
 }
 
 impl<T: Ord> PartialEq for Interval<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.cmp(other) == Equal
-    }
+    fn eq(&self, other: &Self) -> bool { self.cmp(other) == Equal }
 }
 
 /// 区間の集合。
@@ -155,16 +153,10 @@ pub struct IntervalSet<T: Ord> {
 
 impl<T: Clone + Debug + Ord> IntervalSet<T> {
     /// 空集合で初期化する。
-    pub fn new() -> Self {
-        Self {
-            buf: BTreeSet::new(),
-        }
-    }
+    pub fn new() -> Self { Self { buf: BTreeSet::new() } }
 
     /// 集合が空であれば `true` を返す。
-    pub fn is_empty(&self) -> bool {
-        self.buf.is_empty()
-    }
+    pub fn is_empty(&self) -> bool { self.buf.is_empty() }
 
     /// 区間 `r` を追加する。
     pub fn insert<R: RangeBounds<T>>(&mut self, r: R) {
@@ -230,9 +222,7 @@ impl<T: Clone + Debug + Ord> IntervalSet<T> {
     }
 
     /// 空集合に戻す。
-    pub fn clear(&mut self) {
-        self.buf.clear();
-    }
+    pub fn clear(&mut self) { self.buf.clear(); }
 
     /// `x` 以上の値で、集合中の区間に含まれない最小のものを返す。
     ///

@@ -21,9 +21,7 @@ mod tests {
     {
         type Operand = OpMax<T>;
         type Operator = OpAdd<T>;
-        fn act(x: &mut T, op: T) {
-            *x += op;
-        }
+        fn act(x: &mut T, op: T) { *x += op; }
     }
 
     #[test]

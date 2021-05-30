@@ -36,13 +36,9 @@ where
         }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
-    }
+    pub fn is_empty(&self) -> bool { self.len == 0 }
 
-    pub fn len(&self) -> usize {
-        self.len
-    }
+    pub fn len(&self) -> usize { self.len }
 
     fn nodes(&self, l: usize, r: usize) -> Vec<usize> {
         let mut l = self.len + l;

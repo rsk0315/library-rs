@@ -118,9 +118,7 @@ where
     M::Set: Clone,
 {
     type Input = M::Set;
-    fn push(&mut self, x: Self::Input) {
-        self.push_back(x);
-    }
+    fn push(&mut self, x: Self::Input) { self.push_back(x); }
 }
 
 impl<M: Monoid> PopFront for FoldableQueue<M>
@@ -142,9 +140,7 @@ where
     M::Set: Clone,
 {
     type Output = M::Set;
-    fn pop(&mut self) -> Option<Self::Output> {
-        self.pop_front()
-    }
+    fn pop(&mut self) -> Option<Self::Output> { self.pop_front() }
 }
 
 impl<M: Monoid> Fold<RangeFull> for FoldableQueue<M>
@@ -162,7 +158,5 @@ impl<M: Monoid> Default for FoldableQueue<M>
 where
     M::Set: Clone,
 {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }

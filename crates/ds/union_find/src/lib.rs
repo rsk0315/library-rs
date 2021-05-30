@@ -47,9 +47,7 @@ impl DisjointSet for UnionFind {
             buf: RefCell::new(vec![Item::Size(1); n]),
         }
     }
-    fn len(&self) -> usize {
-        self.n
-    }
+    fn len(&self) -> usize { self.n }
     fn unite(&mut self, u: usize, v: usize) -> bool {
         let u = self.repr(u);
         let v = self.repr(v);

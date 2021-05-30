@@ -31,9 +31,7 @@ impl<M: AssocVal<i64>> Debug for ModInt<M> {
 }
 
 impl<M: AssocVal<i64>> ModInt<M> {
-    pub fn get(&self) -> &i64 {
-        &self.0
-    }
+    pub fn get(&self) -> &i64 { &self.0 }
 }
 
 macro_rules! impl_from {
@@ -117,21 +115,15 @@ impl<M: AssocVal<i64>> MulAssign for ModInt<M> {
 
 impl<M: AssocVal<i64>> Div for ModInt<M> {
     type Output = Self;
-    fn div(self, other: Self) -> Self {
-        self.mul(other.mul_recip())
-    }
+    fn div(self, other: Self) -> Self { self.mul(other.mul_recip()) }
 }
 
 impl<M: AssocVal<i64>> DivAssign for ModInt<M> {
-    fn div_assign(&mut self, other: Self) {
-        self.mul_assign(other.mul_recip())
-    }
+    fn div_assign(&mut self, other: Self) { self.mul_assign(other.mul_recip()) }
 }
 
 impl<M: AssocVal<i64>> Zero for ModInt<M> {
-    fn zero() -> Self {
-        Self(0, PhantomData)
-    }
+    fn zero() -> Self { Self(0, PhantomData) }
 }
 
 impl<M: AssocVal<i64>> One for ModInt<M> {
