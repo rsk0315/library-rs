@@ -122,7 +122,7 @@ pub fn extremum<T: Ord>(
             }
             (Some(f0), _) => {
                 // |lo     i0 > i1  hi|
-                // |lo  i0 i1   lo|
+                // |lo  i0 i1   hi|
                 let tmp = i1 - d;
                 i1 = std::mem::replace(&mut i0, tmp);
                 g1 = Some(f0);
