@@ -100,12 +100,10 @@ pub fn extremum<T: Ord>(
         return (start, f(start));
     }
 
-    let mut i0 = 0;
-    let mut i1 = 1;
-    while i0 + i1 <= n {
-        let tmp = i0 + i1;
-        i0 = std::mem::replace(&mut i1, tmp);
-    }
+    let (mut i0, mut i1) =
+        std::iter::successors(Some((1, 2)), |&(i, j)| Some((j, i + j)))
+            .find(|&(i, j)| i + j > n)
+            .unwrap();
     let mut g = |i| if i <= n { Some(f(start + i - 1)) } else { None }; // None means -inf
     let mut d = i0;
     let mut g0 = g(i0);
@@ -122,7 +120,7 @@ pub fn extremum<T: Ord>(
             }
             (Some(f0), _) => {
                 // |lo     i0 > i1  hi|
-                // |lo  i0 i1   lo|
+                // |lo  i0 i1   hi|
                 let tmp = i1 - d;
                 i1 = std::mem::replace(&mut i0, tmp);
                 g1 = Some(f0);
