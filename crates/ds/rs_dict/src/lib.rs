@@ -118,7 +118,7 @@ impl RsDict {
         }
         (sel, ssel)
     }
-    fn rank(&self, end: usize, x: u64) -> usize {
+    pub fn rank(&self, end: usize, x: u64) -> usize {
         let il = end / WORD_SIZE;
         let is = end % WORD_SIZE;
         let rank1 = self.rank[il]
@@ -126,7 +126,7 @@ impl RsDict {
         let rank = if x == 0 { end - rank1 } else { rank1 };
         rank
     }
-    fn select(&self, x: u64, k: usize) -> usize {
+    pub fn select(&self, x: u64, k: usize) -> usize {
         if self.rank(self.len, x) < k {
             panic!("the number of {}s is less than {}", x, k);
         }
