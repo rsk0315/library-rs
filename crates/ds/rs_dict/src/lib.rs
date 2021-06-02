@@ -4,7 +4,8 @@ use std::fmt::Debug;
 use std::ops::{Range, RangeBounds};
 
 use buf_range::bounds_within;
-use rank_select::RankSelect;
+use count::Count;
+use find_nth::FindNth;
 
 const WORD_SIZE: usize = 64;
 const WORD_SIZE_2: usize = WORD_SIZE * WORD_SIZE;
@@ -117,7 +118,7 @@ impl RsDict {
         }
         (sel, ssel)
     }
-    fn rank_internal(&self, end: usize, x: u64) -> usize {
+    fn rank(&self, end: usize, x: u64) -> usize {
         let il = end / WORD_SIZE;
         let is = end % WORD_SIZE;
         let rank1 = self.rank[il]
@@ -125,8 +126,8 @@ impl RsDict {
         let rank = if x == 0 { end - rank1 } else { rank1 };
         rank
     }
-    fn select_internal(&self, x: u64, k: usize) -> usize {
-        if self.rank_internal(self.len, x) < k {
+    fn select(&self, x: u64, k: usize) -> usize {
+        if self.rank(self.len, x) < k {
             panic!("the number of {}s is less than {}", x, k);
         }
         if k == 0 {
@@ -144,7 +145,7 @@ impl RsDict {
         let mut hi = *sel.get(il + 1).unwrap_or(&self.len);
         while hi - lo > 1 {
             let mid = lo + (hi - lo) / 2;
-            let rank = self.rank_internal(mid, x);
+            let rank = self.rank(mid, x);
             if rank <= k {
                 lo = mid;
             } else {
@@ -155,24 +156,30 @@ impl RsDict {
     }
 }
 
-impl RankSelect for RsDict {
-    type Input = u64;
-    fn rank(&self, r: impl RangeBounds<usize>, x: u64) -> usize {
+impl Count<u64> for RsDict {
+    fn count(&self, r: impl RangeBounds<usize>, x: u64) -> usize {
         let Range { start, end } = bounds_within(r, self.len);
-        self.rank_internal(end, x) - self.rank_internal(start, x)
+        if start > 0 {
+            self.rank(end, x) - self.rank(start, x)
+        } else {
+            self.rank(end, x)
+        }
     }
-    fn select(
+}
+
+impl FindNth<u64> for RsDict {
+    fn find_nth(
         &self,
         r: impl RangeBounds<usize>,
         x: u64,
-        k: usize,
+        n: usize,
     ) -> Option<usize> {
         let Range { start, end } = bounds_within(r, self.len);
-        if self.rank(start..end, x) < k {
+        if self.count(start..end, x) <= n {
             None
         } else {
-            let oft = self.rank_internal(start, x);
-            Some(self.select_internal(x, oft + k))
+            let offset = self.rank(start, x);
+            Some(self.select(x, offset + n + 1) - 1)
         }
     }
 }
@@ -186,32 +193,32 @@ fn test_rs() {
     let mut zero = 0;
     let mut one = 0;
     for i in 0..n {
-        assert_eq!(rs.rank(0..i, 0), zero);
-        assert_eq!(rs.rank(0..i, 1), one);
+        assert_eq!(rs.count(0..i, 0), zero);
+        assert_eq!(rs.count(0..i, 1), one);
         if buf[i] {
             one += 1;
         } else {
             zero += 1;
         }
     }
-    assert_eq!(rs.rank(.., 0), zero);
-    assert_eq!(rs.rank(.., 1), one);
+    assert_eq!(rs.count(.., 0), zero);
+    assert_eq!(rs.count(.., 1), one);
 
     let zeros: Vec<_> = (0..n).filter(|&i| !buf[i]).collect();
     let ones: Vec<_> = (0..n).filter(|&i| buf[i]).collect();
 
-    assert_eq!(rs.select(.., 0, 0), Some(0));
-    assert_eq!(rs.select(.., 1, 0), Some(0));
+    eprintln!("{:?}", zeros);
+
     for i in 0..zeros.len() {
-        let s0 = rs.select(.., 0, i + 1);
-        assert_eq!(s0, Some(zeros[i] + 1));
-        assert_eq!(rs.rank(..s0.unwrap(), 0), i + 1);
+        let s0 = rs.find_nth(.., 0, i);
+        assert_eq!(s0, Some(zeros[i]));
+        assert_eq!(rs.count(..=s0.unwrap(), 0), i + 1);
     }
     for i in 0..ones.len() {
-        let s1 = rs.select(.., 1, i + 1);
-        assert_eq!(s1, Some(ones[i] + 1));
-        assert_eq!(rs.rank(..s1.unwrap(), 1), i + 1);
+        let s1 = rs.find_nth(.., 1, i);
+        assert_eq!(s1, Some(ones[i]));
+        assert_eq!(rs.count(..=s1.unwrap(), 1), i + 1);
     }
-    assert_eq!(rs.select(.., 0, zeros.len() + 1), None);
-    assert_eq!(rs.select(.., 1, ones.len() + 1), None);
+    assert_eq!(rs.find_nth(.., 0, zeros.len()), None);
+    assert_eq!(rs.find_nth(.., 1, ones.len()), None);
 }
