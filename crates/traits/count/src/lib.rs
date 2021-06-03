@@ -17,7 +17,7 @@ pub trait Count3way<I> {
     ) -> Count3wayResult;
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Count3wayResult {
     lt: usize,
     eq: usize,

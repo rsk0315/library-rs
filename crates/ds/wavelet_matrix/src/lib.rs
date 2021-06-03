@@ -202,22 +202,44 @@ impl WaveletMatrix {
 
 #[test]
 fn test_simple() {
-    use std::collections::BTreeMap;
-
     let n = 512;
     let f = std::iter::successors(Some(296), |&x| Some((x * 258 + 185) % 397))
         .map(|x| x & 7);
     let buf: Vec<_> = f.take(n).collect();
     let wm: WaveletMatrix = buf.clone().into();
     for start in 0..n {
-        let mut count = BTreeMap::new();
+        let mut count = vec![0; 8];
         for end in start..n {
             let x = buf[end];
-            assert_eq!(
-                wm.count(start..end, x..=x),
-                *count.get(&x).unwrap_or(&0)
-            );
-            *count.entry(x).or_insert(0) += 1;
+            let lt: usize = count[..x as usize].iter().sum();
+            let eq = count[x as usize];
+            let gt: usize = count[x as usize + 1..].iter().sum();
+            let c3 = Count3wayResult::new(lt, eq, gt);
+            assert_eq!(wm.count_3way(start..end, x..=x), c3);
+            count[x as usize] += 1;
+        }
+    }
+
+    for start in 0..n {
+        let mut count = vec![0; 8];
+        for end in start..n {
+            let x = buf[end];
+            assert_eq!(wm.find_nth(start.., x, count[x as usize]), Some(end));
+            count[x as usize] += 1;
+        }
+        for x in 0..8 {
+            assert_eq!(wm.find_nth(start.., x, count[x as usize]), None);
+        }
+    }
+
+    for start in 0..n {
+        for end in start..n {
+            let mut tmp = buf[start..end].to_vec();
+            tmp.sort_unstable();
+            for i in 0..tmp.len() {
+                assert_eq!(wm.nth_min(start..end, i), Some(tmp[i]));
+            }
+            assert_eq!(wm.nth_min(start..end, tmp.len()), None);
         }
     }
 }
