@@ -1,5 +1,6 @@
 //! 計数クエリ。
 
+use std::fmt::Debug;
 use std::ops::RangeBounds;
 
 /// 計数クエリ。
@@ -16,6 +17,7 @@ pub trait Count3way<I> {
     ) -> Count3wayResult;
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct Count3wayResult {
     lt: usize,
     eq: usize,
@@ -29,4 +31,5 @@ impl Count3wayResult {
     pub fn gt(&self) -> usize { self.gt }
     pub fn le(&self) -> usize { self.lt + self.eq }
     pub fn ge(&self) -> usize { self.gt + self.eq }
+    pub fn ne(&self) -> usize { self.lt + self.gt }
 }

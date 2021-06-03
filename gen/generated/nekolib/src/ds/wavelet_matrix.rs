@@ -44,17 +44,18 @@ impl From<Vec<u128>> for WaveletMatrix {
         for i in (0..bitlen).rev() {
             let mut zero = vec![];
             let mut one = vec![];
-            let mut vb = vec![];
+            let mut vb = vec![false; len];
             for j in 0..len {
-                (if whole[j] >> i & 1 == 1 { &mut one } else { &mut zero })
+                (if whole[j] >> i & 1 == 0 { &mut zero } else { &mut one })
                     .push(whole[j]);
-                vb[j] = whole[j] >> i & 1 == 1;
+                vb[j] = whole[j] >> i & 1 != 0;
             }
             zeros[i] = zero.len();
             buf.push(vb.into());
             whole = zero;
             whole.append(&mut one);
         }
+        buf.reverse();
         Self { len, bitlen, buf, zeros }
     }
 }
@@ -110,7 +111,7 @@ impl WaveletMatrix {
                 start = self.zeros[i] + self.buf[i].rank(start, 1);
                 end = self.zeros[i] + self.buf[i].rank(end, 1);
             }
-            *(if value >> i & 1 == 0 { &mut lt } else { &mut gt }) +=
+            *(if value >> i & 1 == 0 { &mut gt } else { &mut lt }) +=
                 tmp - (end - start);
         }
         (lt, gt)
@@ -202,5 +203,27 @@ impl WaveletMatrix {
             }
         }
         start
+    }
+}
+
+#[test]
+fn test_simple() {
+    use std::collections::BTreeMap;
+
+    let n = 512;
+    let f = std::iter::successors(Some(296), |&x| Some((x * 258 + 185) % 397))
+        .map(|x| x & 7);
+    let buf: Vec<_> = f.take(n).collect();
+    let wm: WaveletMatrix = buf.clone().into();
+    for start in 0..n {
+        let mut count = BTreeMap::new();
+        for end in start..n {
+            let x = buf[end];
+            assert_eq!(
+                wm.count(start..end, x..=x),
+                *count.get(&x).unwrap_or(&0)
+            );
+            *count.entry(x).or_insert(0) += 1;
+        }
     }
 }
