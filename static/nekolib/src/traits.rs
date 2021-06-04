@@ -16,8 +16,8 @@ pub mod get_mut;
 pub mod max;
 pub mod min;
 pub mod multiplicative;
-pub mod nth_min;
 pub mod push_pop;
+pub mod quantile;
 pub mod range_bounds;
 pub mod set_value;
 pub mod stateful_predicate;
@@ -59,9 +59,9 @@ pub use min::Min;
 #[doc(inline)]
 pub use multiplicative::{MulAssoc, MulComm, MulRecip, One};
 #[doc(inline)]
-pub use nth_min::NthMin;
-#[doc(inline)]
 pub use push_pop::{Pop, PopBack, PopFront, Push, PushBack, PushFront};
+#[doc(inline)]
+pub use quantile::Quantile;
 #[doc(inline)]
 pub use range_bounds::{
     EndBounded, EndExclusive, EndInclusive, EndUnbounded, StartBounded,

@@ -11,4 +11,4 @@ rs_dict = { path = "../rs_dict" }
 count = { path = "../../traits/count" }
 find_nth = { path = "../../traits/find_nth" }
 buf_range = { path = "../../utils/buf_range" }
-nth_min = { path = "../../traits/nth_min" }
+quantile = { path = "../../traits/quantile" }

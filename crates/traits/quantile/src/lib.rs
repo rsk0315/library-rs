@@ -3,9 +3,9 @@
 use std::ops::RangeBounds;
 
 /// $n$ 番目の最小値クエリ。
-pub trait NthMin {
+pub trait Quantile {
     type Output;
-    fn nth_min(
+    fn quantile(
         &self,
         range: impl RangeBounds<usize>,
         n: usize,
