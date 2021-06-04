@@ -1,7 +1,5 @@
 //! 素因数分解。
 
-use std::collections::BTreeMap;
-
 /// 素因数分解。
 ///
 /// # Complexity
@@ -11,27 +9,25 @@ use std::collections::BTreeMap;
 /// ```
 /// use nekolib::math::factors;
 ///
-/// let fac: Vec<_> = factors(735134400).collect();
+/// let n = 735134400;
+/// let fac: Vec<_> = factors(n).collect();
 /// assert_eq!(fac, [(2, 6), (3, 3), (5, 2), (7, 1), (11, 1), (13, 1), (17, 1)]);
+/// assert_eq!(factors(n).map(|(p, e)| p.pow(e)).product::<u64>(), n);
 /// ```
-pub fn factors(
-    mut n: u64,
-) -> impl Iterator<Item = (u64, u32)> + DoubleEndedIterator {
-    let mut res = BTreeMap::new();
-    let mut i = 2;
-    while i * i <= n {
-        if n % i == 0 {
-            let mut e = 0;
-            while n % i == 0 {
-                n /= i;
-                e += 1;
+pub fn factors(mut n: u64) -> impl Iterator<Item = (u64, u32)> {
+    (2..)
+        .filter_map(move |i| {
+            if n <= 1 {
+                Some(None)
+            } else if i * i > n {
+                Some(Some((std::mem::take(&mut n), 1)))
+            } else if n % i != 0 {
+                None
+            } else {
+                let e = (0..).take_while(|_| n % i == 0 && (|_| true)(n /= i));
+                Some(Some((i, e.count() as u32)))
             }
-            res.insert(i, e);
-        }
-        i += 1;
-    }
-    if n > 1 {
-        res.insert(n, 1);
-    }
-    res.into_iter()
+        })
+        .take_while(Option::is_some)
+        .map(Option::unwrap)
 }
