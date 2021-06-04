@@ -182,17 +182,43 @@ impl RsDict {
         match &sel[il] {
             Sparse(dir) => dir[is],
             Dense(range) => {
-                let mut lo = range.start;
-                let mut hi = range.end;
+                let mut lo = range.start / WORD_SIZE;
+                let mut hi = 1 + (range.end - 1) / WORD_SIZE;
                 while hi - lo > 1 {
                     let mid = lo + (hi - lo) / 2;
-                    let rank = self.rank(mid, x);
+                    let rank = self.rank_rough(mid, x);
                     *(if rank <= n { &mut lo } else { &mut hi }) = mid;
                 }
-                lo
+                lo * WORD_SIZE
+                    + Self::find_nth_small(self.buf[lo], x, n - self.rank[lo])
             }
         }
     }
+    fn rank_rough(&self, n: usize, x: u64) -> usize {
+        (if x == 0 { n * WORD_SIZE - self.rank[n] } else { self.rank[n] })
+    }
+    fn find_nth_small(word: u64, x: u64, n: usize) -> usize {
+        let mut word = if x == 0 { !word } else { word };
+        let mut n = n as u32;
+        let mut res = 0;
+        for &mid in &[32, 16, 8, 4, 2, 1] {
+            let count = (word & !(!0 << mid)).count_ones();
+            if count <= n {
+                n -= count;
+                word >>= mid;
+                res += mid;
+            }
+        }
+        res
+    }
+}
+
+#[test]
+fn select_internal() {
+    assert_eq!(RsDict::find_nth_small(0x00000000_00000001_u64, 1, 0), 0);
+    assert_eq!(RsDict::find_nth_small(0x00000000_00000003_u64, 1, 1), 1);
+    assert_eq!(RsDict::find_nth_small(0x00000000_00000010_u64, 1, 0), 4);
+    assert_eq!(RsDict::find_nth_small(0xffffffff_ffffffff_u64, 1, 63), 63);
 }
 
 #[test]
