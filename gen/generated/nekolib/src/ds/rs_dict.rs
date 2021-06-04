@@ -49,25 +49,30 @@ const WORD_SIZE_2: usize = WORD_SIZE * WORD_SIZE;
 ///
 /// # Complexity
 /// $O(n)$ preprocess, $O(n/w)$ space, $O(\\log(w))$ query time.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct RsDict {
     len: usize,
     buf: Vec<u64>,
     rank: Vec<usize>,
-    sel0: Vec<usize>,
-    sel1: Vec<usize>,
-    ssel0: Vec<Vec<usize>>,
-    ssel1: Vec<Vec<usize>>,
+    sel0: Vec<SelectPreprocess>,
+    sel1: Vec<SelectPreprocess>,
 }
+
+#[derive(Clone, Debug)]
+enum SelectPreprocess {
+    Sparse(Vec<usize>),
+    Dense(Range<usize>),
+}
+use SelectPreprocess::{Dense, Sparse};
 
 impl From<Vec<bool>> for RsDict {
     fn from(buf: Vec<bool>) -> Self {
         let len = buf.len();
         let buf = Self::compress_vec_bool(buf);
         let rank = Self::preprocess_rank(&buf);
-        let (sel0, ssel0) = Self::preprocess_select(&buf, len, 0);
-        let (sel1, ssel1) = Self::preprocess_select(&buf, len, 1);
-        Self { len, buf, rank, sel0, sel1, ssel0, ssel1 }
+        let sel0 = Self::preprocess_select(&buf, len, 0);
+        let sel1 = Self::preprocess_select(&buf, len, 1);
+        Self { len, buf, rank, sel0, sel1 }
     }
 }
 
@@ -98,29 +103,30 @@ impl RsDict {
         buf: &[u64],
         n: usize,
         x: u64,
-    ) -> (Vec<usize>, Vec<Vec<usize>>) {
-        let mut sel = vec![0];
-        let mut ssel = vec![];
+    ) -> Vec<SelectPreprocess> {
+        let mut sel = vec![];
         let mut tmp = vec![];
+        let mut last = 0;
         for i in 0..n {
-            let c = buf[i / WORD_SIZE] >> (i % WORD_SIZE) & 1;
-            if c != x {
+            if buf[i / WORD_SIZE] >> (i % WORD_SIZE) & 1 != x {
                 continue;
             }
-            tmp.push(i + 1);
-            if tmp.len() < WORD_SIZE {
-                continue;
+            if tmp.len() == WORD_SIZE {
+                let len = i - last;
+                if len < WORD_SIZE_2 {
+                    sel.push(Dense(last..i));
+                } else {
+                    sel.push(Sparse(tmp));
+                }
+                tmp = vec![];
+                last = i;
             }
-            let len = i + 1 - *sel.last().unwrap();
-            sel.push(i + 1);
-            ssel.push(if len < WORD_SIZE_2 { vec![] } else { tmp });
-            tmp = vec![];
+            tmp.push(i);
         }
-        if let Some(&last) = tmp.last() {
-            sel.push(last);
-            ssel.push(tmp);
+        if !tmp.is_empty() {
+            sel.push(Sparse(tmp));
         }
-        (sel, ssel)
+        sel
     }
     pub fn rank(&self, end: usize, x: u64) -> usize {
         let il = end / WORD_SIZE;
@@ -130,33 +136,14 @@ impl RsDict {
         let rank = if x == 0 { end - rank1 } else { rank1 };
         rank
     }
-    pub fn select(&self, x: u64, k: usize) -> usize {
+    pub fn select(&self, x: u64, k: usize) -> Option<usize> {
         if self.rank(self.len, x) < k {
-            panic!("the number of {}s is less than {}", x, k);
+            None
+        } else if k == 0 {
+            Some(0)
+        } else {
+            Some(self.find_nth_internal(x, k - 1) + 1)
         }
-        if k == 0 {
-            return 0;
-        }
-        let k = k - 1;
-        let sel = if x == 0 { &self.sel0 } else { &self.sel1 };
-        let ssel = if x == 0 { &self.ssel0 } else { &self.ssel1 };
-        let il = k / WORD_SIZE;
-        let is = k % WORD_SIZE;
-        if !ssel[il].is_empty() {
-            return ssel[il][is];
-        }
-        let mut lo = sel[il];
-        let mut hi = *sel.get(il + 1).unwrap_or(&self.len);
-        while hi - lo > 1 {
-            let mid = lo + (hi - lo) / 2;
-            let rank = self.rank(mid, x);
-            if rank <= k {
-                lo = mid;
-            } else {
-                hi = mid;
-            }
-        }
-        hi
     }
 }
 
@@ -183,9 +170,59 @@ impl FindNth<u64> for RsDict {
             None
         } else {
             let offset = self.rank(start, x);
-            Some(self.select(x, offset + n + 1) - 1)
+            Some(self.find_nth_internal(x, offset + n))
         }
     }
+}
+
+impl RsDict {
+    fn find_nth_internal(&self, x: u64, n: usize) -> usize {
+        if self.rank(self.len, x) < n {
+            panic!("the number of {}s is less than {}", x, n);
+        }
+        let sel = if x == 0 { &self.sel0 } else { &self.sel1 };
+        let il = n / WORD_SIZE;
+        let is = n % WORD_SIZE;
+        match &sel[il] {
+            Sparse(dir) => dir[is],
+            Dense(range) => {
+                let mut lo = range.start / WORD_SIZE;
+                let mut hi = 1 + (range.end - 1) / WORD_SIZE;
+                while hi - lo > 1 {
+                    let mid = lo + (hi - lo) / 2;
+                    let rank = self.rank_rough(mid, x);
+                    *(if rank <= n { &mut lo } else { &mut hi }) = mid;
+                }
+                lo * WORD_SIZE
+                    + Self::find_nth_small(self.buf[lo], x, n - self.rank[lo])
+            }
+        }
+    }
+    fn rank_rough(&self, n: usize, x: u64) -> usize {
+        (if x == 0 { n * WORD_SIZE - self.rank[n] } else { self.rank[n] })
+    }
+    fn find_nth_small(word: u64, x: u64, n: usize) -> usize {
+        let mut word = if x == 0 { !word } else { word };
+        let mut n = n as u32;
+        let mut res = 0;
+        for &mid in &[32, 16, 8, 4, 2, 1] {
+            let count = (word & !(!0 << mid)).count_ones();
+            if count <= n {
+                n -= count;
+                word >>= mid;
+                res += mid;
+            }
+        }
+        res
+    }
+}
+
+#[test]
+fn select_internal() {
+    assert_eq!(RsDict::find_nth_small(0x00000000_00000001_u64, 1, 0), 0);
+    assert_eq!(RsDict::find_nth_small(0x00000000_00000003_u64, 1, 1), 1);
+    assert_eq!(RsDict::find_nth_small(0x00000000_00000010_u64, 1, 0), 4);
+    assert_eq!(RsDict::find_nth_small(0xffffffff_ffffffff_u64, 1, 63), 63);
 }
 
 #[test]
@@ -210,8 +247,6 @@ fn test_rs() {
 
     let zeros: Vec<_> = (0..n).filter(|&i| !buf[i]).collect();
     let ones: Vec<_> = (0..n).filter(|&i| buf[i]).collect();
-
-    eprintln!("{:?}", zeros);
 
     for i in 0..zeros.len() {
         let s0 = rs.find_nth(.., 0, i);
