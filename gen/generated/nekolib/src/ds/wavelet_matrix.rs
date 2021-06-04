@@ -3,7 +3,7 @@
 use super::rs_dict;
 use super::super::traits::count;
 use super::super::traits::find_nth;
-use super::super::traits::nth_min;
+use super::super::traits::quantile;
 use super::super::utils::buf_range;
 
 use std::ops::{
@@ -14,7 +14,7 @@ use std::ops::{
 use buf_range::bounds_within;
 use count::{Count, Count3way, Count3wayResult};
 use find_nth::FindNth;
-use nth_min::NthMin;
+use quantile::Quantile;
 use rs_dict::RsDict;
 
 /// wavelet matrix。
@@ -118,9 +118,9 @@ impl WaveletMatrix {
     }
 }
 
-impl NthMin for WaveletMatrix {
+impl Quantile for WaveletMatrix {
     type Output = u128;
-    fn nth_min(
+    fn quantile(
         &self,
         range: impl RangeBounds<usize>,
         mut n: usize,
@@ -243,9 +243,9 @@ fn test_simple() {
             let mut tmp = buf[start..end].to_vec();
             tmp.sort_unstable();
             for i in 0..tmp.len() {
-                assert_eq!(wm.nth_min(start..end, i), Some(tmp[i]));
+                assert_eq!(wm.quantile(start..end, i), Some(tmp[i]));
             }
-            assert_eq!(wm.nth_min(start..end, tmp.len()), None);
+            assert_eq!(wm.quantile(start..end, tmp.len()), None);
         }
     }
 }
