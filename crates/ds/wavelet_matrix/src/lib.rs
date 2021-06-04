@@ -172,14 +172,14 @@ impl WaveletMatrix {
         let si = self.start_pos(value);
         let value0 = (value & 1) as u64;
         n += self.buf[0].rank(si, value0);
-        n = self.buf[0].select(value0, n);
+        n = self.buf[0].select(value0, n).unwrap();
 
         for i in 1..self.bitlen {
             if value >> i & 1 == 0 {
-                n = self.buf[i].select(0, n);
+                n = self.buf[i].select(0, n).unwrap();
             } else {
                 n -= self.zeros[i];
-                n = self.buf[i].select(1, n);
+                n = self.buf[i].select(1, n).unwrap();
             }
         }
         Some(n)
