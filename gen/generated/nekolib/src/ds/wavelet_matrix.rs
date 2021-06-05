@@ -153,25 +153,23 @@ impl FindNth<u128> for WaveletMatrix {
         value: u128,
         n: usize,
     ) -> Option<usize> {
-        let Range { start, end } = bounds_within(range, self.len);
+        let start = bounds_within(range, self.len).start;
         let (lt, gt) = self.count_3way_internal(0..start, value);
         let offset = start - (lt + gt);
-        Some(self.select(end, value, n + offset + 1)? - 1)
+        Some(self.select(value, n + offset + 1)? - 1)
     }
 }
 
 impl WaveletMatrix {
-    pub fn select(
-        &self,
-        end: usize,
-        value: u128,
-        mut n: usize,
-    ) -> Option<usize> {
+    pub fn rank(&self, end: usize, value: u128) -> usize {
+        self.count(0..end, value..=value)
+    }
+    pub fn select(&self, value: u128, mut n: usize) -> Option<usize> {
         if n == 0 {
             return Some(0);
         }
-        let (lt, gt) = self.count_3way_internal(0..end, value);
-        let count = end - (lt + gt);
+        let (lt, gt) = self.count_3way_internal(0..self.len, value);
+        let count = self.len - (lt + gt);
         if count < n {
             return None;
         }
@@ -226,10 +224,12 @@ fn test_simple() {
         }
     }
 
+    eprintln!("{:?}", buf);
     for start in 0..n {
         let mut count = vec![0; 8];
         for end in start..n {
             let x = buf[end];
+            eprintln!("{:?}, {} ({})", start..=end, x, count[x as usize]);
             assert_eq!(wm.find_nth(start.., x, count[x as usize]), Some(end));
             count[x as usize] += 1;
         }
