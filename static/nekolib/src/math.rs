@@ -11,6 +11,7 @@ pub mod harmonic_sum;
 pub mod lcm_;
 pub mod linear_floor_sum_;
 pub mod linear_sieve;
+pub mod slope_function;
 pub mod totient_phi_;
 
 #[doc(inline)]
@@ -31,5 +32,7 @@ pub use linear_floor_sum_::linear_floor_sum;
 pub use linear_sieve::LinearSieve;
 #[doc(inline)]
 pub use modint::ModInt;
+#[doc(inline)]
+pub use slope_function::SlopeFunction;
 #[doc(inline)]
 pub use totient_phi_::totient_phi;
