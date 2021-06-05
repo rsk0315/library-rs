@@ -41,6 +41,43 @@ use std::ops::{Bound, RangeInclusive};
 /// assert_eq!(sf.argmin(), (Included(2), Included(3)));
 /// ```
 ///
+/// # Notes
+/// $(a\_1, a\_2, \\dots, a\_n)$ の中央値を $a\_{\\text{med}}$ とすると、
+/// $\\sum\_{i=1}^n |x-a\_i|$ は $x = a\_{\\text{med}}$ のとき最小となる。
+/// このことから、値の追加と中央値を求めるクエリを処理できる。
+///
+/// ```
+/// use std::ops::Bound::{Included, Excluded, Unbounded};
+///
+/// use nekolib::math::SlopeFunction;
+///
+/// #[derive(Clone, Default)]
+/// struct IncrementalMedian(SlopeFunction);
+///
+/// impl IncrementalMedian {
+///     fn new() -> Self { Self::default() }
+///     fn insert(&mut self, a: i128) { self.0.add_abs(a); }
+///     fn median(&self) -> Option<i128> {
+///         match self.0.argmin().0 {
+///             Included(x) => Some(x),
+///             Excluded(_) => unreachable!(),
+///             Unbounded => None,
+///         }
+///     }
+/// }
+///
+/// let mut im = IncrementalMedian::new();
+/// assert_eq!(im.median(), None);
+/// im.insert(2);
+/// assert_eq!(im.median(), Some(2));
+/// im.insert(3);
+/// assert_eq!(im.median(), Some(2));
+/// im.insert(1);
+/// assert_eq!(im.median(), Some(2));
+/// im.insert(1);
+/// assert_eq!(im.median(), Some(1));
+/// ```
+///
 /// # References
 /// - <https://maspypy.com/slope-trick-1-%E8%A7%A3%E8%AA%AC%E7%B7%A8>
 #[derive(Clone, Default)]
