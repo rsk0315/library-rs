@@ -136,11 +136,11 @@ use std::fmt::Debug;
 ///
 /// まず、この操作によりバケットに追加された部分文字列がソート済みであることを帰納的に示す。
 /// 初期状態では明らかにソート済みである。$S\[i\\dots j\]$ を見て $S\[i-1\\dots j\]$
-/// を入れるとき、同一バケット内の L-type の各 $S\[i'-1\\dots j'\]$ に対して
-/// $S\[i'-1\\dots j'\] \\lt S\[i-1\\dots j\]$ を示せば十分である（LMS については明らかなので）。
-/// これは、$S\[i'-1\] = S\[i-1\]$ のとき $S\[i'-1\\dots j'\] \\lt S\[i-1\\dots j\] \\iff
-/// S\[i'\\dots j'\] \\lt S\[i\\dots j\]$ であることと、$i'$ が $i$ より先に処理されているため
-/// $S\[i'\\dots j'\] \\lt S\[i\\dots j\]$ であることから従う。
+/// を入れるとき、同一バケット内の L-type の各 $S\[i\'-1\\dots j\'\]$ に対して
+/// $S\[i\'-1\\dots j\'\] \\lt S\[i-1\\dots j\]$ を示せば十分である（LMS については明らかなので）。
+/// これは、$S\[i\'-1\] = S\[i-1\]$ のとき $S\[i\'-1\\dots j\'\] \\lt S\[i-1\\dots j\] \\iff
+/// S\[i\'\\dots j\'\] \\lt S\[i\\dots j\]$ であることと、$i\'$ が $i$ より先に処理されているため
+/// $S\[i\'\\dots j\'\] \\lt S\[i\\dots j\]$ であることから従う。
 ///
 /// 次に、L-type であるすべての $i$ がバケットに入っていることを示す。
 /// $i+1$ が LMS であれば、定義から $i$ は L-type であり、これはバケットに入れられる。
@@ -449,10 +449,8 @@ fn ls_classify(buf: &[usize]) -> Vec<LsType> {
 /// `count[i]` が `i` 番目のバケットのサイズである配列 `count`。
 fn bucket_head(count: &[usize]) -> Vec<usize> {
     let n = count.len();
-    let mut head: Vec<_> = std::iter::once(&0)
-        .chain(&count[..n - 1])
-        .cloned()
-        .collect();
+    let mut head: Vec<_> =
+        std::iter::once(&0).chain(&count[..n - 1]).cloned().collect();
     for i in 1..n {
         head[i] += head[i - 1];
     }
