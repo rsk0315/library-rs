@@ -75,14 +75,13 @@ impl HarmonicSum {
         Self { m, q, qsum, rsum }
     }
     fn search(&self, n: i128) -> usize {
-        let res = if n > self.m {
+        if n > self.m {
             self.q.len()
         } else if n * n <= self.m {
             n as usize
         } else {
             self.q.len() - (self.m / n) as usize
-        };
-        res
+        }
     }
     fn quot_internal(&self, n: i128) -> i128 {
         if n <= 0 {
