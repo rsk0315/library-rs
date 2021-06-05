@@ -18,7 +18,7 @@ pub use count_prime::prime_pi;
 #[doc(inline)]
 pub use divisors_::divisors;
 #[doc(inline)]
-pub use factors_::factors;
+pub use factors_::{factors, factors_dup};
 #[doc(inline)]
 pub use gcd_::gcd;
 #[doc(inline)]
