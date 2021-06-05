@@ -1,6 +1,6 @@
 //! 素因数分解。
 
-/// 素因数分解。
+/// 素因数分解（指数）。
 ///
 /// $n = \\prod\_{p:\\text{ prime}} p\_i^{e\_i}$ に対して、各 $(p\_i, e\_i)$ を $p\_i$
 /// の昇順に返す。
@@ -37,7 +37,7 @@ pub fn factors(mut n: u64) -> impl Iterator<Item = (u64, u32)> {
         .map(Option::unwrap)
 }
 
-/// 素因数分解。
+/// 素因数分解（重複）。
 ///
 /// $n = \\prod\_{p:\\text{ prime}} p\_i^{e\_i}$ に対して、各 $p\_i$ を $e\_i$ 個、$p\_i$
 /// の昇順に返す。
