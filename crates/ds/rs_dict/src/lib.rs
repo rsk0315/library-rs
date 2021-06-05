@@ -179,6 +179,7 @@ impl RsDict {
         let sel = if x == 0 { &self.sel0 } else { &self.sel1 };
         let il = n / WORD_SIZE;
         let is = n % WORD_SIZE;
+        eprintln!("{:?}", sel[il]);
         match &sel[il] {
             Sparse(dir) => dir[is],
             Dense(range) => {
@@ -189,13 +190,16 @@ impl RsDict {
                     let rank = self.rank_rough(mid, x);
                     *(if rank <= n { &mut lo } else { &mut hi }) = mid;
                 }
+                let rank_frac = n - self.rank_rough(lo, x);
                 lo * WORD_SIZE
-                    + Self::find_nth_small(self.buf[lo], x, n - self.rank[lo])
+                    + Self::find_nth_small(self.buf[lo], x, rank_frac)
             }
         }
     }
     fn rank_rough(&self, n: usize, x: u64) -> usize {
-        (if x == 0 { n * WORD_SIZE - self.rank[n] } else { self.rank[n] })
+        let rank1 = self.rank[n];
+        let rank = if x == 0 { n * WORD_SIZE - rank1 } else { rank1 };
+        rank
     }
     fn find_nth_small(word: u64, x: u64, n: usize) -> usize {
         let mut word = if x == 0 { !word } else { word };
