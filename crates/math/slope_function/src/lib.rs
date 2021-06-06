@@ -2,6 +2,7 @@
 
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
+use std::fmt::Debug;
 use std::ops::{Bound, RangeInclusive};
 
 /// 区分線形凸関数。
@@ -80,7 +81,7 @@ use std::ops::{Bound, RangeInclusive};
 ///
 /// # References
 /// - <https://maspypy.com/slope-trick-1-%E8%A7%A3%E8%AA%AC%E7%B7%A8>
-#[derive(Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct SlopeFunction {
     left: BinaryHeap<i128>,
     right: BinaryHeap<Reverse<i128>>,
