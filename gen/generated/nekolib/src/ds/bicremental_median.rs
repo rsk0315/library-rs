@@ -67,12 +67,12 @@ impl<T: Ord + Clone> BicrementalMedian<T> {
             false
         } else if self.lower_len == self.upper_len {
             // [LLL] [RRR]
-            if self.upper.contains_key(&x) {
+            if self.upper.contains_key(x) {
                 // [LLL] [RR]
                 self.remove_from_upper(x, false);
                 return true;
             }
-            if self.lower.contains_key(&x) {
+            if self.lower.contains_key(x) {
                 // [LLR] [RR]
                 self.remove_from_lower(x, true);
                 return true;
@@ -80,12 +80,12 @@ impl<T: Ord + Clone> BicrementalMedian<T> {
             false
         } else {
             // [LLL] [RR]
-            if self.lower.contains_key(&x) {
+            if self.lower.contains_key(x) {
                 // [LL] [RR]
                 self.remove_from_lower(x, false);
                 return true;
             }
-            if self.upper.contains_key(&x) {
+            if self.upper.contains_key(x) {
                 // [LL] [LR]
                 self.remove_from_upper(x, true);
                 return true;
