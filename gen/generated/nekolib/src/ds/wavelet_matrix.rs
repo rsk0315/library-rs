@@ -146,6 +146,47 @@ impl Quantile for WaveletMatrix {
     }
 }
 
+impl WaveletMatrix {
+    fn xored_quantile(
+        &self,
+        range: impl RangeBounds<usize>,
+        mut n: usize,
+        x: u128,
+    ) -> Option<u128> {
+        let Range { mut start, mut end } = bounds_within(range, self.len);
+        if end - start <= n {
+            return None;
+        }
+        let mut res = 0;
+        for i in (0..self.bitlen).rev() {
+            let z = self.buf[i].count(start..end, 0);
+            if x >> i & 1 == 0 {
+                if n < z {
+                    start = self.buf[i].rank(start, 0);
+                    end = self.buf[i].rank(end, 0);
+                } else {
+                    res |= 1_u128 << i;
+                    start = self.zeros[i] + self.buf[i].rank(start, 1);
+                    end = self.zeros[i] + self.buf[i].rank(end, 1);
+                    n -= z;
+                }
+            } else {
+                let z = (end - start) - z;
+                if n < z {
+                    start = self.zeros[i] + self.buf[i].rank(start, 1);
+                    end = self.zeros[i] + self.buf[i].rank(end, 1);
+                } else {
+                    res |= 1_u128 << i;
+                    start = self.buf[i].rank(start, 0);
+                    end = self.buf[i].rank(end, 0);
+                    n -= z;
+                }
+            }
+        }
+        Some(res)
+    }
+}
+
 impl FindNth<u128> for WaveletMatrix {
     fn find_nth(
         &self,
@@ -246,6 +287,23 @@ fn test_simple() {
                 assert_eq!(wm.quantile(start..end, i), Some(tmp[i]));
             }
             assert_eq!(wm.quantile(start..end, tmp.len()), None);
+        }
+    }
+
+    for start in 0..n {
+        for end in start..n {
+            for x in 0..8 {
+                let mut tmp: Vec<_> =
+                    buf[start..end].iter().map(|&y| x ^ y).collect();
+                tmp.sort_unstable();
+                for i in 0..tmp.len() {
+                    assert_eq!(
+                        wm.xored_quantile(start..end, i, x),
+                        Some(tmp[i])
+                    );
+                }
+                assert_eq!(wm.xored_quantile(start..end, tmp.len(), x), None);
+            }
         }
     }
 }
