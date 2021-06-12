@@ -147,7 +147,7 @@ impl Quantile for WaveletMatrix {
 }
 
 impl WaveletMatrix {
-    fn xored_quantile(
+    pub fn xored_quantile(
         &self,
         range: impl RangeBounds<usize>,
         mut n: usize,
