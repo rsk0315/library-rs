@@ -9,6 +9,7 @@ pub mod factors_;
 pub mod gcd_;
 pub mod harmonic_sum;
 pub mod lcm_;
+pub mod line_set;
 pub mod linear_floor_sum_;
 pub mod linear_sieve;
 pub mod slope_function;
@@ -26,6 +27,8 @@ pub use gcd_::gcd;
 pub use harmonic_sum::HarmonicSum;
 #[doc(inline)]
 pub use lcm_::{lcm, overflowing_lcm};
+#[doc(inline)]
+pub use line_set::LineSet;
 #[doc(inline)]
 pub use linear_floor_sum_::linear_floor_sum;
 #[doc(inline)]
