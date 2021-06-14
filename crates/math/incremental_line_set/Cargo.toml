@@ -1,5 +1,5 @@
 [package]
-name = "line_set"
+name = "incremental_line_set"
 version = "0.1.0"
 authors = ["rsk0315 <rsk0315@icloud.com>"]
 edition = "2018"

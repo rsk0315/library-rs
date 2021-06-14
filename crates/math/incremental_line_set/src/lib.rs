@@ -31,7 +31,7 @@ const MAX: i128 = std::i128::MAX;
 /// - いつもの DP に関するメモを書く。
 /// - <https://codeforces.com/contest/660/problem/F>
 #[derive(Clone, Default)]
-pub struct LineSet {
+pub struct IncrementalLineSet {
     line_interval: BTreeMap<Reverse<Line>, Interval>,
     interval_line: BTreeMap<Interval, Line>,
 }
@@ -68,7 +68,7 @@ fn is_above((a, b): Line, (al, bl): Line, (ar, br): Line) -> bool {
     (br - b) * (al - a) <= (b - bl) * (a - ar)
 }
 
-impl LineSet {
+impl IncrementalLineSet {
     /// $S = \\emptyset$ で初期化する。
     pub fn new() -> Self { Self::default() }
     /// $S \\xleftarrow{\\cup} ax+b$ で更新する。
@@ -215,7 +215,7 @@ impl Debug for LineDbg {
         f.write_str(&format!("y={}x{:+}", self.0, self.1))
     }
 }
-impl Debug for LineSet {
+impl Debug for IncrementalLineSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map()
             .entries(
@@ -229,7 +229,7 @@ impl Debug for LineSet {
 
 #[test]
 fn test_simple() {
-    let mut ls = LineSet::new();
+    let mut ls = IncrementalLineSet::new();
     eprintln!("{:?}", ls);
     assert_eq!(ls.min_at_point(1), None);
 
@@ -238,7 +238,7 @@ fn test_simple() {
             .map(|x| x % 300 - 150);
 
     let mut naive = vec![];
-    for _ in 0..10000 {
+    for _ in 0..5000 {
         let a = f.next().unwrap();
         let b = f.next().unwrap();
         eprintln!("adding: y={}x{:+}", a, b);
