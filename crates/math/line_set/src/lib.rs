@@ -11,6 +11,25 @@ const MIN: i128 = std::i128::MIN;
 const MAX: i128 = std::i128::MAX;
 
 /// 直線の集合。
+///
+/// 以下のクエリを処理する。
+/// - 集合 $S = \\emptyset$ で初期化する。
+/// - 集合 $S$ に直線 $y = ax+b$ を追加する。
+/// - 集合 $S$ 中の直線における、$x=x\_0$ での最小の $y$ 座標を返す。
+///
+/// # Idea
+/// 次の二つの連想配列を管理する。
+/// - 直線を与えると、その直線での $y$ 座標が集合中で最小となる区間を返す。
+/// - 区間を与えると、その区間において $y$ 座標が最小となる直線を返す。
+///
+/// `todo!()`
+/// - 直線を追加する際に行うことを書く。
+/// - 直線が不要かどうかの判定について書く。
+///
+/// # Applications
+/// `todo!()`
+/// - いつもの DP に関するメモを書く。
+/// - <https://codeforces.com/contest/660/problem/F>
 #[derive(Clone, Default)]
 pub struct LineSet {
     line_interval: BTreeMap<Reverse<Line>, Interval>,
@@ -215,17 +234,17 @@ fn test_simple() {
     assert_eq!(ls.min_at_point(1), None);
 
     let mut f =
-        std::iter::successors(Some(185), |&x| Some((x * 291 + 748) % 937))
-            .map(|x| x % 100 - 50);
+        std::iter::successors(Some(185), |&x| Some((x * 291 + 748) % 93739))
+            .map(|x| x % 300 - 150);
 
     let mut naive = vec![];
-    for _ in 0..100 {
+    for _ in 0..10000 {
         let a = f.next().unwrap();
         let b = f.next().unwrap();
         eprintln!("adding: y={}x{:+}", a, b);
         ls.add_line(a, b);
         naive.push((a, b));
-        eprintln!("{:?}", ls);
+        eprintln!("{:?}", (ls.line_interval.len(), ls.interval_line.len()));
         for x in -100..=100 {
             let expected = naive.iter().map(|&(a, b)| a * x + b).min();
             let got = ls.min_at_point(x);
@@ -235,4 +254,14 @@ fn test_simple() {
             assert_eq!(got, expected);
         }
     }
+}
+
+#[test]
+fn test_cross() {
+    // 一点でたくさんの直線が交差する場合のテストを書く
+}
+
+#[test]
+fn test_frac() {
+    // ある直線が最小となる区間が格子点を含まない場合のテストを書く
 }
