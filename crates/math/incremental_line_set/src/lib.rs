@@ -22,14 +22,79 @@ const MAX: i128 = std::i128::MAX;
 /// - 直線を与えると、その直線での $y$ 座標が集合中で最小となる区間を返す。
 /// - 区間を与えると、その区間において $y$ 座標が最小となる直線を返す。
 ///
-/// `todo!()`
-/// - 直線を追加する際に行うことを書く。
-/// - 直線が不要かどうかの判定について書く。
+/// 保持しておく必要がある直線を対応する区間の昇順に並べると、傾きの降順に並ぶことに気づく。
+/// そこで、追加したい直線の傾きより小さい最大の傾きの直線と、大きい最小の直線と比較し、
+/// 新しい直線が必要かどうかをまず確かめる。
+/// それが必要なら、追加する直線に近い方から順にすでにある直線を見ていき、
+/// 必要なものが見つかるまで削除する。
+///
+/// # Complexity
+/// |演算|時間計算量|
+/// |---|---|
+/// |`new`|$O(1)$|
+/// |`add_line`|$O(\\log(\|S\'\|))$|
+/// |`min_at_point`|$O(\\log(\|S\'\|))$|
+///
+/// ここで、$S\'$ は $S$ から必要のない直線を除いたものからなる集合である。
 ///
 /// # Applications
-/// `todo!()`
-/// - いつもの DP に関するメモを書く。
-/// - <https://codeforces.com/contest/660/problem/F>
+/// 次の形式の DP の高速化に使える。
+/// $$ \\mathrm{dp}[i] = \\min\_{0\\le j\\lt i} (p(j)+q(j)\\cdot r(i)) +s(i). $$
+/// $\\min\_{0\\le j\\lt i} (\\bullet)$ の部分が、直線 $y=q(j)\\cdot x+p(j)$ の $x=r(i)$
+/// における最小値に相当するためである。$\\mathrm{dp}[i]$ の値を求めた後、直線
+/// $y=q(i)\\cdot x+p(i)$ を追加していけばよい。ここで、$p(j)$ や $q(j)$ は
+/// $\\mathrm{dp}[j]$ を含んでもよいし含まなくてもよい。どちらにも $\\mathrm{dp}[j]$
+/// が含まれない場合には、特に DP 配列のようなものを用意する必要はない。
+///
+/// たとえば、次のようなものが当てはまる。
+/// $$ \\begin{aligned}
+/// \\mathrm{dp}[i] &= \\min\_{0\\le j\\lt i} (\\mathrm{dp}[j]+(a\_j-a\_i)^2) \\\\
+/// &= \\min\_{0\\le j\\lt i} ((\\mathrm{dp}[j]+a\_j^2) + (-2\\cdot a\_j)\\cdot a\_i)+a\_i^2.
+/// \\end{aligned} $$
+///
+/// お気に入りの例として、[次のような問題](https://codeforces.com/contest/660/problem/F)
+/// も解ける：
+/// > 整数列 $a = (a\_0, a\_1, \\dots, a\_{n-1})$ が与えられる。
+/// > これの空でない区間 $(a\_l, a\_{l+1}, \\dots, a\_{r-1})$
+/// > に対し、次の値を考える。
+/// > $$ \\sum\_{i=l}^{r-1} (i-l+1)\\cdot a\_i
+/// > = 1\\cdot a\_l+2\\cdot a\_{l+1} + \\dots + (r-l)\\cdot a\_{r-1}. $$
+/// > 全ての区間の選び方におけるこの値の最大値を求めよ。
+///
+/// $\\sigma(r) = \\sum\_{i=0}^{r-1} a(i)$、$\\tau(r) = \\sum\_{i=0}^{r-1} i\\cdot a(i)$
+/// とおくと、次のように変形できる。
+/// $$ \\begin{aligned} \\sum\_{i=l}^{r-1} (i-l+1)\\cdot a\_i &=
+/// \\sum\_{i=l}^{r-1} i\\cdot a\_i - \\sum\_{i=l}^{r-1} (l-1)\\cdot a\_i \\\\
+/// &= (\\tau(r)-\\tau(l)) - (l-1)\\cdot (\\sigma(r) - \\sigma(l))
+/// . \\end{aligned} $$
+///
+/// 右端 $r$ を固定したときの最小値を $\\mathrm{dp}[r]$ とおくと、
+/// $$ \\begin{aligned} \\mathrm{dp}[r] &=
+/// \\min\_{0\\le l\\lt r} (\\tau(r)-\\tau(l)) - (l-1)\\cdot(\\sigma(r)-\\sigma(l)) \\\\
+/// &= \\min\_{0\\le l\\lt r} ((l-1)\\cdot\\sigma(l)-\\tau(l) - (l-1)\\cdot\\sigma(r))+\\tau(r)
+/// \\end{aligned} $$
+/// とできる。よって、上記の枠組みで $p(j) = (j-1)\\cdot\\sigma(j)-\\tau(j)$、$q(j)=-(j-1)$、
+/// $r(i)=\\sigma(i)$、$s(i)=\\tau(i)$ としたものと見なせ、$\\sigma(\\bullet)$ や $\\tau(\\bullet)$
+/// の計算を適切に高速化すれば、$O(n\\log(n))$ 時間で解ける。
+///
+/// # Examples
+/// ```
+/// use nekolib::math::IncrementalLineSet;
+///
+/// let mut ls = IncrementalLineSet::new();
+/// assert_eq!(ls.min_at_point(0), None);
+///
+/// ls.add_line(2, 1);
+/// assert_eq!(ls.min_at_point(-1), Some(-1));
+/// assert_eq!(ls.min_at_point(1), Some(3));
+///
+/// ls.add_line(0, 2);
+/// assert_eq!(ls.min_at_point(-1), Some(-1));
+/// assert_eq!(ls.min_at_point(1), Some(2));
+///
+/// ls.add_line(-5, 6);
+/// assert_eq!(ls.min_at_point(1), Some(1));
+/// ```
 #[derive(Clone, Default)]
 pub struct IncrementalLineSet {
     line_interval: BTreeMap<Reverse<Line>, Interval>,
@@ -70,8 +135,27 @@ fn is_above((a, b): Line, (al, bl): Line, (ar, br): Line) -> bool {
 
 impl IncrementalLineSet {
     /// $S = \\emptyset$ で初期化する。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::math::IncrementalLineSet;
+    ///
+    /// let ls = IncrementalLineSet::new();
+    /// assert_eq!(ls.min_at_point(0), None);
+    /// ```
     pub fn new() -> Self { Self::default() }
     /// $S \\xleftarrow{\\cup} ax+b$ で更新する。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::math::IncrementalLineSet;
+    ///
+    /// let mut ls = IncrementalLineSet::new();
+    /// ls.add_line(1, 3);
+    /// assert_eq!(ls.min_at_point(-1), Some(2));
+    /// ls.add_line(2, 1);
+    /// assert_eq!(ls.min_at_point(-1), Some(-1));
+    /// ```
     pub fn add_line(&mut self, a: i128, b: i128) {
         if self.line_interval.is_empty() {
             self.line_interval.insert(Reverse((a, b)), (MIN, MAX));
@@ -195,6 +279,16 @@ impl IncrementalLineSet {
         }
     }
     /// $\\min\_{f(x)\\in S} f(x\_0)$ を返す。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::math::IncrementalLineSet;
+    ///
+    /// let mut ls = IncrementalLineSet::new();
+    /// ls.add_line(1, 3);
+    /// assert_eq!(ls.min_at_point(-1), Some(2));
+    /// assert_eq!(ls.min_at_point(1), Some(4));
+    /// ```
     pub fn min_at_point(&self, x0: i128) -> Option<i128> {
         if self.line_interval.is_empty() {
             return None;
@@ -264,4 +358,12 @@ fn test_cross() {
 #[test]
 fn test_frac() {
     // ある直線が最小となる区間が格子点を含まない場合のテストを書く
+    let mut ls = IncrementalLineSet::new();
+    ls.add_line(2, 1);
+    eprintln!("{:?}", ls);
+    // ls.add_line(-3, 4);
+    ls.add_line(-5, 6);
+    eprintln!("{:?}", ls);
+    ls.add_line(0, 3);
+    eprintln!("{:?}", ls);
 }
