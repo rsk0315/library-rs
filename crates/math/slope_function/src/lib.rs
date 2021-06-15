@@ -36,6 +36,7 @@ use std::ops::{Bound, RangeInclusive};
 /// sf.add_left(3);
 /// sf.add_right(2);
 /// sf.add_const(-10);
+/// // f(x) = 0.max(-1-x) + 0.max(3-x) + 0.max(x-2) - 10
 /// //   x  | -5 -4 -3 -2 -1  0  1  2  3  4  5
 /// // f(x) |  2  0 -2 -4 -6 -7 -8 -9 -9 -8 -7
 /// assert_eq!(sf.min(), -9);
