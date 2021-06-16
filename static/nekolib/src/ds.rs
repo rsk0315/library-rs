@@ -1,6 +1,7 @@
 //! データ構造たち。
 //!
-//! ここに何かを書く。
+//! 主に抽象化したデータ構造たち。union find や wavelet matrix
+//! は抽象化されていないという気もするが...
 pub mod bicremental_median;
 pub mod bicremental_median_dev;
 pub mod disjoint_sparse_table;
