@@ -1,6 +1,10 @@
 //! 数学関連のアルゴリズムたち。
 //!
-//! 多項式や線形代数など。
+//! 基本的な数学関数。
+//! 直線の集合を管理するクラスなど、抽象化しにくいものは [`ds`] ではなくこちらに含めた。
+//! 計算機科学自体 mathematics では？とも思うが...
+//!
+//! [`ds`]: ../ds/index.html
 pub mod modint;
 // pub mod polynomial;
 pub mod count_prime;
