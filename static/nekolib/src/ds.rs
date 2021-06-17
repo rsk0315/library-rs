@@ -8,7 +8,6 @@ pub mod disjoint_sparse_table;
 pub mod foldable_deque;
 pub mod foldable_queue;
 pub mod interval_set;
-pub mod range_tree;
 pub mod rs_dict;
 pub mod union_find;
 pub mod vec_act_segtree;
@@ -27,8 +26,6 @@ pub use foldable_deque::FoldableDeque;
 pub use foldable_queue::FoldableQueue;
 #[doc(inline)]
 pub use interval_set::IntervalSet;
-#[doc(inline)]
-pub use range_tree::RangeTree;
 #[doc(inline)]
 pub use rs_dict::RsDict;
 #[doc(inline)]
