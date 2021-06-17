@@ -18,6 +18,7 @@ pub mod linear_floor_sum_;
 pub mod linear_sieve;
 pub mod slope_function;
 pub mod totient_phi_;
+pub mod two_sat;
 
 #[doc(inline)]
 pub use count_prime::prime_pi;
@@ -43,3 +44,5 @@ pub use modint::ModInt;
 pub use slope_function::SlopeFunction;
 #[doc(inline)]
 pub use totient_phi_::totient_phi;
+#[doc(inline)]
+pub use two_sat::TwoSat;
