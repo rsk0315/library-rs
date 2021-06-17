@@ -39,17 +39,17 @@ const MAX: i128 = std::i128::MAX;
 ///
 /// # Applications
 /// 次の形式の DP の高速化に使える。
-/// $$ \\mathrm{dp}[i] = \\min\_{0\\le j\\lt i} (p(j)+q(j)\\cdot r(i)) +s(i). $$
+/// $$ \\mathrm{dp}\[i\] = \\min\_{0\\le j\\lt i} (p(j)+q(j)\\cdot r(i)) +s(i). $$
 /// $\\min\_{0\\le j\\lt i} (\\bullet)$ の部分が、直線 $y=q(j)\\cdot x+p(j)$ の $x=r(i)$
-/// における最小値に相当するためである。$\\mathrm{dp}[i]$ の値を求めた後、直線
+/// における最小値に相当するためである。$\\mathrm{dp}\[i\]$ の値を求めた後、直線
 /// $y=q(i)\\cdot x+p(i)$ を追加していけばよい。ここで、$p(j)$ や $q(j)$ は
-/// $\\mathrm{dp}[j]$ を含んでもよいし含まなくてもよい。どちらにも $\\mathrm{dp}[j]$
+/// $\\mathrm{dp}\[j\]$ を含んでもよいし含まなくてもよい。どちらにも $\\mathrm{dp}\[j\]$
 /// が含まれない場合には、特に DP 配列のようなものを用意する必要はない。
 ///
 /// たとえば、次のようなものが当てはまる。
 /// $$ \\begin{aligned}
-/// \\mathrm{dp}[i] &= \\min\_{0\\le j\\lt i} (\\mathrm{dp}[j]+(a\_j-a\_i)^2) \\\\
-/// &= \\min\_{0\\le j\\lt i} ((\\mathrm{dp}[j]+a\_j^2) + (-2\\cdot a\_j)\\cdot a\_i)+a\_i^2.
+/// \\mathrm{dp}\[i\] &= \\min\_{0\\le j\\lt i} (\\mathrm{dp}\[j\]+(a\_j-a\_i)^2) \\\\
+/// &= \\min\_{0\\le j\\lt i} ((\\mathrm{dp}\[j\]+a\_j^2) + (-2\\cdot a\_j)\\cdot a\_i)+a\_i^2.
 /// \\end{aligned} $$
 ///
 /// お気に入りの例として、[次のような問題](https://codeforces.com/contest/660/problem/F)
@@ -68,8 +68,8 @@ const MAX: i128 = std::i128::MAX;
 /// &= (\\tau(r)-\\tau(l)) - (l-1)\\cdot (\\sigma(r) - \\sigma(l))
 /// . \\end{aligned} $$
 ///
-/// 右端 $r$ を固定したときの最小値を $\\mathrm{dp}[r]$ とおくと、
-/// $$ \\begin{aligned} \\mathrm{dp}[r] &=
+/// 右端 $r$ を固定したときの最小値を $\\mathrm{dp}\[r\]$ とおくと、
+/// $$ \\begin{aligned} \\mathrm{dp}\[r\] &=
 /// \\min\_{0\\le l\\lt r} (\\tau(r)-\\tau(l)) - (l-1)\\cdot(\\sigma(r)-\\sigma(l)) \\\\
 /// &= \\min\_{0\\le l\\lt r} ((l-1)\\cdot\\sigma(l)-\\tau(l) - (l-1)\\cdot\\sigma(r))+\\tau(r)
 /// \\end{aligned} $$
