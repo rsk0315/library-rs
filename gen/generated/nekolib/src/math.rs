@@ -7,6 +7,7 @@
 //! [`ds`]: ../ds/index.html
 pub mod modint;
 // pub mod polynomial;
+pub mod const_div;
 pub mod count_prime;
 pub mod divisors_;
 pub mod dlog_;
@@ -24,6 +25,8 @@ pub mod slope_function;
 pub mod totient_phi_;
 pub mod two_sat;
 
+#[doc(inline)]
+pub use const_div::ConstDiv;
 #[doc(inline)]
 pub use count_prime::prime_pi;
 #[doc(inline)]
@@ -47,7 +50,7 @@ pub use linear_floor_sum_::linear_floor_sum;
 #[doc(inline)]
 pub use linear_sieve::LinearSieve;
 #[doc(inline)]
-pub use mod_pow_::mod_pow;
+pub use mod_pow_::{mod_pow, mod_pow_with_cd};
 #[doc(inline)]
 pub use modint::ModInt;
 #[doc(inline)]
