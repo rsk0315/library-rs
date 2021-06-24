@@ -100,8 +100,7 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
 }
 
 fn bsgs(bb: u64, b: u64, a: u64, n: u64, c: u64) -> Option<u64> {
-    let nlgn = |n: u64| n * (n.next_power_of_two().trailing_zeros() as u64);
-    let step = (1..).find(|&i| nlgn(i).pow(2) >= c).unwrap();
+    let step = (1..).find(|&i| i * i >= c).unwrap();
     let seen = {
         let mut seen = BTreeMap::new();
         let baby_recip = mod_pow(b, c - 1, n);
