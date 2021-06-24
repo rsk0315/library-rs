@@ -18,7 +18,7 @@
 /// |`new`|$\\Theta(n)$|
 /// |`is_prime`|$\\Theta(1)$|
 /// |`least_factor`|$\\Theta(1)$|
-/// |`factors`|$\\Theta(1)$ delay|
+/// |`factors_dup`|$\\Theta(1)$ delay|
 /// |`primes`|$\\Theta(1)$ delay|
 ///
 /// $n$ の素因数の個数を $\\Omega(n)$ とすると、以下の式が成り立つらしい。
@@ -41,8 +41,8 @@
 /// assert_eq!(sieve.least_factor(3), Some(3));
 /// assert_eq!(sieve.least_factor(24), Some(2));
 ///
-/// assert_eq!(sieve.factors(1).next(), None);
-/// assert_eq!(sieve.factors(60).collect::<Vec<_>>(), vec![2, 2, 3, 5]);
+/// assert_eq!(sieve.factors_dup(1).next(), None);
+/// assert_eq!(sieve.factors_dup(60).collect::<Vec<_>>(), vec![2, 2, 3, 5]);
 ///
 /// assert_eq!(
 ///     sieve.primes().take(10).collect::<Vec<_>>(),
@@ -123,10 +123,10 @@ impl LinearSieve {
     /// use nekolib::math::LinearSieve;
     ///
     /// let sieve = LinearSieve::new(60);
-    /// assert_eq!(sieve.factors(1).next(), None);
-    /// assert_eq!(sieve.factors(60).collect::<Vec<_>>(), vec![2, 2, 3, 5]);
+    /// assert_eq!(sieve.factors_dup(1).next(), None);
+    /// assert_eq!(sieve.factors_dup(60).collect::<Vec<_>>(), vec![2, 2, 3, 5]);
     /// ```
-    pub fn factors(&self, n: usize) -> impl Iterator<Item = usize> + '_ {
+    pub fn factors_dup(&self, n: usize) -> impl Iterator<Item = usize> + '_ {
         std::iter::successors(Some(n), move |&n| Some(n / self.lpf[n]))
             .take_while(|&n| n > 1)
             .map(move |n| self.lpf[n])
