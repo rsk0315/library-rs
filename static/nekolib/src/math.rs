@@ -9,13 +9,17 @@ pub mod modint;
 // pub mod polynomial;
 pub mod count_prime;
 pub mod divisors_;
+pub mod dlog_;
 pub mod factors_;
 pub mod gcd_;
+pub mod gcd_recip_;
 pub mod harmonic_sum;
 pub mod incremental_line_set;
 pub mod lcm_;
 pub mod linear_floor_sum_;
 pub mod linear_sieve;
+pub mod mod_pow_;
+pub mod ord_;
 pub mod slope_function;
 pub mod totient_phi_;
 pub mod two_sat;
@@ -25,9 +29,13 @@ pub use count_prime::prime_pi;
 #[doc(inline)]
 pub use divisors_::divisors;
 #[doc(inline)]
+pub use dlog_::dlog;
+#[doc(inline)]
 pub use factors_::{factors, factors_dup};
 #[doc(inline)]
 pub use gcd_::gcd;
+#[doc(inline)]
+pub use gcd_recip_::gcd_recip;
 #[doc(inline)]
 pub use harmonic_sum::HarmonicSum;
 #[doc(inline)]
@@ -39,7 +47,11 @@ pub use linear_floor_sum_::linear_floor_sum;
 #[doc(inline)]
 pub use linear_sieve::LinearSieve;
 #[doc(inline)]
+pub use mod_pow_::mod_pow;
+#[doc(inline)]
 pub use modint::ModInt;
+#[doc(inline)]
+pub use ord_::ord;
 #[doc(inline)]
 pub use slope_function::SlopeFunction;
 #[doc(inline)]
