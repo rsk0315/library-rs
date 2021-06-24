@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 mod_pow_ = { path = "../mod_pow_" }
-totient_phi = { path = "../totient_phi_" }
+totient_phi_ = { path = "../totient_phi_" }
 factors_ = { path = "../factors_" }
