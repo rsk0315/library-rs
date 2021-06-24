@@ -8,7 +8,7 @@ use factors_::factors;
 /// と $1$ は互いに素であることに注意。
 ///
 /// # Note
-/// 素数冪 $p^k$, $p\'^{k\'}$ ($p\\ne p\'$) について $\\phi(p^k p\'^{k\'} = \\phi(p^k)\\phi(p\'^{k\'})$
+/// 素数冪 $p^k$, $p\'^{k\'}$ ($p\\ne p\'$) について $\\phi(p^k p\'^{k\'}) = \\phi(p^k)\\phi(p\'^{k\'})$
 /// が成り立つ。また、$\\phi(p^k) = \\phi^{k-1}\\cdot(p-1)$ が成り立つ。
 ///
 /// # Complexity
