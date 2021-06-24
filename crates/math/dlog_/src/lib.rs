@@ -2,10 +2,11 @@
 
 use std::collections::BTreeMap;
 
+use const_div::ConstDiv;
 use divisors_::divisors;
 use factors_::factors;
 use gcd_recip_::gcd_recip;
-use mod_pow_::mod_pow;
+use mod_pow_::mod_pow_with_cd;
 use totient_phi_::totient_phi;
 
 /// 離散対数。
@@ -67,18 +68,22 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
         _ => {}
     }
 
+    let b = b % n;
+    let a = a % n;
+
     let nf: BTreeMap<_, _> = factors(n).collect();
     let tail = factors(b)
         .map(|(p, e)| (*nf.get(&p).unwrap_or(&0) + e - 1) / e)
         .max()
         .unwrap() as u64;
 
+    let cd = ConstDiv::new(n);
     let mut bpow = 1;
     for i in 0..tail {
         if bpow == a {
             return Some(i);
         }
-        bpow = bpow * b % n
+        bpow = cd.rem(bpow * b);
     }
 
     let bb = bpow;
@@ -90,31 +95,31 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
     }
 
     let c = divisors(totient_phi(n))
-        .find(|&c| bb * mod_pow(b, c, n) % n == bb)
+        .find(|&c| cd.rem(bb * mod_pow_with_cd(b, c, cd)) == bb)
         .unwrap();
 
-    bsgs(bb, b, a, n, c).map(|head| tail + head)
+    bsgs(bb, b, a, n, cd, c).map(|head| tail + head)
 }
 
-fn bsgs(bb: u64, b: u64, a: u64, n: u64, c: u64) -> Option<u64> {
+fn bsgs(bb: u64, b: u64, a: u64, n: u64, cd: ConstDiv, c: u64) -> Option<u64> {
     let step = (1..).find(|&i| i * i >= c).unwrap();
     let seen = {
         let mut seen = BTreeMap::new();
-        let baby_recip = mod_pow(b, c - 1, n);
+        let baby_recip = mod_pow_with_cd(b, c - 1, cd);
         let mut x = a;
         for i in 0..step {
             seen.entry(x).or_insert(i);
-            x = x * baby_recip % n;
+            x = cd.rem(x * baby_recip);
         }
         seen
     };
-    let giant = mod_pow(b, step, n);
+    let giant = mod_pow_with_cd(b, step, cd);
     let mut x = bb;
     for i in 0..=n / step {
         if let Some(&e) = seen.get(&x) {
             return Some(i * step + e);
         }
-        x = x * giant % n;
+        x = cd.rem(x * giant);
     }
     None
 }

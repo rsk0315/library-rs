@@ -12,3 +12,4 @@ mod_pow_ = { path = "../mod_pow_" }
 totient_phi_ = { path = "../totient_phi_" }
 factors_ = { path = "../factors_" }
 divisors_ = { path = "../divisors_" }
+const_div = { path = "../const_div" }
