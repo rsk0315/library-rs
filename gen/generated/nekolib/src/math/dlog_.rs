@@ -73,12 +73,9 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
         _ => {}
     }
 
-    let bf: BTreeMap<_, _> = factors(b).collect();
     let nf: BTreeMap<_, _> = factors(n).collect();
-
-    let tail = bf
-        .iter()
-        .map(|(&p, &e)| (*nf.get(&p).unwrap_or(&0) + e - 1) / e)
+    let tail = factors(b)
+        .map(|(p, e)| (*nf.get(&p).unwrap_or(&0) + e - 1) / e)
         .max()
         .unwrap() as u64;
 
