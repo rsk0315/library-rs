@@ -105,7 +105,7 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
         .find(|&c| cd.rem(bb * mod_pow_with_cd(b, c, cd)) == bb)
         .unwrap();
 
-    bsgs(bb, b, a, n, cd, c).map(|head| tail + head)
+    bsgs(bb, b, a, cd, c).map(|head| tail + head)
 }
 
 fn bsgs(bb: u64, b: u64, a: u64, cd: ConstDiv, c: u64) -> Option<u64> {
