@@ -20,7 +20,8 @@
 /// assert_eq!(factors(1).next(), None);
 /// ```
 pub fn factors(mut n: u64) -> impl Iterator<Item = (u64, u32)> {
-    (2..)
+    std::iter::once(2)
+        .chain((3..).step_by(2))
         .filter_map(move |i| {
             if n <= 1 {
                 Some(None)
@@ -70,7 +71,7 @@ pub fn factors_dup(n: u64) -> impl Iterator<Item = u64> {
         } else if n % i == 0 {
             Some((i, n / i, true))
         } else {
-            Some((i + 1, n, false))
+            Some((if i == 2 { 3 } else { i + 2 }, n, false))
         }
     })
     .filter_map(|(i, _, c)| if c { Some(i) } else { None })
