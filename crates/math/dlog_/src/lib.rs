@@ -68,9 +68,6 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
         _ => {}
     }
 
-    let b = b % n;
-    let a = a % n;
-
     let tail = factors(b)
         .map(|(p, e)| {
             let mut f = 0;
