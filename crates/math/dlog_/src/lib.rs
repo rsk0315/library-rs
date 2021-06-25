@@ -141,7 +141,7 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
 }
 
 fn bsgs(bb: u64, b: u64, a: u64, cd: ConstDiv, c: u64) -> Option<u64> {
-    let step = (1..).find(|&i| i * i >= c).unwrap();
+    let step = (1..).find(|&i| i * i * 2 >= c).unwrap();
     let seen = {
         let mut seen = BTreeMap::new();
         let baby_recip = mod_pow_with_cd(b, c - 1, cd);
