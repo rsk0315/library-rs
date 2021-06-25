@@ -78,9 +78,16 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
     let b = b % n;
     let a = a % n;
 
-    let nf: BTreeMap<_, _> = factors(n).collect();
     let tail = factors(b)
-        .map(|(p, e)| (*nf.get(&p).unwrap_or(&0) + e - 1) / e)
+        .map(|(p, e)| {
+            let mut f = 0;
+            let mut n = n;
+            while n % p == 0 {
+                n /= p;
+                f += 1;
+            }
+            (f + e - 1) / e
+        })
         .max()
         .unwrap() as u64;
 
@@ -108,7 +115,7 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
     bsgs(bb, b, a, n, cd, c).map(|head| tail + head)
 }
 
-fn bsgs(bb: u64, b: u64, a: u64, n: u64, cd: ConstDiv, c: u64) -> Option<u64> {
+fn bsgs(bb: u64, b: u64, a: u64, cd: ConstDiv, c: u64) -> Option<u64> {
     let step = (1..).find(|&i| i * i >= c).unwrap();
     let seen = {
         let mut seen = BTreeMap::new();
@@ -122,7 +129,7 @@ fn bsgs(bb: u64, b: u64, a: u64, n: u64, cd: ConstDiv, c: u64) -> Option<u64> {
     };
     let giant = mod_pow_with_cd(b, step, cd);
     let mut x = bb;
-    for i in 0..=n / step {
+    for i in 0..=c / step {
         if let Some(&e) = seen.get(&x) {
             return Some(i * step + e);
         }
