@@ -12,13 +12,48 @@ use totient_phi_::totient_phi;
 /// 離散対数。
 ///
 /// $n$ を法とする $\\mathrm{dlog}\_b(a)$。
-/// $b\^z \\equiv a \\pmod{n}$ なる $z\\ge 0$ が存在すれば、そのうち最小のものを返す。
+/// $b^z \\equiv a \\pmod{n}$ なる $z\\ge 0$ が存在すれば、そのうち最小のものを返す。
 ///
 /// # Idea
-/// `todo!()`
+/// $1\\to b\\to b^2\\to\\dots\\pmod{n}$ でできる functional graph を考えると、$\\rho$
+/// の字状になっていることに気づく。しっぽの長さ $\\mu$ は高々 $\\log(n)$、頭の長さ
+/// $\\lambda$ は $\\phi(n)$ の約数になっていることが示せる。
+///
+/// そこで、まずしっぽの部分に解があるかを愚直に $O(\\mu)$ 時間で調べる。
+/// 見つからなければ、頭の部分に解があるかを $o(\\lambda)$ 時間で調べる。
+/// $O(\\sqrt{\\lambda}\\log(\\lambda))$ 時間のアルゴリズムを紹介する。
+///
+/// $\\rho$ の頭の部分は $b^\\mu\\to b^{\\mu+1}\\to\\dots\\to b^{\\mu+\\lambda}\\equiv b^\\mu$
+/// である。このとき、${}^\\forall i\\ge\\mu$ について
+/// $b^{i+1}\\cdot b^{\\lambda-1} \\equiv b^i \\pmod{n}$ が成り立つ。
+/// すなわち、$b^{\\lambda-1}$ を掛けることで、$\\to$ をひとつ戻ることができる[^1]。
+///
+/// [^1]: $\\mu\\gt 0$ なら、 $b^\\mu$ は $b^{\\mu-1}$ と $b^{\\mu+\\lambda-1}$
+/// ($\\neq b^{\\mu-1}$) のふたつから $\\to$ が入ってくるが、$\\rho$
+/// の頭に含まれる後者に戻る。
+///
+/// そこで、$z = \\mu+i\\cdot\\lfloor\\sqrt{\\lambda}\\rfloor+j$ ($0\\le j\\lt\\sqrt{\\lambda}$)
+/// とし、$(i, j)$ を探すことを考える。
+/// $$ \\begin{aligned}
+/// b^{\\mu+i\\cdot\\lfloor\\sqrt{\\lambda}\\rfloor+j} &\\equiv a \\\\
+/// b^{\\mu+i\\cdot\\lfloor\\sqrt{\\lambda}\\rfloor+j}\\cdot (b^{\\lambda-1})^j
+///  &\\equiv a\\cdot (b^{\\lambda-1})^j \\\\
+/// b^{\\mu+i\\cdot\\lfloor\\sqrt{\\lambda}\\rfloor}
+///  &\\equiv a\\cdot (b^{\\lambda-1})^j \\\\
+/// \\end{aligned} $$
+/// これより、$i$ と $j$ を分離でき、$a\\cdot(b^{\\lambda-1})^j\\mapsto j$
+/// の連想配列を作っておくことで、$b^{\\mu+i\\cdot\\lfloor\\sqrt{\\lambda}\\rfloor}$
+/// に対応する要素があれば返せる。ただし、複数の $j$ について
+/// $a\\cdot(b^{\\lambda-1})^j$ が同じ値を取りうるので注意する必要がある。
+///
+/// $j$ による小さい幅で連想配列を作り、$i$ による大きい幅でそれにアクセスする様子から
+/// baby-step giant-step algorithm と呼ばれている。
+///
+/// 以下では、$\\mu$ と $\\lambda$ を求める方法について述べる。`todo!()`
 ///
 /// # Complexity
-/// $\\tilde{O}(\\sqrt{n})$ time.
+/// $O(\\sqrt{n} + \\sqrt{\\lambda}\\log(\\lambda))$ time.
+/// ここで、$\\lambda$ は最悪 $\\Theta(n)$ である。
 ///
 /// `todo!()`
 ///
