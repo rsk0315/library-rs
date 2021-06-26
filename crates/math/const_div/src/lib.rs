@@ -77,15 +77,19 @@ use std::fmt::{self, Debug};
 /// \\lfloor n/65\\rfloor &= (n\\cdot\\lceil 2^{66}/65\\rceil)\\gg 66
 /// \\end{aligned} $$
 ///
+/// 剰余算については、$n\\bmod d = n-\\lfloor n/d\\rfloor\\cdot d$ に基づく。
+/// $d$ を掛ける際には定数乗算の最適化（加減算とシフトを用いるなど）を行っていそう。
+///
+/// 制約を除いた版：[`ConstDiv`]
+///
+/// [`ConstDiv`]: struct.ConstDiv.html
+///
 /// # Naming
 /// 除数の 2 乗未満の入力を仮定することから `2` をつけている。
-///
-/// 剰余算についても調べる。`todo!()`
 ///
 /// # References
 /// - <https://rsk0315.hatenablog.com/entry/2021/01/18/065720#Barrett-reduction-%E3%81%AE%E8%A9%B1>
 /// - <https://godbolt.org/z/snq4nvTP6>
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ConstDiv2 {
     n: u64,
@@ -124,19 +128,24 @@ impl ConstDiv2 {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ConstDiv {
     n: u64,
-    di: DivInstr,
+    di: DivAlgo,
 }
 
+/// 除算のアルゴリズム。
+///
+/// 除数によってアルゴリズムを使い分ける。詳しくは [`ConstDiv`] のドキュメントを参照。
+///
+/// [`ConstDiv`]: struct.ConstDiv.html
 #[derive(Clone, Copy, Eq, PartialEq)]
-enum DivInstr {
+enum DivAlgo {
     Shr(u32),
     MulShr(u64, u32),
     MulAddShr(u64, u32),
     Ge(u64),
 }
-use DivInstr::{Ge, MulAddShr, MulShr, Shr};
+use DivAlgo::{Ge, MulAddShr, MulShr, Shr};
 
-impl Debug for DivInstr {
+impl Debug for DivAlgo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let res = match self {
             Shr(s) => format!("n >> {}", s),
