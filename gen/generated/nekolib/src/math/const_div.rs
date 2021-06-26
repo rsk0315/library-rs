@@ -1,6 +1,6 @@
 //! 定数除算。
 
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 
 /// 定数除算。
 ///
@@ -77,18 +77,22 @@ use std::fmt::Debug;
 /// \\lfloor n/65\\rfloor &= (n\\cdot\\lceil 2^{66}/65\\rceil)\\gg 66
 /// \\end{aligned} $$
 ///
+/// # Naming
+/// 除数の 2 乗未満の入力を仮定することから `2` をつけている。
+///
 /// 剰余算についても調べる。`todo!()`
 ///
 /// # References
 /// - <https://rsk0315.hatenablog.com/entry/2021/01/18/065720#Barrett-reduction-%E3%81%AE%E8%A9%B1>
 /// - <https://godbolt.org/z/snq4nvTP6>
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ConstDiv {
+pub struct ConstDiv2 {
     n: u64,
     recip: u128,
 }
 
-impl ConstDiv {
+impl ConstDiv2 {
     pub fn new(n: u64) -> Self {
         let recip = 1_u64.wrapping_add(std::u64::MAX / n) as u128;
         Self { n, recip }
@@ -117,13 +121,105 @@ impl ConstDiv {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ConstDiv {
+    n: u64,
+    di: DivInstr,
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum DivInstr {
+    Shr(u32),
+    MulShr(u64, u32),
+    MulAddShr(u64, u32),
+    Ge(u64),
+}
+use DivInstr::{Ge, MulAddShr, MulShr, Shr};
+
+impl Debug for DivInstr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let res = match self {
+            Shr(s) => format!("n >> {}", s),
+            MulShr(m, s) => format!("(n * 0x{:016X}) >> {}", m, s),
+            MulAddShr(m, s) => {
+                format!("(n + ((n * 0x{:016X}) >> 64) >> 1) >> {}", m, s)
+            }
+            Ge(g) => {
+                format!("if n >= 0x{:016x} {{ 1 }} else {{ 0 }}", g)
+            }
+        };
+        f.write_str(res.as_str())
+    }
+}
+
+impl ConstDiv {
+    pub fn new(n: u64) -> Self {
+        let ns = n.next_power_of_two().trailing_zeros();
+        if n.is_power_of_two() {
+            return Self { n, di: Shr(ns) };
+        }
+        if n.leading_zeros() == 0 {
+            return Self { n, di: Ge(n) };
+        }
+        let nc = std::u64::MAX as u128;
+        for p in 63 + ns..128 {
+            let n_ = n as u128;
+            let r = ((1_u128 << p) - 1) % n_;
+            if (nc * (n_ - 1 - r)) >> p == 0 {
+                let m = 1 + ((1_u128 << p) - 1 - r) / n_;
+                return if m >> 64 == 0 {
+                    Self { n, di: MulShr(m as u64, p) }
+                } else {
+                    Self { n, di: MulAddShr(m as u64, p - 1 - 64) }
+                };
+            }
+        }
+        unreachable!()
+    }
+    pub fn quot(&self, n: u64) -> u64 {
+        match self.di {
+            Shr(s) => n >> s,
+            MulShr(m, s) => ((n as u128 * m as u128) >> s) as u64,
+            MulAddShr(m, s) => {
+                let tmp = ((n as u128 * m as u128) >> 64) as u64;
+                (((n - tmp) >> 1) + tmp) >> s
+            }
+            Ge(g) if n >= g => 1,
+            Ge(_) => 0,
+        }
+    }
+    pub fn rem(&self, n: u64) -> u64 { n - self.quot(n) * self.n }
+}
+
 #[test]
-fn test() {
-    for n in 1..=1000 {
-        let cd = ConstDiv::new(n);
+fn test_small_2() {
+    for n in 1..=500 {
+        let cd = ConstDiv2::new(n);
         for a in 0..n * n {
             assert_eq!(cd.quot(a), a / n);
             assert_eq!(cd.rem(a), a % n);
+        }
+    }
+}
+
+#[test]
+fn test_small() {
+    for n in 1..=500 {
+        let cd = ConstDiv::new(n);
+        for a in 0..10 * n * n {
+            assert_eq!(cd.quot(a), a / n);
+            assert_eq!(cd.rem(a), a % n);
+        }
+    }
+}
+
+#[test]
+fn test_corner() {
+    for &d in &[(1 << 63) - 1, 1 << 63, (1 << 63) + 1, std::u64::MAX] {
+        let cd = ConstDiv::new(d);
+        for &n in &[0, 1, d - 1, d, d.saturating_add(1), d.saturating_mul(2)] {
+            assert_eq!(cd.quot(n), n / d);
+            assert_eq!(cd.rem(n), n % d);
         }
     }
 }
