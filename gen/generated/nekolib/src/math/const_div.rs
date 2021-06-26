@@ -206,7 +206,12 @@ fn test_small_2() {
 fn test_small() {
     for n in 1..=500 {
         let cd = ConstDiv::new(n);
-        for a in 0..10 * n * n {
+        for a in 0..5 * n * n {
+            assert_eq!(cd.quot(a), a / n);
+            assert_eq!(cd.rem(a), a % n);
+        }
+        for a in 1..=5 * n * n {
+            let a = std::u64::MAX - a;
             assert_eq!(cd.quot(a), a / n);
             assert_eq!(cd.rem(a), a % n);
         }
