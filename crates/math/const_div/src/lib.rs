@@ -8,8 +8,10 @@ use std::fmt::{self, Debug};
 /// 同じ値で何度も除算する際には、あらかじめ置き換える値を先に求めておくことで高速化できる。
 ///
 /// Barrett reduction に基づく。$a\\lt n^2$ に対して、$\\lfloor a/n\\rfloor$ と $a\\bmod n$
-/// を求めることができる。ちゃんと考察すれば、この制約は除けるはず。
+/// を求めることができる。ちゃんと考察すれば、[この制約は除ける][`ConstDiv`]。
 /// 実際、コンパイラは同様の最適化を行う。
+///
+/// [`ConstDiv`]: struct.ConstDiv.html
 ///
 /// ```asm
 /// example::div2:
@@ -80,10 +82,6 @@ use std::fmt::{self, Debug};
 /// 剰余算については、$n\\bmod d = n-\\lfloor n/d\\rfloor\\cdot d$ に基づく。
 /// $d$ を掛ける際には定数乗算の最適化（加減算とシフトを用いるなど）を行っていそう。
 ///
-/// 制約を除いた版：[`ConstDiv`]
-///
-/// [`ConstDiv`]: struct.ConstDiv.html
-///
 /// # Naming
 /// 除数の 2 乗未満の入力を仮定することから `2` をつけている。
 ///
@@ -125,17 +123,38 @@ impl ConstDiv2 {
     }
 }
 
+/// 定数除算。
+///
+/// 除算命令は重いので、加減算や乗算で置き換えることを考える。
+/// 同じ値で何度も除算する際には、あらかじめ置き換える値を先に求めておくことで高速化できる。
+///
+/// 以下、$d$ による除算を行うとする。$d = 2^s$ であれば $s$ bit 右シフトするだけなので、$2$
+/// べきではないとする。magic number $M\_d$ とシフト幅 $s$
+/// を求めておき、次の式に基づいて計算する。
+/// $$ \\lfloor n/d\\rfloor
+/// = \\left\\lfloor\\frac{M\_d\\cdot n}{2^s}\\right\\rfloor. $$
+/// $M\_d$ は、ある $0\\le r\\lt d$ が存在して次の形になる。
+/// $$ M\_d = \\frac{2^s+r}{d} = 1+\\left\\lfloor\\frac{2^s-1}{d}\\right\\rfloor. $$
+///
+/// $M\_d$ と $s$ が満たすべき性質について考える。$0\\le n\\lt 2^w$
+/// に対して常に次の式が成り立ってほしい。$w$ はワードサイズで、ここでは $w=64$ とする。
+/// $$ \\lfloor n/d\\rfloor
+/// = \\left\\lfloor\\frac{2\^s+r}{d}\\cdot\\frac{n}{2^s}\\right\\rfloor
+/// = \\left\\lfloor\\frac{n\\vphantom{2^s}}{d} + \\frac{r\\cdot n}{2^s}\\right\\rfloor. $$
+///
+/// 有理数と床関数の性質から、$r\\cdot n/2^s \\lt 1/d$ が常に成り立てばよい。
+/// このとき、$0\\le M\_d\\lt 2^{w+1}$ をみたす $M\_d$ が存在することを示す。`todo!()`
+///
+/// さて、$M\_d$ が見つかったとする。$0\\le M\_d\\lt 2^w$ であれば上の式に基づいて、
+/// 直接計算できる。一方で、$2^w\\le M\_d\\lt 2^{w+1}$ の場合はワードサイズに収まらないので、
+/// 少々工夫する必要がある。$M\_d-2\^w$ はワードサイズに収まるので、それを利用する。
+/// `todo!()`
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ConstDiv {
     n: u64,
     di: DivAlgo,
 }
 
-/// 除算のアルゴリズム。
-///
-/// 除数によってアルゴリズムを使い分ける。詳しくは [`ConstDiv`] のドキュメントを参照。
-///
-/// [`ConstDiv`]: struct.ConstDiv.html
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum DivAlgo {
     Shr(u32),
@@ -171,6 +190,7 @@ impl ConstDiv {
             return Self { n, di: Ge(n) };
         }
         let nc = std::u64::MAX as u128;
+
         for p in 63 + ns..128 {
             let n_ = n as u128;
             let r = ((1_u128 << p) - 1) % n_;

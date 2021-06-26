@@ -26,7 +26,7 @@ pub mod totient_phi_;
 pub mod two_sat;
 
 #[doc(inline)]
-pub use const_div::ConstDiv;
+pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
 pub use count_prime::prime_pi;
 #[doc(inline)]
