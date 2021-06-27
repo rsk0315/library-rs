@@ -40,7 +40,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let source = m.value_of("SOURCE").unwrap();
     let index_path = m.value_of("index").unwrap();
-    eprintln!("{:?}", index_path);
     bundle(&source, Path::new(index_path))?;
 
     Ok(())
