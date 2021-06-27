@@ -11,3 +11,4 @@ mod_pow_ = { path = "../mod_pow_" }
 carmichael_lambda_ = { path = "../carmichael_lambda_" }
 factors_ = { path = "../factors_" }
 const_div = { path = "../const_div" }
+gcd_recip_ = { path = "../gcd_recip_" }
