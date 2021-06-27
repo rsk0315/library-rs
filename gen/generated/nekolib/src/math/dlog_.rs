@@ -1,8 +1,8 @@
 //! 離散対数。
 
+use super::carmichael_lambda_;
 use super::const_div;
 use super::divisors_;
-use super::euler_phi_;
 use super::factors_;
 use super::gcd_recip_;
 use super::mod_pow_;
@@ -11,7 +11,8 @@ use std::collections::HashMap;
 
 use const_div::ConstDiv;
 use divisors_::divisors;
-use euler_phi_::euler_phi;
+// use euler_phi_::euler_phi;
+use carmichael_lambda_::carmichael_lambda;
 use factors_::factors;
 use gcd_recip_::gcd_recip;
 use mod_pow_::mod_pow_with_cd;
@@ -226,7 +227,7 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
         return None;
     }
 
-    let c = divisors(euler_phi(n_))
+    let c = divisors(carmichael_lambda(n_))
         .find(|&c| cd.rem(bb * mod_pow_with_cd(b, c, cd)) == bb)
         .unwrap();
 

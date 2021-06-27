@@ -7,6 +7,7 @@
 //! [`ds`]: ../ds/index.html
 pub mod modint;
 // pub mod polynomial;
+pub mod carmichael_lambda_;
 pub mod const_div;
 pub mod count_prime;
 pub mod divisors_;
@@ -25,6 +26,8 @@ pub mod ord_;
 pub mod slope_function;
 pub mod two_sat;
 
+#[doc(inline)]
+pub use carmichael_lambda_::carmichael_lambda;
 #[doc(inline)]
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
