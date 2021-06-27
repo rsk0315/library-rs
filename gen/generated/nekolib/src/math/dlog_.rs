@@ -222,8 +222,7 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
     if a == 0 {
         return if bb == 0 { Some(tail) } else { None };
     }
-    let p = n / n_;
-    if p != gcd_recip(a, n).0 {
+    if n != n_ * gcd_recip(a, n).0 {
         return None;
     }
 
