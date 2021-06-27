@@ -110,10 +110,10 @@ use mod_pow_::mod_pow_with_cd;
 /// 最後に、$\\gcd(b^\\mu, n)=\\gcd(a, n)$ であることが、頭の部分に $a$ が存在する、すなわち
 /// ${}^\\exists i\\ge 0: b^{\\mu+i} \\equiv a\\pmod{n}$ であることの必要条件であることを示す。
 ///
-/// - $\\gcd(b^{\\mu+i})\\equiv 0\\pmod{p}$ ($i\\ge 0$)
-/// - $\\gcd(b, n\') = 1$ より $\\gcd(b\^{\\mu+i}, n\') = 1$ ($i\\ge 0$)
+/// - $\\gcd(b^{\\mu+i})\\equiv 0\\pmod{p}$ for $i\\ge 0$
+/// - $\\gcd(b, n\') = 1$ より $\\gcd(b\^{\\mu+i}, n\') = 1$ for $i\\ge 0$
+/// - $\\gcd(p, n\') = 1$
 /// - $n=p\\cdot n\'$
-/// - $p$ と $n\'$ は互いに素
 ///
 /// より、$\\gcd(b^{\\mu+i}, n) = p$ ($i\\ge 0$) で一定となる。
 /// すなわち、$\\gcd(a, n) = p$ が必要となる。
