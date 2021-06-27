@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 gcd_recip_ = { path = "../gcd_recip_" }
 mod_pow_ = { path = "../mod_pow_" }
-totient_phi_ = { path = "../totient_phi_" }
+euler_phi_ = { path = "../euler_phi_" }
 factors_ = { path = "../factors_" }
 divisors_ = { path = "../divisors_" }
 const_div = { path = "../const_div" }
