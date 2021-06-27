@@ -1,20 +1,21 @@
 //! 離散対数。
 
+use super::carmichael_lambda_;
 use super::const_div;
 use super::divisors_;
 use super::factors_;
 use super::gcd_recip_;
 use super::mod_pow_;
-use super::totient_phi_;
 
 use std::collections::HashMap;
 
 use const_div::ConstDiv;
 use divisors_::divisors;
+// use euler_phi_::euler_phi;
+use carmichael_lambda_::carmichael_lambda;
 use factors_::factors;
 use gcd_recip_::gcd_recip;
 use mod_pow_::mod_pow_with_cd;
-use totient_phi_::totient_phi;
 
 /// 離散対数。
 ///
@@ -222,12 +223,11 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
     if a == 0 {
         return if bb == 0 { Some(tail) } else { None };
     }
-    let p = n / n_;
-    if p != gcd_recip(a, n).0 {
+    if n != n_ * gcd_recip(a, n).0 {
         return None;
     }
 
-    let c = divisors(totient_phi(n_))
+    let c = divisors(carmichael_lambda(n_))
         .find(|&c| cd.rem(bb * mod_pow_with_cd(b, c, cd)) == bb)
         .unwrap();
 

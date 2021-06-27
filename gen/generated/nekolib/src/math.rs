@@ -7,10 +7,12 @@
 //! [`ds`]: ../ds/index.html
 pub mod modint;
 // pub mod polynomial;
+pub mod carmichael_lambda_;
 pub mod const_div;
 pub mod count_prime;
 pub mod divisors_;
 pub mod dlog_;
+pub mod euler_phi_;
 pub mod factors_;
 pub mod gcd_;
 pub mod gcd_recip_;
@@ -22,9 +24,10 @@ pub mod linear_sieve;
 pub mod mod_pow_;
 pub mod ord_;
 pub mod slope_function;
-pub mod totient_phi_;
 pub mod two_sat;
 
+#[doc(inline)]
+pub use carmichael_lambda_::carmichael_lambda;
 #[doc(inline)]
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
@@ -33,6 +36,8 @@ pub use count_prime::prime_pi;
 pub use divisors_::divisors;
 #[doc(inline)]
 pub use dlog_::dlog;
+#[doc(inline)]
+pub use euler_phi_::euler_phi;
 #[doc(inline)]
 pub use factors_::{factors, factors_dup};
 #[doc(inline)]
@@ -57,7 +62,5 @@ pub use modint::ModInt;
 pub use ord_::ord;
 #[doc(inline)]
 pub use slope_function::SlopeFunction;
-#[doc(inline)]
-pub use totient_phi_::totient_phi;
 #[doc(inline)]
 pub use two_sat::TwoSat;
