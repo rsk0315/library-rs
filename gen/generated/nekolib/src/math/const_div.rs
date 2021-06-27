@@ -143,7 +143,8 @@ impl ConstDiv2 {
 /// = \\left\\lfloor\\frac{n\\vphantom{2^s}}{d} + \\frac{r\\cdot n}{2^s}\\right\\rfloor. $$
 ///
 /// 有理数と床関数の性質から、$r\\cdot n/2^s \\lt 1/d$ が常に成り立てばよい。
-/// このとき、$0\\le M\_d\\lt 2^{w+1}$ をみたす $M\_d$ が存在することを示す。`todo!()`
+/// このとき、$0\\le M\_d\\lt 2^{w+1}$ をみたす $M\_d$ が存在することを示す。
+/// すなわち、$\\lfloor M\_d/2^w\\rfloor\\in\\{0, 1\\}$ となる。`todo!()`
 ///
 /// さて、$M\_d$ が見つかったとする。$0\\le M\_d\\lt 2^w$ であれば上の式に基づいて、
 /// 直接計算できる。一方で、$2^w\\le M\_d\\lt 2^{w+1}$ の場合はワードサイズに収まらないので、
@@ -157,7 +158,7 @@ pub struct ConstDiv {
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum DivAlgo {
-    Shr(u32),
+    Shr(u32, u64),
     MulShr(u64, u32),
     MulAddShr(u64, u32),
     Ge(u64),
@@ -167,13 +168,19 @@ use DivAlgo::{Ge, MulAddShr, MulShr, Shr};
 impl Debug for DivAlgo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let res = match self {
-            Shr(s) => format!("n >> {}", s),
-            MulShr(m, s) => format!("(n * 0x{:016X}) >> {}", m, s),
+            Shr(s, a) => format!("|n| n >> {}, |n| n & 0x{:016X}", s, a),
+            MulShr(m, s) => format!("|n| (n * 0x{:016X}) >> {}", m, s),
             MulAddShr(m, s) => {
-                format!("(n + ((n * 0x{:016X}) >> 64) >> 1) >> {}", m, s)
+                format!("|n| (n + ((n * 0x{:016X}) >> 64) >> 1) >> {}", m, s)
             }
             Ge(g) => {
-                format!("if n >= 0x{:016x} {{ 1 }} else {{ 0 }}", g)
+                let q =
+                    format!("|n| if n >= 0x{:016x} {{ 1 }} else {{ 0 }}", g);
+                let r = format!(
+                    "|n| if n >= 0x{0:016X} {{ n - 0x{0:016X} }} else {{ n }}",
+                    g
+                );
+                format!("{}, {}", q, r)
             }
         };
         f.write_str(res.as_str())
@@ -184,7 +191,7 @@ impl ConstDiv {
     pub fn new(n: u64) -> Self {
         let ns = n.next_power_of_two().trailing_zeros();
         if n.is_power_of_two() {
-            return Self { n, di: Shr(ns) };
+            return Self { n, di: Shr(ns, n - 1) };
         }
         if n.leading_zeros() == 0 {
             return Self { n, di: Ge(n) };
@@ -207,7 +214,7 @@ impl ConstDiv {
     }
     pub fn quot(&self, n: u64) -> u64 {
         match self.di {
-            Shr(s) => n >> s,
+            Shr(s, _) => n >> s,
             MulShr(m, s) => ((n as u128 * m as u128) >> s) as u64,
             MulAddShr(m, s) => {
                 let tmp = ((n as u128 * m as u128) >> 64) as u64;
@@ -217,7 +224,14 @@ impl ConstDiv {
             Ge(_) => 0,
         }
     }
-    pub fn rem(&self, n: u64) -> u64 { n - self.quot(n) * self.n }
+    pub fn rem(&self, n: u64) -> u64 {
+        match self.di {
+            Shr(_, a) => n & a,
+            Ge(g) if n >= g => n - g,
+            Ge(_) => n,
+            _ => n - self.quot(n) * self.n,
+        }
+    }
 }
 
 #[test]
