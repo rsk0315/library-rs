@@ -8,5 +8,6 @@ edition = "2018"
 
 [dependencies]
 mod_pow_ = { path = "../mod_pow_" }
-euler_phi_ = { path = "../euler_phi_" }
+carmichael_lambda_ = { path = "../carmichael_lambda_" }
 factors_ = { path = "../factors_" }
+const_div = { path = "../const_div" }
