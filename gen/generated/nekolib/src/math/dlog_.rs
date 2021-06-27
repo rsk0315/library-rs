@@ -127,7 +127,12 @@ use mod_pow_::mod_pow_with_cd;
 ///
 /// # Complexity
 /// $O(\\sqrt{n} + \\sqrt{\\lambda}\\cdot H(\\sqrt{\\lambda}))$ time.
+///
 /// ただし、$H(n)$ は要素数 $n$ の [`HashMap`] の [`insert`] と [`get`] にかかる時間とする。
+/// BS/GS パートでは [`BTreeMap`] を用いるよりも [`HashMap`]
+/// を用いた方が高速だったので、とりあえずそうした。
+///
+/// [`BTreeMap`]: https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
 ///
 /// [`HashMap`]: https://doc.rust-lang.org/std/collections/struct.HashMap.html
 /// [`insert`]: https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.insert
@@ -145,11 +150,6 @@ use mod_pow_::mod_pow_with_cd;
 /// の方が若干複雑だが、全体では高速に動作したので後者を選択した。
 ///
 /// [`carmichael_lambda`]: fn.carmichael_lambda.html
-///
-/// また、BS/GS パートでは [`BTreeMap`] を用いるよりも [`HashMap`]
-/// を用いた方が高速だったので、とりあえずそうしてある。
-///
-/// [`BTreeMap`]: https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
 ///
 /// # Examples
 /// ```
