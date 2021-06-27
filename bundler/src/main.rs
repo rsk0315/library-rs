@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use clap::{App, Arg};
 use serde::{Deserialize, Serialize};
@@ -47,11 +47,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn bundle(filename: &str, index_path: &Path) -> Result<(), Box<dyn Error>> {
     let mut file = std::fs::File::open(&filename)?;
+    eprintln!("source: {:?}", file);
     let mut src = String::new();
     file.read_to_string(&mut src)?;
 
-    let index_path = PathBuf::from(index_path);
     let mut file = std::fs::File::open(&index_path)?;
+    eprintln!("toml: {:?}", file);
     let mut toml = String::new();
     file.read_to_string(&mut toml)?;
 
