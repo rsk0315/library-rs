@@ -2,10 +2,9 @@
 
 use std::collections::HashMap;
 
+use carmichael_lambda_::carmichael_lambda;
 use const_div::ConstDiv;
 use divisors_::divisors;
-// use euler_phi_::euler_phi;
-use carmichael_lambda_::carmichael_lambda;
 use factors_::factors;
 use gcd_recip_::gcd_recip;
 use mod_pow_::mod_pow_with_cd;
@@ -133,8 +132,12 @@ use mod_pow_::mod_pow_with_cd;
 ///
 /// # Implementation notes
 /// $\\lambda$ を求める際に $b^{\\mu+i}\\equiv b^\\mu$ なる最小の $i\\sqsubseteq \\varphi(n\')$
-/// を探したが、これは Carmichael の $\\lambda$ 関数を用いて $\\lambda(n\')$ と書ける。
-/// しかし、実際に $\\lambda(n\')$ を求めるよりも前述のループで求める方が高速だった。
+/// を探したが、実際には Euler の定理ではなく Carmichael の定理に基づいて
+/// [$\\lambda(n\')$][`carmichael_lambda`]
+/// の約数を探せばよい。関数値を求めるの自体は $\\varphi(\\bullet)$ よりも $\\lambda(\\bullet)$
+/// の方が若干複雑だが、全体では高速に動作したので後者を選択した。
+///
+/// [`carmichael_lambda`]: fn.carmichael_lambda.html
 ///
 /// また、BS/GS パートでは [`BTreeMap`] を用いるよりも [`HashMap`]
 /// を用いた方が高速だったので、とりあえずそうしてある。
@@ -156,13 +159,15 @@ use mod_pow_::mod_pow_with_cd;
 /// - <https://divinejk.hatenablog.com/entry/2021/02/07/133155>
 ///
 /// # Suggestions
-/// 内部で Euler の $\\varphi$ 関数と約数列挙と素因数分解が必要となるので、
+/// 内部で ~~Euler の $\\varphi$ 関数~~ Carmichael の $\\lambda$
+/// 関数と約数列挙と素因数分解が必要となるので、
 /// 篩などを用いて高速化が図れる場合に対応しやすいようにしてみるとよい？
 ///
 /// ```ignore
 /// pub fn dlog<I, J>(
 ///     b: u64, a: u64, n: u64,
-///     euler_phi: impl Fn(u64) -> u64,
+///     // euler_phi: impl Fn(u64) -> u64,
+///     carmichael_lambda: impl Fn(u64) -> u64,
 ///     divisors: impl Fn(u64) -> I,
 ///     factors: impl Fn(u64) -> J,
 /// ) -> Option<u64>
