@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::io::Read;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::{App, Arg};
 use serde::{Deserialize, Serialize};
@@ -22,27 +22,35 @@ struct DeclIndex {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let default_index = format!(
+        "{}/git/rsk0315/library-rs/gen/generated/nekolib/decl-index.toml",
+        std::env::var("HOME")?
+    );
     let m = App::new("bundle")
+        .arg(
+            Arg::with_name("index")
+                .short("i")
+                .long("index")
+                .value_name("INDEX_PATH")
+                .help("Path to index file")
+                .default_value(default_index.as_str()),
+        )
         .arg(Arg::with_name("SOURCE").default_value("src/main.rs"))
         .get_matches();
 
     let source = m.value_of("SOURCE").unwrap();
-    bundle(&source)?;
+    let index_path = m.value_of("index").unwrap();
+    eprintln!("{:?}", index_path);
+    bundle(&source, Path::new(index_path))?;
 
     Ok(())
 }
 
-fn bundle(filename: &str) -> Result<(), Box<dyn Error>> {
-    eprintln!("bundle({:?})", filename);
-
+fn bundle(filename: &str, index_path: &Path) -> Result<(), Box<dyn Error>> {
     let mut file = std::fs::File::open(&filename)?;
     let mut src = String::new();
     file.read_to_string(&mut src)?;
 
-    let index_path = format!(
-        "{}/git/rsk0315/library-rs/gen/generated/nekolib/decl-index.toml",
-        std::env::var("HOME")?
-    );
     let index_path = PathBuf::from(index_path);
     let mut file = std::fs::File::open(&index_path)?;
     let mut toml = String::new();
