@@ -213,8 +213,8 @@ whole = [["traits", "additive"], ["traits", "assoc_val"], ["traits", "multiplica
 
 [[depends]]
 name = ["math", "ord_"]
-direct = [["math", "euler_phi_"], ["math", "factors_"], ["math", "mod_pow_"]]
-whole = [["math", "const_div"], ["math", "euler_phi_"], ["math", "factors_"], ["math", "mod_pow_"]]
+direct = [["math", "carmichael_lambda_"], ["math", "const_div"], ["math", "factors_"], ["math", "mod_pow_"]]
+whole = [["math", "carmichael_lambda_"], ["math", "const_div"], ["math", "factors_"], ["math", "mod_pow_"]]
 
 [[depends]]
 name = ["math", "polynomial"]
