@@ -1,0 +1,11 @@
+[package]
+name = "mod_tetration_"
+version = "0.1.0"
+authors = ["rsk0315 <rsk0315@icloud.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+euler_phi_ = { path = "../euler_phi_" }
+const_div = { path = "../const_div" }

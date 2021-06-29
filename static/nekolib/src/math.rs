@@ -22,6 +22,7 @@ pub mod lcm_;
 pub mod linear_floor_sum_;
 pub mod linear_sieve;
 pub mod mod_pow_;
+pub mod mod_tetration_;
 pub mod ord_;
 pub mod slope_function;
 pub mod two_sat;
@@ -56,6 +57,8 @@ pub use linear_floor_sum_::linear_floor_sum;
 pub use linear_sieve::LinearSieve;
 #[doc(inline)]
 pub use mod_pow_::{mod_pow, mod_pow_with_cd};
+#[doc(inline)]
+pub use mod_tetration_::mod_tetration;
 #[doc(inline)]
 pub use modint::ModInt;
 #[doc(inline)]
