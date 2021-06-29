@@ -23,7 +23,7 @@ use euler_phi_::euler_phi;
 ///
 /// ここで、$\\mu\\le\\log\_2(n)$, $\\lambda\\sqsubseteq\\varphi(n)$ である。
 /// さらに、任意の $n$ に対して $\\log\_2(n)\\le\\varphi(n)$ なので、$z\\ge\\varphi(n)$
-/// ならば $z\\ge\\mu$ とわかる[^1]。よって、以下のようにできる。
+/// ならば $z\\ge\\mu$ とわかる。よって、以下のようにできる。
 /// $$ \\begin{aligned}
 /// a^z \\equiv \\begin{cases}
 /// a^z, & \\text{if }z\\lt \\varphi(n); \\\\
