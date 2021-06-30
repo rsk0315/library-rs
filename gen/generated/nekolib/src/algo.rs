@@ -4,6 +4,7 @@
 pub mod bisect;
 pub mod extremum;
 pub mod extremum_float;
+pub mod majority_;
 pub mod minmax;
 pub mod mo;
 pub mod parallel_bisect;
@@ -16,6 +17,8 @@ pub use bisect::{bisect, bisect_slice};
 pub use extremum::{extremum, extremum_slice};
 #[doc(inline)]
 pub use extremum_float::extremum_float;
+#[doc(inline)]
+pub use majority_::majority;
 #[doc(inline)]
 pub use minmax::{minmax, minmax_by, minmax_by_key};
 #[doc(inline)]
