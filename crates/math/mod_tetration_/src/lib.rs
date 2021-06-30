@@ -92,21 +92,26 @@ use euler_phi_::euler_phi;
 /// ```
 /// use nekolib::math::mod_tetration;
 ///
-/// assert_eq!(mod_tetration(0, 0, 100000), 1);
-/// assert_eq!(mod_tetration(0, 1, 100000), 0);
-/// assert_eq!(mod_tetration(0, 2, 100000), 1);
-/// assert_eq!(mod_tetration(0, 3, 100000), 0);
+/// let n = 10_u64.pow(9);
 ///
-/// assert_eq!(mod_tetration(1, 0, 100000), 1);
-/// assert_eq!(mod_tetration(1, 1, 100000), 1);
+/// assert_eq!(mod_tetration(0, 0, n), 1);
+/// assert_eq!(mod_tetration(0, 1, n), 0);
+/// assert_eq!(mod_tetration(0, 2, n), 1);
+/// assert_eq!(mod_tetration(0, 3, n), 0);
 ///
-/// assert_eq!(mod_tetration(2, 0, 100000), 1);
-/// assert_eq!(mod_tetration(2, 1, 100000), 2);
-/// assert_eq!(mod_tetration(2, 2, 100000), 4);
-/// assert_eq!(mod_tetration(2, 3, 100000), 16);
-/// assert_eq!(mod_tetration(2, 4, 100000), 65536);
+/// assert_eq!(mod_tetration(1, 0, n), 1);
+/// assert_eq!(mod_tetration(1, 1, n), 1);
 ///
-/// assert_eq!(mod_tetration(2, 4, 65535), 1);
+/// assert_eq!(mod_tetration(2, 0, n), 1);
+/// assert_eq!(mod_tetration(2, 1, n), 2);
+/// assert_eq!(mod_tetration(2, 2, n), 4);
+/// assert_eq!(mod_tetration(2, 3, n), 16);
+/// assert_eq!(mod_tetration(2, 4, n), 65536);
+///
+/// assert_eq!(mod_tetration(3, 9, n), 64_195_387);
+/// assert_eq!(mod_tetration(3, 10, n), 464_195_387);
+/// assert_eq!(mod_tetration(3, 11, n), 464_195_387);
+/// assert_eq!(mod_tetration(3, 99, n), 464_195_387);
 /// ```
 ///
 /// # Notations
@@ -167,10 +172,6 @@ fn rec(a: u64, b: u64, n: u64) -> u64 {
 
 #[test]
 fn test() {
-    // for b in 0..20 {
-    //     println!("{}", mod_tetration(3, b, 1000000000));
-    // }
-
     for n in 1..100000 {
         if mod_tetration(2, 2, n) != 4 % n {
             eprintln!("{:?}", (2, 2, n));
@@ -189,7 +190,7 @@ fn test() {
             eprintln!("{:?}", (3, 2, n));
         }
         if mod_tetration(3, 3, n) != 7_625_597_484_987 % n {
-            eprintln!("{:?}", (3, 2, n));
+            eprintln!("{:?}", (3, 3, n));
         }
     }
 }
