@@ -21,6 +21,7 @@ pub mod incremental_line_set;
 pub mod lcm_;
 pub mod linear_floor_sum_;
 pub mod linear_sieve;
+pub mod mod_ackermann_;
 pub mod mod_pow_;
 pub mod mod_tetration_;
 pub mod ord_;
@@ -55,6 +56,8 @@ pub use lcm_::{lcm, overflowing_lcm};
 pub use linear_floor_sum_::linear_floor_sum;
 #[doc(inline)]
 pub use linear_sieve::LinearSieve;
+#[doc(inline)]
+pub use mod_ackermann_::mod_ackermann;
 #[doc(inline)]
 pub use mod_pow_::{mod_pow, mod_pow_with_cd};
 #[doc(inline)]
