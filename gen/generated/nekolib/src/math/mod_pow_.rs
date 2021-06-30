@@ -6,10 +6,10 @@ use const_div::ConstDiv;
 
 /// 冪乗。
 ///
-/// $x^e \\bmod p$ を返す。
+/// $a^b \\bmod n$ を返す。
 ///
 /// # Complexity
-/// $O(\\log(e))$ time.
+/// $O(\\log(b))$ time.
 ///
 /// # Examples
 /// ```
@@ -19,17 +19,17 @@ use const_div::ConstDiv;
 /// assert_eq!(mod_pow(2, 11, 1024), 0);
 /// assert_eq!(mod_pow(0, 0, 1), 0);
 /// ```
-pub fn mod_pow(x: u64, e: u64, p: u64) -> u64 {
-    let cd = ConstDiv::new(p);
-    mod_pow_with_cd(x % p, e, cd)
+pub fn mod_pow(a: u64, b: u64, n: u64) -> u64 {
+    let cd = ConstDiv::new(n);
+    mod_pow_with_cd(cd.rem(a), b, cd)
 }
 
 /// 冪乗。
 ///
-/// $x^e \\bmod p$ を返す。
+/// $a^b \\bmod n$ を返す。
 ///
 /// # Complexity
-/// $O(\\log(e))$ time.
+/// $O(\\log(b))$ time.
 ///
 /// # Examples
 /// ```
@@ -41,22 +41,28 @@ pub fn mod_pow(x: u64, e: u64, p: u64) -> u64 {
 /// assert_eq!(mod_pow_with_cd(2, 11, cd), 7);
 /// assert_eq!(mod_pow_with_cd(0, 0, cd), 1);
 /// ```
-pub fn mod_pow_with_cd(mut x: u64, mut e: u64, cd: ConstDiv) -> u64 {
+pub fn mod_pow_with_cd(mut a: u64, mut b: u64, cd: ConstDiv) -> u64 {
     let mut res = cd.rem(1);
-    while e > 0 {
-        if e & 1 == 1 {
-            res = cd.rem(res * x);
+    while b > 0 {
+        if b & 1 == 1 {
+            res = cd.rem(res * a);
         }
-        x = cd.rem(x * x);
-        e >>= 1;
+        a = cd.rem(a * a);
+        b >>= 1;
     }
     res
 }
 
 #[test]
 fn test() {
-    let cd = ConstDiv::new(13);
-    assert_eq!(mod_pow_with_cd(2, 11, cd), 7);
-    assert_eq!(mod_pow_with_cd(0, 0, cd), 1);
-    assert_eq!(mod_pow(0, 0, 1), 0);
+    for n in 1..=30 {
+        let cd = ConstDiv::new(n);
+        for a in 0..30 {
+            let mut expected = cd.rem(1);
+            for b in 0..30 {
+                assert_eq!(mod_pow(a, b, n), expected);
+                expected = cd.rem(expected * a);
+            }
+        }
+    }
 }
