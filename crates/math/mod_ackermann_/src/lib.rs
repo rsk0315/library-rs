@@ -74,6 +74,7 @@ use mod_tetration_::mod_tetration;
 /// assert_eq!(mod_ackermann(3, 7, n), 1_021);
 /// assert_eq!(mod_ackermann(4, 2, n), 719_156_733);
 /// assert_eq!(mod_ackermann(4, 3, n), 437_428_733);
+/// assert_eq!(mod_ackermann(4, 8, n), 432_948_733);
 /// assert_eq!(mod_ackermann(9, 9, n), 432_948_733);
 /// ```
 pub fn mod_ackermann(a: u64, b: u64, n: u64) -> u64 {
@@ -92,6 +93,6 @@ pub fn mod_ackermann(a: u64, b: u64, n: u64) -> u64 {
 #[test]
 fn test() {
     let n = 14_u64.pow(8);
-    let res: u64 = (0..=6).map(|a| mod_ackermann(a, a, n)).sum();
-    println!("{}", res % n);
+    let res: u64 = (0..=7).map(|a| mod_ackermann(a, a, n)).sum();
+    assert_eq!(res % n, 452_774_460);
 }
