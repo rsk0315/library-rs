@@ -68,7 +68,8 @@ use euler_phi_::euler_phi;
 /// }
 /// ```
 /// 最後のループで初めて `a >= n` になると、`res < n` なのに `res + n` が返ってしまう。
-/// このような理由により、${}^3 2\\bmod 32 = 0$ としてしまうコードがたくさん提出されている。
+/// このバグや、あるいはそもそも $z\\ge\\varphi(n)$ を仮定していることなどにより、
+/// ${}^3 2\\bmod 32 = 0$ としてしまうコードがたくさん提出されている。
 /// [$\\bullet$](https://judge.yosupo.jp/submission/4054)
 /// [$\\bullet$](https://judge.yosupo.jp/submission/4564)
 /// [$\\bullet$](https://judge.yosupo.jp/submission/12501)
