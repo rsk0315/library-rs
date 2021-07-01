@@ -78,7 +78,13 @@ use mod_tetration_::mod_tetration;
 /// assert_eq!(mod_ackermann(9, 9, n), 432_948_733);
 /// ```
 pub fn mod_ackermann(a: u64, b: u64, n: u64) -> u64 {
-    let sub_3 = |z| if z >= 3 { z - 3 } else { z + n - 3 };
+    let sub_3 = |z| match n {
+        1 => 0,
+        2 => 1 - z,
+        3 => z,
+        _ if z >= 3 => z - 3,
+        _ => z + n - 3,
+    };
     match (a, b) {
         (0, _) => (b + 1) % n,
         (1, _) => (b + 2) % n,
