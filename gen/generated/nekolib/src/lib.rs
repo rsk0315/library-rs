@@ -19,6 +19,10 @@
 //!
 //! # 🐱 Cat
 //! にゃー。
+//!
+//!
+//! \# Version
+//! 2fc4dbabd3786bb8dcce46d47b49ddc1ade0a7ea
 pub mod algo;
 pub mod ds;
 pub mod graph;
