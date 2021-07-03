@@ -150,6 +150,9 @@ impl ConstDiv2 {
 /// 直接計算できる。一方で、$2^w\\le M\_d\\lt 2^{w+1}$ の場合はワードサイズに収まらないので、
 /// 少々工夫する必要がある。$M\_d-2\^w$ はワードサイズに収まるので、それを利用する。
 /// `todo!()`
+///
+/// # References
+/// - Warren, Henry S. _Hacker's delight_. Pearson Education, 2013.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ConstDiv {
     n: u64,
