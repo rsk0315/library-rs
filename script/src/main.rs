@@ -13,8 +13,7 @@ fn main() {
 [`{0}`](https://github.com/rsk0315/library-rs/tree/{0})
 
 ```text
-{1}
-```
+{1}```
 ",
         sha_enc,
         ba.draw()
