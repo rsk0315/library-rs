@@ -36,11 +36,9 @@ jobs:
         run: |
           pwd
           [[ -d doc/gen/generated ]] && rm -Rf doc/gen/generated
-          echo '//!' >> master/static/nekolib/src/lib.rs
-          echo '//! \# Version'
           cat << EOF >> master/static/nekolib/src/lib.rs
           //!
-          //! \# Version
+          //! # Version
           //! ${GITHUB_SHA}
           EOF
           cp -R master/static doc/gen/generated
