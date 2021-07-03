@@ -19,9 +19,23 @@
 //!
 //! # 🐱 Cat
 //! にゃー。
-//!
+//! 
 //! ## Revision
-//! [`24c6d1245800558c168dfae5bd218cb7595dff7b`](https://github.com/rsk0315/library-rs/tree/24c6d1245800558c168dfae5bd218cb7595dff7b)
+//! [`11c0ca3fdf73a964186887b8e4df88cff67d2bff`](https://github.com/rsk0315/library-rs/tree/11c0ca3fdf73a964186887b8e4df88cff67d2bff)
+//! 
+//! ```text
+//! +----------------+
+//! |    .....       |
+//! |     . .        |
+//! |  . o o .       |
+//! |   = + S        |
+//! |  o + . o       |
+//! |   o o . o  .   |
+//! |    +.= =o +    |
+//! |   .o=.+ +BooE  |
+//! +----------------+
+//! 
+//! ```
 pub mod algo;
 pub mod ds;
 pub mod graph;
