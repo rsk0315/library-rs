@@ -20,8 +20,8 @@
 //! # 🐱 Cat
 //! にゃー。
 //!
-//! # Revision
-//! [`88f47dc2`](https://github.com/rsk0315/library-rs/tree/88f47dc2cf47ffd224361e0ca47771ad0c59006f)
+//! ## Revision
+//! [`24c6d1245800558c168dfae5bd218cb7595dff7b`](https://github.com/rsk0315/library-rs/tree/24c6d1245800558c168dfae5bd218cb7595dff7b)
 pub mod algo;
 pub mod ds;
 pub mod graph;
