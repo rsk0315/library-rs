@@ -38,8 +38,8 @@ jobs:
           [[ -d doc/gen/generated ]] && rm -Rf doc/gen/generated
           cat << EOF >> master/static/nekolib/src/lib.rs
           //!
-          //! # Revision
-          //! [\`${GITHUB_SHA:0:8}\`](https://github.com/rsk0315/library-rs/tree/${GITHUB_SHA})
+          //! ## Revision
+          //! [\`${GITHUB_SHA}\`](https://github.com/rsk0315/library-rs/tree/${GITHUB_SHA})
           EOF
           cp -R master/static doc/gen/generated
           cd doc
