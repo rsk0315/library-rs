@@ -1,0 +1,29 @@
+name: libtest
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'crates/'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Install latest Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Test lib
+        run: |
+          cd crates
+          cargo test --release --lib
