@@ -42,10 +42,7 @@ pub struct UnionFind {
 
 impl DisjointSet for UnionFind {
     fn new(n: usize) -> Self {
-        Self {
-            n,
-            buf: RefCell::new(vec![Item::Size(1); n]),
-        }
+        Self { n, buf: RefCell::new(vec![Item::Size(1); n]) }
     }
     fn len(&self) -> usize { self.n }
     fn unite(&mut self, u: usize, v: usize) -> bool {
@@ -89,24 +86,19 @@ impl DisjointSet for UnionFind {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::DisjointSet;
-    use crate::UnionFind;
-    #[test]
-    fn test() {
-        let n = 4;
-        let mut uf = UnionFind::new(n);
-        assert!(!uf.equiv(1, 3));
-        assert_eq!(uf.count(1), 1);
-        assert_eq!(uf.count(3), 1);
-        uf.unite(1, 3);
-        assert!(uf.equiv(1, 3));
-        assert_eq!(uf.count(1), 2);
-        assert_eq!(uf.count(3), 2);
-        uf.unite(2, 3);
-        assert!(uf.equiv(2, 3));
-        assert!(uf.equiv(1, 2));
-        assert!(!uf.equiv(1, 0));
-    }
+#[test]
+fn test() {
+    let n = 4;
+    let mut uf = UnionFind::new(n);
+    assert!(!uf.equiv(1, 3));
+    assert_eq!(uf.count(1), 1);
+    assert_eq!(uf.count(3), 1);
+    uf.unite(1, 3);
+    assert!(uf.equiv(1, 3));
+    assert_eq!(uf.count(1), 2);
+    assert_eq!(uf.count(3), 2);
+    uf.unite(2, 3);
+    assert!(uf.equiv(2, 3));
+    assert!(uf.equiv(1, 2));
+    assert!(!uf.equiv(1, 0));
 }
