@@ -169,7 +169,7 @@ fn rec(a: u64, b: u64, n: u64) -> u64 {
         _ => {
             let phi = euler_phi(n);
             let res = rec(a, b - 1, phi);
-            mod_pow(a % n, res, n, res >= phi)
+            mod_pow(a % n, res, n, res >= phi || a >= phi)
         }
     }
 }
