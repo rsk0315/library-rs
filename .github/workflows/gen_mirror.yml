@@ -37,7 +37,7 @@ jobs:
           pwd
           [[ -d doc/gen/generated ]] && rm -Rf doc/gen/generated
           cd master/script
-          cargo run ${GITHUB_SHA} >> ../static/nekolib/src/lib.rs
+          cargo run --bin revision-art ${GITHUB_SHA} >> ../static/nekolib/src/lib.rs
           cd ../..
           cp -R master/static doc/gen/generated
           cd doc
