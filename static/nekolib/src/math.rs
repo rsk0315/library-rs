@@ -11,6 +11,7 @@ pub mod carmichael_lambda_;
 pub mod compact_sieve;
 pub mod const_div;
 pub mod count_prime;
+pub mod crt;
 pub mod divisors_;
 pub mod dlog_;
 pub mod euler_phi_;
@@ -37,6 +38,8 @@ pub use compact_sieve::CompactSieve;
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
 pub use count_prime::prime_pi;
+#[doc(inline)]
+pub use crt::Crt;
 #[doc(inline)]
 pub use divisors_::divisors;
 #[doc(inline)]
