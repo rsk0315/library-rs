@@ -22,6 +22,24 @@ enum Item {
 /// |`count`|amortized $O(\\alpha(n))$|
 /// |`subset`|$\\Theta(n)$|
 ///
+/// より tight には、$n$ 要素 $m$ クエリのとき、$O(m\\cdot\\alpha(m, n)+n)$ 時間となる。
+/// ただし、$\\alpha(m, n)$ は次のように定義される。
+/// $$ \\alpha(m, n) = \\min\\{k\\in\\mathbb{N}\\mid J\_k(\\lfloor\\log\_2(n)\\rfloor)\\le 1+m/n\\}. $$
+/// ここで、$g^\\diamond = (\\lceil{\\log\_2}\\rceil\\circ g)^\\star$ とし、$J\_0(r) =
+/// \\lceil(r-1)/2\\rceil$, $J\_k(r)=J\_{k-1}^\\diamond(r)$ ($k\\gt 0$) である。
+/// より直感的には、${\\underbrace{J\_0^{\\diamond\\diamond\\cdots\\diamond}}\_{k\\text{ many }\\diamond{\\text{s}}}}(\\lfloor\\log\_2(n)\\rfloor)$ が $1+m/n$ 以下になる最小の $k$ が $\\alpha(m, n)$ である。
+///
+///
+/// ## Complexity analysis
+///
+/// 参考文献ふたつめの PDF の概略を書く。`todo!()`
+///
+/// これらより、$f(m, n, r)\\le (\\alpha(m, n)+2)\\cdot m+2n$ が言える。
+///
+/// Note: $\\alpha\'(m, n) = \\min\\{k\\in\\mathbb{N}\\mid \\alpha\_k(n)\\le 3\\}$ として
+/// $\\alpha(m, n) = O(\\alpha\'(m, n))$ である。
+///
+///
 /// # Examples
 /// ```
 /// use nekolib::traits::DisjointSet;
@@ -35,6 +53,10 @@ enum Item {
 /// assert!(!uf.equiv(0, 3));
 /// assert_eq!(uf.count(0), 3);
 /// ```
+///
+/// # References
+/// - <http://www.gabrielnivasch.org/fun/inverse-ackermann>
+/// - <http://cgi.di.uoa.gr/~ewcg06/invited/Seidel.pdf>
 pub struct UnionFind {
     n: usize,
     buf: RefCell<Vec<Item>>,
