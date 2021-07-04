@@ -8,6 +8,7 @@
 pub mod modint;
 // pub mod polynomial;
 pub mod carmichael_lambda_;
+pub mod compact_sieve;
 pub mod const_div;
 pub mod count_prime;
 pub mod divisors_;
@@ -30,6 +31,8 @@ pub mod two_sat;
 
 #[doc(inline)]
 pub use carmichael_lambda_::carmichael_lambda;
+#[doc(inline)]
+pub use compact_sieve::CompactSieve;
 #[doc(inline)]
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
