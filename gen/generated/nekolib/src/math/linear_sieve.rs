@@ -190,6 +190,21 @@ impl LinearSieve {
         res.into_iter()
     }
 
+    /// $n$ の約数の個数を返す。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.divisors_count(1), 1);
+    /// assert_eq!(sieve.divisors_count(60), sieve.divisors(60).count());
+    /// ```
+    pub fn divisors_count(&self, n: usize) -> usize {
+        self.factors(n).map(|(_, e)| e as usize + 1).product()
+    }
+
     /// 素数を列挙する。
     ///
     /// # Examples
