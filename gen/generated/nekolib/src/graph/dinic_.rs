@@ -201,7 +201,6 @@ where
     }
 
     let f = es.iter().map(|(e, _, _)| e.borrow().clone()).min().unwrap();
-    eprintln!("{:?}", vis);
 
     for (w, nv, r) in es {
         *w.borrow_mut() -= f.clone();
