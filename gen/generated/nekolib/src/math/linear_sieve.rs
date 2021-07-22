@@ -132,6 +132,64 @@ impl LinearSieve {
             .map(move |n| self.lpf[n])
     }
 
+    /// $n$ を素因数分解する。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.factors(1).next(), None);
+    /// assert_eq!(
+    ///     sieve.factors(60).collect::<Vec<_>>(),
+    ///     vec![(2, 2), (3, 1), (5, 1)]
+    /// );
+    /// ```
+    pub fn factors(&self, n: usize) -> impl Iterator<Item = (usize, u32)> + '_ {
+        self.factors_dup(n)
+            .chain(std::iter::once(1))
+            .scan((self.lpf[n], 0), |state, x| {
+                if state.0 == x {
+                    state.1 += 1;
+                    Some(None)
+                } else {
+                    Some(Some(std::mem::replace(state, (x, 1))))
+                }
+            })
+            .filter_map(std::convert::identity)
+    }
+
+    /// $n$ の約数を列挙する。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.divisors(1).next(), Some(1));
+    /// assert_eq!(sieve.divisors(1).nth(1), None);
+    /// assert_eq!(
+    ///     sieve.divisors(60).collect::<Vec<_>>(),
+    ///     vec![1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
+    /// );
+    /// ```
+    pub fn divisors(&self, n: usize) -> impl Iterator<Item = usize> {
+        let mut res = vec![1];
+        for (p, e) in self.factors(n) {
+            let mut tmp = vec![];
+            let mut pp = 1;
+            for _ in 1..=e {
+                pp *= p;
+                tmp.extend(res.iter().map(|&x| x * pp));
+            }
+            res.extend(tmp);
+        }
+        res.sort_unstable();
+        res.into_iter()
+    }
+
     /// 素数を列挙する。
     ///
     /// # Examples
