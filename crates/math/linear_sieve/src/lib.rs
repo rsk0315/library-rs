@@ -160,6 +160,22 @@ impl LinearSieve {
             .filter_map(std::convert::identity)
     }
 
+    /// $\\phi(n)$ を求める。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.euler_phi(1), 1);
+    /// assert_eq!(sieve.euler_phi(35), 24);
+    /// assert_eq!(sieve.euler_phi(60), 16);
+    /// ```
+    pub fn euler_phi(&self, n: usize) -> usize {
+        self.factors(n).map(|(p, e)| (p - 1) * p.pow(e as u32 - 1)).product()
+    }
+
     /// $n$ の約数を列挙する。
     ///
     /// # Examples
