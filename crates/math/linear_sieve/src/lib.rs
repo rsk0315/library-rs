@@ -21,6 +21,7 @@
 /// |`factors_dup`|$\\Theta(1)$ delay|
 /// |`factors`|$\\Theta(e\_i)$ delay|
 /// |`euler_phi`|$\\Theta(\\Omega(n))$|
+/// |`euler_phi_star`|$\\O(\\Omega(n)\\log(n))$|
 /// |`primes`|$\\Theta(1)$ delay|
 ///
 /// $n$ の素因数の個数を $\\Omega(n)$ とすると、以下の式が成り立つらしい。
@@ -176,6 +177,38 @@ impl LinearSieve {
     /// ```
     pub fn euler_phi(&self, n: usize) -> usize {
         self.factors(n).map(|(p, e)| (p - 1) * p.pow(e as u32 - 1)).product()
+    }
+
+    /// $\\phi^\\star(n)$ を求める。
+    ///
+    /// $n$ に $\\phi$ を繰り返し適用して $1$ にするために必要な最小回数である。
+    /// $n\\gt 1$ に対して $\\phi(\\phi(n)) \\le n/2$ なので、
+    /// $\\phi^\\star(n) = O(\\log(n))$ である。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.euler_phi_star(1), 0);
+    /// assert_eq!(sieve.euler_phi_star(35), 5);
+    /// assert_eq!(sieve.euler_phi_star(60), 5);
+    ///
+    /// assert_eq!(sieve.euler_phi(35), 24);
+    /// assert_eq!(sieve.euler_phi(24), 8);
+    /// assert_eq!(sieve.euler_phi(8), 4);
+    /// assert_eq!(sieve.euler_phi(4), 2);
+    /// assert_eq!(sieve.euler_phi(2), 1);
+    ///
+    /// assert_eq!(sieve.euler_phi(60), 16);
+    /// assert_eq!(sieve.euler_phi(16), 8);
+    /// ```
+    pub fn euler_phi_star(&self, n: usize) -> usize {
+        match n {
+            0..=2 => n / 2,
+            _ => 1 + self.euler_phi_star(self.euler_phi(n)),
+        }
     }
 
     /// $n$ の約数を列挙する。
