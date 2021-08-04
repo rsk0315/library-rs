@@ -19,6 +19,8 @@
 /// |`is_prime`|$\\Theta(1)$|
 /// |`least_factor`|$\\Theta(1)$|
 /// |`factors_dup`|$\\Theta(1)$ delay|
+/// |`factors`|$\\Theta(e\_i)$ delay|
+/// |`euler_phi`|$\\Theta(\\Omega(n))$|
 /// |`primes`|$\\Theta(1)$ delay|
 ///
 /// $n$ の素因数の個数を $\\Omega(n)$ とすると、以下の式が成り立つらしい。
@@ -158,6 +160,22 @@ impl LinearSieve {
                 }
             })
             .filter_map(std::convert::identity)
+    }
+
+    /// $\\phi(n)$ を求める。
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.euler_phi(1), 1);
+    /// assert_eq!(sieve.euler_phi(35), 24);
+    /// assert_eq!(sieve.euler_phi(60), 16);
+    /// ```
+    pub fn euler_phi(&self, n: usize) -> usize {
+        self.factors(n).map(|(p, e)| (p - 1) * p.pow(e as u32 - 1)).product()
     }
 
     /// $n$ の約数を列挙する。
