@@ -19,6 +19,8 @@
 /// |`is_prime`|$\\Theta(1)$|
 /// |`least_factor`|$\\Theta(1)$|
 /// |`factors_dup`|$\\Theta(1)$ delay|
+/// |`factors`|$\\Theta(e\_i)$ delay|
+/// |`euler_phi`|$\\Theta(\\Omega(n))$|
 /// |`primes`|$\\Theta(1)$ delay|
 ///
 /// $n$ の素因数の個数を $\\Omega(n)$ とすると、以下の式が成り立つらしい。
