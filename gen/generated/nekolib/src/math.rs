@@ -27,6 +27,7 @@ pub mod mod_ackermann_;
 pub mod mod_pow_;
 pub mod mod_tetration_;
 pub mod ord_;
+pub mod sieve_square_plus_one;
 pub mod slope_function;
 pub mod two_sat;
 
@@ -72,6 +73,8 @@ pub use mod_tetration_::mod_tetration;
 pub use modint::ModInt;
 #[doc(inline)]
 pub use ord_::ord;
+#[doc(inline)]
+pub use sieve_square_plus_one::SieveSquarePlusOne;
 #[doc(inline)]
 pub use slope_function::SlopeFunction;
 #[doc(inline)]
