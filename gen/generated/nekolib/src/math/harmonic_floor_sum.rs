@@ -24,10 +24,10 @@ use std::ops::{
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::HarmonicSum;
+/// use nekolib::math::HarmonicFloorSum;
 ///
 /// let m = 100;
-/// let hs = HarmonicSum::new(m);
+/// let hs = HarmonicFloorSum::new(m);
 /// assert_eq!(hs.quot(1..=m), (1..=m).map(|i| m / i).sum());
 /// assert_eq!(hs.rem(1..=m), (1..=m).map(|i| m % i).sum());
 ///
@@ -35,24 +35,24 @@ use std::ops::{
 /// assert_eq!(hs.quot(..=n), (1..=n).map(|i| m / i).sum());
 /// ```
 #[derive(Clone, Debug)]
-pub struct HarmonicSum {
-    m: i128,
-    q: Vec<i128>,
-    qsum: Vec<i128>,
-    rsum: Vec<i128>,
+pub struct HarmonicFloorSum {
+    m: usize,
+    q: Vec<usize>,
+    qsum: Vec<usize>,
+    rsum: Vec<usize>,
 }
 
-impl HarmonicSum {
+impl HarmonicFloorSum {
     /// 前処理を行う。
     ///
     /// # Examples
     /// ```
-    /// use nekolib::math::HarmonicSum;
+    /// use nekolib::math::HarmonicFloorSum;
     ///
     /// let m = 100;
-    /// let hs = HarmonicSum::new(m);
+    /// let hs = HarmonicFloorSum::new(m);
     /// ```
-    pub fn new(m: i128) -> Self {
+    pub fn new(m: usize) -> Self {
         let mut q = vec![0];
         let mut tmp = vec![];
         for i in (1..).take_while(|&i| i * i <= m) {
@@ -74,16 +74,16 @@ impl HarmonicSum {
         }
         Self { m, q, qsum, rsum }
     }
-    fn search(&self, n: i128) -> usize {
+    fn search(&self, n: usize) -> usize {
         if n > self.m {
             self.q.len()
         } else if n * n <= self.m {
-            n as usize
+            n
         } else {
-            self.q.len() - (self.m / n) as usize
+            self.q.len() - (self.m / n)
         }
     }
-    fn quot_internal(&self, n: i128) -> i128 {
+    fn quot_internal(&self, n: usize) -> usize {
         if n <= 0 {
             return 0;
         }
@@ -104,15 +104,15 @@ impl HarmonicSum {
     ///
     /// # Examples
     /// ```
-    /// use nekolib::math::HarmonicSum;
+    /// use nekolib::math::HarmonicFloorSum;
     ///
     /// let m = 100;
-    /// let hs = HarmonicSum::new(m);
+    /// let hs = HarmonicFloorSum::new(m);
     /// assert_eq!(hs.quot(1..=m), (1..=m).map(|i| m / i).sum());
     /// assert_eq!(hs.quot(..), (1..=m).map(|i| m / i).sum());
     /// assert_eq!(hs.quot(1..=m), hs.quot(1..=m + 1));
     /// ```
-    pub fn quot(&self, r: impl RangeBounds<i128>) -> i128 {
+    pub fn quot(&self, r: impl RangeBounds<usize>) -> usize {
         let end = match r.end_bound() {
             Included(&e) => self.quot_internal(e),
             Excluded(&e) => self.quot_internal(e - 1),
@@ -125,7 +125,7 @@ impl HarmonicSum {
         };
         end - start
     }
-    fn rem_internal(&self, n: i128) -> i128 {
+    fn rem_internal(&self, n: usize) -> usize {
         if n <= 0 {
             return 0;
         }
@@ -150,22 +150,22 @@ impl HarmonicSum {
     ///
     /// # Examples
     /// ```
-    /// use nekolib::math::HarmonicSum;
+    /// use nekolib::math::HarmonicFloorSum;
     ///
     /// let m = 100;
-    /// let hs = HarmonicSum::new(m);
+    /// let hs = HarmonicFloorSum::new(m);
     /// assert_eq!(hs.rem(1..=m), (1..=m).map(|i| m % i).sum());
     /// assert_eq!(hs.rem(..=m), (1..=m).map(|i| m % i).sum());
     /// assert_ne!(hs.rem(1..=m), hs.rem(1..=m + 1)); // m % (m + 1) = m > 0
     /// ```
     ///
     /// ```should_panic
-    /// use nekolib::math::HarmonicSum;
+    /// use nekolib::math::HarmonicFloorSum;
     /// let m = 100;
-    /// let hs = HarmonicSum::new(m);
+    /// let hs = HarmonicFloorSum::new(m);
     /// let infty = hs.rem(1..); // diverges
     /// ```
-    pub fn rem(&self, r: impl RangeBounds<i128>) -> i128 {
+    pub fn rem(&self, r: impl RangeBounds<usize>) -> usize {
         let end = match r.end_bound() {
             Included(&e) => self.rem_internal(e),
             Excluded(&e) => self.rem_internal(e - 1),
@@ -183,7 +183,7 @@ impl HarmonicSum {
 #[test]
 fn test_quot() {
     let m = 300;
-    let hs = HarmonicSum::new(m);
+    let hs = HarmonicFloorSum::new(m);
     for start in 1..=m + 10 {
         let mut sum = 0;
         for end in start..=m + 10 {
@@ -201,7 +201,7 @@ fn test_quot() {
 #[test]
 fn test_rem() {
     let m = 300;
-    let hs = HarmonicSum::new(m);
+    let hs = HarmonicFloorSum::new(m);
     for start in 1..=m + 10 {
         let mut sum = 0;
         for end in start..=m + 10 {

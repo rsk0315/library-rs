@@ -1,10 +1,9 @@
 //! tetration。
 
 use super::const_div;
-use super::euler_phi_;
+use super::euler_phi;
 
-use const_div::ConstDiv;
-use euler_phi_::euler_phi;
+use euler_phi::EulerPhi;
 
 /// tetration。
 ///
@@ -121,79 +120,95 @@ use euler_phi_::euler_phi;
 /// # Notations
 /// ${}^b a$ は $a\\uparrow\\uparrow b$ (Knuth's up-arrow notation) や
 /// $a\\to b\\to 2$ (Conway chained arrow notation) などとも表記される。
-pub fn mod_tetration(a: u64, b: u64, n: u64) -> u64 {
-    match (a, b, n) {
-        (.., 1) => return 0,
-        (_, 0, _) => return 1,
-        (_, 1, _) => return a % n,
-        _ => match rec(a, b, n) {
-            z if z >= n => z - n,
-            z => z,
-        },
-    }
+pub trait ModTetration {
+    fn mod_tetration(self, b: Self, n: Self) -> Self;
 }
 
-fn mod_pow(mut a: u64, mut b: u64, n: u64, mut large: bool) -> u64 {
-    let cd = ConstDiv::new(n);
-    let mut res = 1;
-    let mut large_buf = false;
-    while b > 0 {
-        if b & 1 == 1 {
-            res *= a;
-            large |= large_buf;
-            if res >= n {
-                res = cd.rem(res);
-                large = true;
+trait ModTetrationInternal {
+    fn rec(self, b: Self, n: Self) -> Self;
+    fn mod_pow(self, b: Self, n: Self, large: bool) -> Self;
+}
+
+macro_rules! impl_uint {
+    ($t:ty) => {
+        impl ModTetration for $t {
+            fn mod_tetration(self, b: Self, n: Self) -> Self {
+                let a = self;
+                match (a, b, n) {
+                    (.., 1) => return 0,
+                    (_, 0, _) => return 1,
+                    (_, 1, _) => return a % n,
+                    _ => match a.rec(b, n) {
+                        z if z >= n => z - n,
+                        z => z,
+                    }
+                }
             }
         }
-        a *= a;
-        if a >= n {
-            a = cd.rem(a);
-            large_buf = true;
+        impl ModTetrationInternal for $t {
+            fn rec(self, b: Self, n: Self) -> Self {
+                let a = self;
+                match (a, b, n) {
+                    (0, ..) => return 1 - b % 2,
+                    (1, ..) => return 1,
+                    (.., 1) => return 1,
+                    (_, 1, _) => return a,
+                    _ => {
+                        let phi = n.euler_phi();
+                        let res = a.rec(b - 1, phi);
+                        (a % n).mod_pow(res, n, res >= phi || a >= phi)
+                    }
+                }
+            }
+            fn mod_pow(self, mut b: Self, n: Self, mut large: bool) -> Self {
+                let mut a = self;
+                let mut res = 1;
+                let mut large_buf = false;
+                while b > 0 {
+                    if b & 1 == 1 {
+                        res *= a;
+                        large |= large_buf;
+                        if res >= n {
+                            res %= n;
+                            large = true;
+                        }
+                    }
+                    a *= a;
+                    if a >= n {
+                        a %= n;
+                        large_buf = true;
+                    }
+                    b >>= 1;
+                }
+                if large { res + n } else { res }
+            }
         }
-        b >>= 1;
-    }
-    if large {
-        res + n
-    } else {
-        res
-    }
+    };
+    ( $($t:ty)* ) => { $(impl_uint!($t);)* };
 }
 
-fn rec(a: u64, b: u64, n: u64) -> u64 {
-    match (a, b, n) {
-        (0, ..) => return 1 - b % 2,
-        (1, ..) => return 1,
-        (.., 1) => return 1,
-        (_, 1, _) => return a,
-        _ => {
-            let phi = euler_phi(n);
-            let res = rec(a, b - 1, phi);
-            mod_pow(a % n, res, n, res >= phi || a >= phi)
-        }
-    }
-}
+impl_uint!(u8 u16 u32 u64 u128 usize);
 
 #[test]
 fn test() {
-    for n in 1..100000 {
-        if mod_tetration(2, 2, n) != 4 % n {
+    for n in 1_u64..100000 {
+        if 2.mod_tetration(2, n) != 4 % n {
             eprintln!("{:?}", (2, 2, n));
         }
-        if mod_tetration(2, 3, n) != 16 % n {
+        if 2.mod_tetration(3, n) != 16 % n {
             eprintln!("{:?}", (2, 3, n));
         }
-        if mod_tetration(2, 4, n) != 65536 % n {
+        if 2.mod_tetration(4, n) != 65536 % n {
             eprintln!("{:?}", (2, 4, n));
         }
-        if mod_tetration(2, 5, n) != mod_pow(2, 65536, n, true) - n {
+        if 2.mod_tetration(5, n) != 2_u64.mod_pow(65536, n, true) - n {
             eprintln!("{:?}", (2, 5, n));
         }
 
-        if mod_tetration(3, 2, n) != 27 % n {
+        if 3.mod_tetration(2, n) != 27 % n {
             eprintln!("{:?}", (3, 2, n));
         }
-        if mod_tetration(3, 3, n) != 7_625_597_484_987 % n {
+        if 3.mod_tetration(3, n) != 7_625_597_484_987 % n {
             eprintln!("{:?}", (3, 3, n));
         }
     }

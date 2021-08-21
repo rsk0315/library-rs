@@ -1,10 +1,10 @@
 //! Ackermann 関数。
 
-use super::mod_pow_;
-use super::mod_tetration_;
+use super::mod_pow;
+use super::mod_tetration;
 
-use mod_pow_::mod_pow;
-use mod_tetration_::mod_tetration;
+use mod_pow::ModPow;
+use mod_tetration::ModTetration;
 
 /// Ackermann 関数。
 ///
@@ -73,35 +73,48 @@ use mod_tetration_::mod_tetration;
 /// use nekolib::math::mod_ackermann;
 ///
 /// let n = 10_u64.pow(9);
-/// assert_eq!(mod_ackermann(2, 5, n), 13);
-/// assert_eq!(mod_ackermann(3, 7, n), 1_021);
-/// assert_eq!(mod_ackermann(4, 2, n), 719_156_733);
-/// assert_eq!(mod_ackermann(4, 3, n), 437_428_733);
-/// assert_eq!(mod_ackermann(4, 8, n), 432_948_733);
-/// assert_eq!(mod_ackermann(9, 9, n), 432_948_733);
+/// assert_eq!(2_u64.mod_ackermann(5, n), 13);
+/// assert_eq!(3_u64.mod_ackermann(7, n), 1_021);
+/// assert_eq!(4_u64.mod_ackermann(2, n), 719_156_733);
+/// assert_eq!(4_u64.mod_ackermann(3, n), 437_428_733);
+/// assert_eq!(4_u64.mod_ackermann(8, n), 432_948_733);
+/// assert_eq!(9_u64.mod_ackermann(9, n), 432_948_733);
 /// ```
-pub fn mod_ackermann(a: u64, b: u64, n: u64) -> u64 {
-    let sub_3 = |z| match n {
-        1 => 0,
-        2 => 1 - z,
-        3 => z,
-        _ if z >= 3 => z - 3,
-        _ => z + n - 3,
-    };
-    match (a, b) {
-        (0, _) => (b + 1) % n,
-        (1, _) => (b + 2) % n,
-        (2, _) => (2 * b + 3) % n,
-        (3, _) => sub_3(mod_pow(2, b + 3, n)),
-        (4, _) => sub_3(mod_tetration(2, b + 3, n)),
-        (5, 0) => 65533 % n,
-        _ => sub_3(mod_tetration(2, n, n)),
-    }
+pub trait ModAckermann {
+    fn mod_ackermann(self, b: Self, n: Self) -> Self;
 }
+
+macro_rules! impl_uint {
+    ($t:ty) => {
+        impl ModAckermann for $t {
+            fn mod_ackermann(self, b: Self, n: Self) -> Self {
+                let sub_3 = |z| match n {
+                    1 => 0,
+                    2 => 1 - z,
+                    3 => z,
+                    _ if z >= 3 => z - 3,
+                    _ => z + n - 3,
+                };
+                match (self, b) {
+                    (0, _) => (b + 1) % n,
+                    (1, _) => (b + 2) % n,
+                    (2, _) => (2 * b + 3) % n,
+                    (3, _) => sub_3((2 as $t).mod_pow(b + 3, n)),
+                    (4, _) => sub_3((2 as $t).mod_tetration(b + 3, n)),
+                    (5, 0) => (65533_u128 % n as u128) as $t, // for u8
+                    _ => sub_3((2 as $t).mod_tetration(n, n)),
+                }
+            }
+        }
+    };
+    ( $($t:ty)* ) => { $(impl_uint!($t);)* };
+}
+
+impl_uint!(u8 u16 u32 u64 u128 usize);
 
 #[test]
 fn test() {
     let n = 14_u64.pow(8);
-    let res: u64 = (0..=7).map(|a| mod_ackermann(a, a, n)).sum();
+    let res: u64 = (0..=7).map(|a| a.mod_ackermann(a, n)).sum();
     assert_eq!(res % n, 452_774_460);
 }

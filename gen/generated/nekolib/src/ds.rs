@@ -4,6 +4,7 @@
 //! は抽象化されていないという気もするが...
 pub mod bicremental_median;
 pub mod bicremental_median_dev;
+pub mod bit_set;
 pub mod disjoint_sparse_table;
 pub mod foldable_deque;
 pub mod foldable_queue;
@@ -18,6 +19,8 @@ pub mod wavelet_matrix;
 pub use bicremental_median::BicrementalMedian;
 #[doc(inline)]
 pub use bicremental_median_dev::BicrementalMedianDev;
+#[doc(inline)]
+pub use bit_set::BitSet;
 #[doc(inline)]
 pub use disjoint_sparse_table::DisjointSparseTable;
 #[doc(inline)]

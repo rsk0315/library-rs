@@ -1,20 +1,18 @@
 //! 離散対数。
 
-use super::carmichael_lambda_;
-use super::const_div;
-use super::divisors_;
-use super::factors_;
-use super::gcd_recip_;
-use super::mod_pow_;
+use super::carmichael_lambda;
+use super::divisors;
+use super::factors;
+use super::gcd;
+use super::mod_pow;
 
 use std::collections::HashMap;
 
-use carmichael_lambda_::carmichael_lambda;
-use const_div::ConstDiv;
-use divisors_::divisors;
-use factors_::factors;
-use gcd_recip_::gcd_recip;
-use mod_pow_::mod_pow_with_cd;
+use carmichael_lambda::CarmichaelLambda;
+use divisors::Divisors;
+use factors::Factors;
+use gcd::Gcd;
+use mod_pow::ModPow;
 
 /// 離散対数。
 ///
@@ -191,81 +189,100 @@ use mod_pow_::mod_pow_with_cd;
 ///
 /// # Naming
 /// 関数名は *d*iscrete *log*arithm、引数 $b$ は *b*ase、$a$ は *a*ntilogarithm から。
-pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
-    match (b, a, n) {
-        (_, _, 0) => panic!("modulo must be positive"),
-        (_, _, 1) => return Some(0),
-        (_, 1, _) => return Some(0),
-        (0, 0, _) => return Some(1),
-        (0, _, _) => return None,
-        (1, _, _) => return None,
-        _ => {}
-    }
+pub trait DLog: Sized {
+    fn dlog(self, a: Self, n: Self) -> Option<Self>;
+}
 
-    let mut n_ = n;
-    let tail = factors(b)
-        .map(|(p, e)| {
-            let mut f = 0;
-            while n_ % p == 0 {
-                n_ /= p;
-                f += 1;
+trait DLogInternal: Sized {
+    fn bs_gs(self, bb: Self, a: Self, n: Self, c: Self) -> Option<Self>;
+}
+
+macro_rules! impl_uint {
+    ($t:ty) => {
+        impl DLog for $t {
+            fn dlog(self, a: Self, n: Self) -> Option<Self> {
+                let b = match (self, a, n) {
+                    (_, _, 0) => panic!("modulo must be positive"),
+                    (_, _, 1) => return Some(0),
+                    (_, 1, _) => return Some(0),
+                    (0, 0, _) => return Some(1),
+                    (0, _, _) => return None,
+                    (1, _, _) => return None,
+                    _ => self,
+                };
+
+                let mut n_ = n;
+                let tail = b.factors()
+                    .map(|(p, e)| {
+                        let e = e as $t;
+                        let mut f = 0;
+                        while n_ % p == 0 {
+                            n_ /= p;
+                            f += 1;
+                        }
+                        (f + e - 1) / e
+                    }).max().unwrap();
+
+                let mut bpow = 1;
+                for i in 0..tail {
+                    if bpow == a {
+                        return Some(i);
+                    }
+                    bpow = bpow * b % n;
+                }
+
+                let bb = bpow;
+                if a == 0 {
+                    return (bb == 0).then(|| tail);
+                }
+                if n != n_ * a.gcd(n) {
+                    return None;
+                }
+
+                let c = n_
+                    .carmichael_lambda()
+                    .divisors()
+                    .find(|&c| (bb * b.mod_pow(c, n)) % n == bb)
+                    .unwrap();
+
+                b.bs_gs(bb, a, n, c).map(|head| tail + head)
             }
-            (f + e - 1) / e
-        })
-        .max()
-        .unwrap() as u64;
-
-    let cd = ConstDiv::new(n);
-    let mut bpow = 1;
-    for i in 0..tail {
-        if bpow == a {
-            return Some(i);
         }
-        bpow = cd.rem(bpow * b);
-    }
-
-    let bb = bpow;
-    if a == 0 {
-        return if bb == 0 { Some(tail) } else { None };
-    }
-    if n != n_ * gcd_recip(a, n).0 {
-        return None;
-    }
-
-    let c = divisors(carmichael_lambda(n_))
-        .find(|&c| cd.rem(bb * mod_pow_with_cd(b, c, cd)) == bb)
-        .unwrap();
-
-    bsgs(bb, b, a, cd, c).map(|head| tail + head)
-}
-
-fn bsgs(bb: u64, b: u64, a: u64, cd: ConstDiv, c: u64) -> Option<u64> {
-    let step = (1..).find(|&i| i * i * 2 >= c).unwrap();
-    let seen = {
-        let mut seen = HashMap::new();
-        let baby_recip = mod_pow_with_cd(b, c - 1, cd);
-        let mut x = a;
-        for i in 0..step {
-            seen.insert(x, i);
-            x = cd.rem(x * baby_recip);
+        impl DLogInternal for $t {
+            fn bs_gs(self, bb: Self, a: Self, n: Self, c: Self) -> Option<Self> {
+                let b = self;
+                let step = (1..).find(|&i| i * i * 2 >= c).unwrap();
+                let seen = {
+                    let mut seen = HashMap::new();
+                    let baby_recip = b.mod_pow(c - 1, n);
+                    let mut x = a;
+                    for i in 0..step {
+                        seen.insert(x, i);
+                        x = (x * baby_recip) % n;
+                    }
+                    seen
+                };
+                let giant = b.mod_pow(step, n);
+                let mut x = bb;
+                for i in 0..=c / step {
+                    if let Some(&e) = seen.get(&x) {
+                        return Some(i * step + e);
+                    }
+                    x = (x * giant) % n;
+                }
+                None
+            }
         }
-        seen
     };
-    let giant = mod_pow_with_cd(b, step, cd);
-    let mut x = bb;
-    for i in 0..=c / step {
-        if let Some(&e) = seen.get(&x) {
-            return Some(i * step + e);
-        }
-        x = cd.rem(x * giant);
-    }
-    None
+    ( $($t:ty)* ) => { $(impl_uint!($t);)* };
 }
+
+impl_uint!(u8 u16 u32 u64 u128 usize);
 
 #[test]
 fn test() {
     use std::collections::hash_map::Entry::{Occupied, Vacant};
-    let n_max = 200;
+    let n_max = 200_u64;
 
     for n in 1..=n_max {
         for b in 0..n {
@@ -283,7 +300,7 @@ fn test() {
             };
 
             for a in 0..n {
-                let z = dlog(b, a, n);
+                let z = b.dlog(a, n);
                 assert_eq!(z, expected.get(&a).cloned());
             }
         }
