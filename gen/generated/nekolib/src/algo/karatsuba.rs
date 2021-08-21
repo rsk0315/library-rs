@@ -16,13 +16,13 @@ use std::ops::{AddAssign, Mul, SubAssign};
 ///
 /// # Examples
 /// ```
-/// use nekolib::algo::multiply;
+/// use nekolib::algo::convolve;
 ///
 /// let a = vec![0_i32, 1, 2, 3, 4];
 /// let b = vec![0, 1, 2, 4, 8];
-/// assert_eq!(multiply(&a, &b), [0, 0, 1, 4, 11, 26, 36, 40, 32]);
+/// assert_eq!(convolve(&a, &b), [0, 0, 1, 4, 11, 26, 36, 40, 32]);
 /// ```
-pub fn multiply<T>(a: &[T], b: &[T]) -> Vec<T>
+pub fn convolve<T>(a: &[T], b: &[T]) -> Vec<T>
 where
     T: AddAssign + SubAssign + Mul<Output = T> + Default + Clone,
 {
@@ -110,6 +110,6 @@ fn test() {
         }
     }
 
-    let actual = multiply(&a, &b);
+    let actual = convolve(&a, &b);
     assert_eq!(actual, expected);
 }
