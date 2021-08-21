@@ -226,7 +226,10 @@ impl LinearSieve {
     ///     vec![1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60]
     /// );
     /// ```
-    pub fn divisors(&self, n: usize) -> impl Iterator<Item = usize> {
+    pub fn divisors(
+        &self,
+        n: usize,
+    ) -> impl Iterator<Item = usize> + DoubleEndedIterator {
         let mut res = vec![1];
         for (p, e) in self.factors(n) {
             let mut tmp = vec![];
@@ -269,7 +272,9 @@ impl LinearSieve {
     ///     vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
     /// );
     /// ```
-    pub fn primes(&self) -> impl Iterator<Item = usize> + '_ {
+    pub fn primes(
+        &self,
+    ) -> impl Iterator<Item = usize> + DoubleEndedIterator + '_ {
         self.pr.iter().copied()
     }
 }
