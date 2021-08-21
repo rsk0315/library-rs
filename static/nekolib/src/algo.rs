@@ -19,7 +19,7 @@ pub use extremum::{extremum, extremum_slice};
 #[doc(inline)]
 pub use extremum_float::extremum_float;
 #[doc(inline)]
-pub use karatsuba::multiply;
+pub use karatsuba::convolve;
 #[doc(inline)]
 pub use majority_::majority;
 #[doc(inline)]
