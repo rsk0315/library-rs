@@ -3,7 +3,7 @@
 use carmichael_lambda_::carmichael_lambda;
 use const_div::ConstDiv;
 use factors_::factors_dup;
-use gcd_recip_::gcd_recip;
+use gcd_recip::GcdRecip;
 use mod_pow_::mod_pow_with_cd;
 
 /// 位数。
@@ -41,7 +41,7 @@ pub fn ord(a: u64, n: u64) -> Option<u64> {
         _ => {}
     }
 
-    let g = gcd_recip(a, n).0;
+    let g = a.gcd_recip(n).0;
     if g != 1 {
         return None;
     }

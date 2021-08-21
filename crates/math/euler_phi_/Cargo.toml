@@ -10,4 +10,4 @@ edition = "2018"
 factors_ = { path = "../factors_" }
 
 [dev-dependencies]
-gcd_ = { path = "../gcd_" }
+gcd = { path = "../gcd" }

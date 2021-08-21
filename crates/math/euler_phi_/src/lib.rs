@@ -28,11 +28,10 @@ pub fn euler_phi(n: u64) -> u64 {
 
 #[test]
 fn test_naive() {
-    use gcd_::gcd;
+    use gcd::Gcd;
     let n = 100;
     for i in 1..=n {
-        let phi =
-            (1..=i).filter(|&j| gcd(i as u128, j as u128) == 1).count() as u64;
+        let phi = (1..=i).filter(|&j| i.gcd(j) == 1).count() as u64;
         assert_eq!(euler_phi(i), phi);
     }
 }

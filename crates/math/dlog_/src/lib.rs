@@ -6,7 +6,7 @@ use carmichael_lambda_::carmichael_lambda;
 use const_div::ConstDiv;
 use divisors_::divisors;
 use factors_::factors;
-use gcd_recip_::gcd_recip;
+use gcd_recip::GcdRecip;
 use mod_pow_::mod_pow_with_cd;
 
 /// 離散対数。
@@ -221,7 +221,7 @@ pub fn dlog(b: u64, a: u64, n: u64) -> Option<u64> {
     if a == 0 {
         return if bb == 0 { Some(tail) } else { None };
     }
-    if n != n_ * gcd_recip(a, n).0 {
+    if n != n_ * a.gcd_recip(n).0 {
         return None;
     }
 

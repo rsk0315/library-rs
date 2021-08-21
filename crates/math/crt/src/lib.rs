@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use gcd_recip_::gcd_recip;
+use gcd_recip::GcdRecip;
 
 /// Chinese remaindering。
 ///
@@ -48,7 +48,7 @@ impl Crt {
             return self;
         }
 
-        let (g, re) = gcd_recip(m0 as u64, m1 as u64);
+        let (g, re) = m0.gcd_recip(m1);
         let (g, re) = (g as i64, re as i64);
         let u1 = m1 / g;
         if (r1 - r0) % g != 0 {
