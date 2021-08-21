@@ -18,7 +18,7 @@ pub mod euler_phi_;
 pub mod factors_;
 pub mod gcd_;
 pub mod gcd_recip_;
-pub mod harmonic_sum;
+pub mod harmonic_floor_sum;
 pub mod incremental_line_set;
 pub mod lcm_;
 pub mod linear_floor_sum_;
@@ -54,7 +54,7 @@ pub use gcd_::gcd;
 #[doc(inline)]
 pub use gcd_recip_::gcd_recip;
 #[doc(inline)]
-pub use harmonic_sum::HarmonicSum;
+pub use harmonic_floor_sum::HarmonicFloorSum;
 #[doc(inline)]
 pub use incremental_line_set::IncrementalLineSet;
 #[doc(inline)]
