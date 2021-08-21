@@ -40,7 +40,7 @@ macro_rules! impl_int {
         impl Gcd for $t {
             fn gcd(mut self, mut other: Self) -> Self {
                 while other != 0 {
-                    let tmp = self % other;
+                    let tmp = self.rem_euclid(other);
                     self = std::mem::replace(&mut other, tmp);
                 }
                 self.abs()

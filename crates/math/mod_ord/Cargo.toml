@@ -1,9 +1,13 @@
 [package]
-name = "lcm"
+name = "mod_ord"
 version = "0.1.0"
+authors = ["rsk0315 <rsk0315@icloud.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+mod_pow = { path = "../mod_pow" }
+carmichael_lambda = { path = "../carmichael_lambda" }
+factors = { path = "../factors" }
 gcd = { path = "../gcd" }
