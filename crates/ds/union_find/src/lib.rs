@@ -57,6 +57,7 @@ enum Item {
 /// # References
 /// - <http://www.gabrielnivasch.org/fun/inverse-ackermann>
 /// - <http://cgi.di.uoa.gr/~ewcg06/invited/Seidel.pdf>
+#[derive(Clone)]
 pub struct UnionFind {
     n: usize,
     buf: RefCell<Vec<Item>>,
