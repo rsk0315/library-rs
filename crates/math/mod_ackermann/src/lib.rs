@@ -67,7 +67,7 @@ use mod_tetration::ModTetration;
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::mod_ackermann;
+/// use nekolib::math::ModAckermann;
 ///
 /// let n = 10_u64.pow(9);
 /// assert_eq!(2_u64.mod_ackermann(5, n), 13);

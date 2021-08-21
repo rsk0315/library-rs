@@ -9,11 +9,11 @@
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::mod_pow;
+/// use nekolib::math::ModPow;
 ///
-/// assert_eq!(mod_pow(3, 14, 10), 9);
-/// assert_eq!(mod_pow(2, 11, 1024), 0);
-/// assert_eq!(mod_pow(0, 0, 1), 0);
+/// assert_eq!(3_u64.mod_pow(14, 10), 9);
+/// assert_eq!(2_u64.mod_pow(11, 1024), 0);
+/// assert_eq!(0_u64.mod_pow(0, 1), 0);
 /// ```
 pub trait ModPow {
     fn mod_pow(self, b: Self, n: Self) -> Self;

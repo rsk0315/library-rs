@@ -36,7 +36,7 @@
 ///     6_u64.pow(5)
 /// );
 ///
-/// assert_eq!(factors_dup(1).next(), None);
+/// assert_eq!(1_u64.factors_dup().next(), None);
 /// ```
 pub trait Factors: Sized {
     // impl Iterator<Item = (Self, u32)>

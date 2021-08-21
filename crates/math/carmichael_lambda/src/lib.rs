@@ -22,12 +22,12 @@ use lcm::Lcm;
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::carmichael_lambda;
+/// use nekolib::math::CarmichaelLambda;
 ///
-/// assert_eq!(carmichael_lambda(1), 1);
-/// assert_eq!(carmichael_lambda(15), 4);
-/// assert_eq!(carmichael_lambda(21), 6);
-/// assert_eq!(carmichael_lambda(33), 10);
+/// assert_eq!(1_u64.carmichael_lambda(), 1);
+/// assert_eq!(15_u64.carmichael_lambda(), 4);
+/// assert_eq!(21_u64.carmichael_lambda(), 6);
+/// assert_eq!(33_u64.carmichael_lambda(), 10);
 /// ```
 pub trait CarmichaelLambda {
     fn carmichael_lambda(self) -> Self;

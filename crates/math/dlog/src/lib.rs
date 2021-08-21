@@ -145,13 +145,13 @@ use mod_pow::ModPow;
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::dlog;
+/// use nekolib::math::DLog;
 ///
-/// assert_eq!(dlog(6, 5, 13), Some(9));
-/// assert_eq!(dlog(27, 3, 30), Some(3));
-/// assert_eq!(dlog(2, 0, 4), Some(2));
-/// assert_eq!(dlog(0, 1, 2), Some(0));
-/// assert_eq!(dlog(2, 3, 10), None);
+/// assert_eq!(6_u64.dlog(5, 13), Some(9));
+/// assert_eq!(27_u64.dlog(3, 30), Some(3));
+/// assert_eq!(2_u64.dlog(0, 4), Some(2));
+/// assert_eq!(0_u64.dlog(1, 2), Some(0));
+/// assert_eq!(2_u64.dlog(3, 10), None);
 /// ```
 ///
 /// # References
