@@ -1,6 +1,5 @@
 //! tetration。
 
-use super::const_div;
 use super::euler_phi;
 
 use euler_phi::EulerPhi;
@@ -93,28 +92,28 @@ use euler_phi::EulerPhi;
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::mod_tetration;
+/// use nekolib::math::ModTetration;
 ///
 /// let n = 10_u64.pow(9);
 ///
-/// assert_eq!(mod_tetration(0, 0, n), 1);
-/// assert_eq!(mod_tetration(0, 1, n), 0);
-/// assert_eq!(mod_tetration(0, 2, n), 1);
-/// assert_eq!(mod_tetration(0, 3, n), 0);
+/// assert_eq!(0_u64.mod_tetration(0, n), 1);
+/// assert_eq!(0_u64.mod_tetration(1, n), 0);
+/// assert_eq!(0_u64.mod_tetration(2, n), 1);
+/// assert_eq!(0_u64.mod_tetration(3, n), 0);
 ///
-/// assert_eq!(mod_tetration(1, 0, n), 1);
-/// assert_eq!(mod_tetration(1, 1, n), 1);
+/// assert_eq!(1_u64.mod_tetration(0, n), 1);
+/// assert_eq!(1_u64.mod_tetration(1, n), 1);
 ///
-/// assert_eq!(mod_tetration(2, 0, n), 1);
-/// assert_eq!(mod_tetration(2, 1, n), 2);
-/// assert_eq!(mod_tetration(2, 2, n), 4);
-/// assert_eq!(mod_tetration(2, 3, n), 16);
-/// assert_eq!(mod_tetration(2, 4, n), 65536);
+/// assert_eq!(2_u64.mod_tetration(0, n), 1);
+/// assert_eq!(2_u64.mod_tetration(1, n), 2);
+/// assert_eq!(2_u64.mod_tetration(2, n), 4);
+/// assert_eq!(2_u64.mod_tetration(3, n), 16);
+/// assert_eq!(2_u64.mod_tetration(4, n), 65536);
 ///
-/// assert_eq!(mod_tetration(3, 9, n), 64_195_387);
-/// assert_eq!(mod_tetration(3, 10, n), 464_195_387);
-/// assert_eq!(mod_tetration(3, 11, n), 464_195_387);
-/// assert_eq!(mod_tetration(3, 99, n), 464_195_387);
+/// assert_eq!(3_u64.mod_tetration(9, n), 64_195_387);
+/// assert_eq!(3_u64.mod_tetration(10, n), 464_195_387);
+/// assert_eq!(3_u64.mod_tetration(11, n), 464_195_387);
+/// assert_eq!(3_u64.mod_tetration(99, n), 464_195_387);
 /// ```
 ///
 /// # Notations

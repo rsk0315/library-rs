@@ -213,7 +213,7 @@ whole = [["math", "gcd"]]
 [[depends]]
 name = ["math", "mod_ackermann"]
 direct = [["math", "mod_pow"], ["math", "mod_tetration"]]
-whole = [["math", "const_div"], ["math", "euler_phi"], ["math", "factors"], ["math", "mod_pow"], ["math", "mod_tetration"]]
+whole = [["math", "euler_phi"], ["math", "factors"], ["math", "mod_pow"], ["math", "mod_tetration"]]
 
 [[depends]]
 name = ["math", "mod_ord"]
@@ -222,8 +222,8 @@ whole = [["math", "carmichael_lambda"], ["math", "factors"], ["math", "gcd"], ["
 
 [[depends]]
 name = ["math", "mod_tetration"]
-direct = [["math", "const_div"], ["math", "euler_phi"]]
-whole = [["math", "const_div"], ["math", "euler_phi"], ["math", "factors"]]
+direct = [["math", "euler_phi"]]
+whole = [["math", "euler_phi"], ["math", "factors"]]
 
 [[depends]]
 name = ["math", "modint"]
