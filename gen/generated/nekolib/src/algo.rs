@@ -9,6 +9,7 @@ pub mod majority_;
 pub mod minmax;
 pub mod mo;
 pub mod parallel_bisect;
+pub mod permutation;
 pub mod tortoise_hare;
 pub mod window_bisect;
 
@@ -28,6 +29,8 @@ pub use minmax::{minmax, minmax_by, minmax_by_key};
 pub use mo::mo;
 #[doc(inline)]
 pub use parallel_bisect::parallel_bisect;
+#[doc(inline)]
+pub use permutation::next_permutation;
 #[doc(inline)]
 pub use tortoise_hare::tortoise_hare;
 #[doc(inline)]
