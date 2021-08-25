@@ -10,6 +10,7 @@ pub mod modint;
 pub mod carmichael_lambda;
 pub mod compact_sieve;
 pub mod const_div;
+pub mod continued_fraction_;
 pub mod count_prime;
 pub mod crt;
 pub mod digit_sum;
@@ -28,7 +29,8 @@ pub mod mod_ackermann;
 pub mod mod_ord;
 pub mod mod_pow;
 pub mod mod_tetration;
-pub mod sieve_square_plus_one;
+pub mod sieve_n2_plus_1;
+pub mod sieve_n2_plus_n_plus_1;
 pub mod slope_function;
 pub mod two_sat;
 
@@ -38,6 +40,8 @@ pub use carmichael_lambda::CarmichaelLambda;
 pub use compact_sieve::CompactSieve;
 #[doc(inline)]
 pub use const_div::{ConstDiv, ConstDiv2};
+#[doc(inline)]
+pub use continued_fraction_::continued_fraction;
 #[doc(inline)]
 pub use count_prime::prime_pi;
 #[doc(inline)]
@@ -77,7 +81,9 @@ pub use mod_tetration::ModTetration;
 #[doc(inline)]
 pub use modint::ModInt;
 #[doc(inline)]
-pub use sieve_square_plus_one::SieveSquarePlusOne;
+pub use sieve_n2_plus_1::SieveN2Plus1;
+#[doc(inline)]
+pub use sieve_n2_plus_n_plus_1::SieveN2PlusNPlus1;
 #[doc(inline)]
 pub use slope_function::SlopeFunction;
 #[doc(inline)]

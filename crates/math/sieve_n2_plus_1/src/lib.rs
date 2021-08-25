@@ -22,12 +22,12 @@ use std::fmt::Debug;
 /// - <https://twitter.com/min_25_/status/1418794801625853952>
 ///     - $an^2+bn+c$ 型素数についての話。
 #[derive(Clone, Debug)]
-pub struct SieveSquarePlusOne {
+pub struct SieveN2Plus1 {
     a: Vec<usize>,
     f: Vec<Vec<(usize, u32)>>,
 }
 
-impl SieveSquarePlusOne {
+impl SieveN2Plus1 {
     /// 初期化する。
     pub fn new(n: usize) -> Self {
         let mut a: Vec<_> = (0..=n).map(|k| k * k + 1).collect();
@@ -68,13 +68,27 @@ impl SieveSquarePlusOne {
         (a, e)
     }
 
+    /// $n^2+1$ の形の素数を返す。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::math::SieveN2Plus1;
+    ///
+    /// let ss = SieveN2Plus1::new(10);
+    /// let primes: Vec<_> = ss.primes().collect();
+    /// assert_eq!(primes, [2, 5, 17, 37, 101]);
+    /// ```
+    pub fn primes(&self) -> impl Iterator<Item = usize> + '_ {
+        (1..self.a.len()).filter(move |&i| self.a[i] != 1).map(|i| i * i + 1)
+    }
+
     /// $n^2+1$ が素数のとき真を返す。
     ///
     /// # Examples
     /// ```
-    /// use nekolib::math::SieveSquarePlusOne;
+    /// use nekolib::math::SieveN2Plus1;
     ///
-    /// let ss = SieveSquarePlusOne::new(10);
+    /// let ss = SieveN2Plus1::new(10);
     /// assert!(ss.is_prime(2));  // 5 is prime
     /// assert!(!ss.is_prime(5));  // 26 = 2 * 13
     /// ```
@@ -86,9 +100,9 @@ impl SieveSquarePlusOne {
     ///
     /// # Examples
     /// ```
-    /// use nekolib::math::SieveSquarePlusOne;
+    /// use nekolib::math::SieveN2Plus1;
     ///
-    /// let ss = SieveSquarePlusOne::new(10);
+    /// let ss = SieveN2Plus1::new(10);
     /// assert_eq!(ss.factors(0).next(), None);
     /// assert_eq!(ss.factors(4).collect::<Vec<_>>(), [(17, 1)]);
     /// assert_eq!(ss.factors(7).collect::<Vec<_>>(), [(2, 1), (5, 2)]);
@@ -103,14 +117,34 @@ impl SieveSquarePlusOne {
     ///
     /// # Examples
     /// ```
-    /// use nekolib::math::SieveSquarePlusOne;
+    /// use nekolib::math::SieveN2Plus1;
     ///
-    /// let ss = SieveSquarePlusOne::new(10);
+    /// let ss = SieveN2Plus1::new(10);
     /// assert_eq!(ss.factors_dup(0).next(), None);
     /// assert_eq!(ss.factors_dup(4).collect::<Vec<_>>(), [17]);
     /// assert_eq!(ss.factors_dup(7).collect::<Vec<_>>(), [2, 5, 5]);
     /// ```
     pub fn factors_dup(&self, n: usize) -> impl Iterator<Item = usize> + '_ {
         self.factors(n).flat_map(|(p, e)| std::iter::repeat(p).take(e as usize))
+    }
+}
+
+#[test]
+fn test() {
+    use linear_sieve::LinearSieve;
+
+    let n = 3000;
+    let ls = LinearSieve::new(n * n + 1);
+    let ss = SieveN2Plus1::new(n);
+    for i in 0..=n {
+        assert_eq!(ls.is_prime(i * i + 1), ss.is_prime(i));
+
+        {
+            // factors
+            let expected: Vec<_> = ls.factors_dup(i * i + 1).collect();
+            let mut actual: Vec<_> = ss.factors_dup(i).collect();
+            actual.sort_unstable();
+            assert_eq!(actual, expected);
+        }
     }
 }
