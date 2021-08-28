@@ -32,6 +32,8 @@ pub mod mod_tetration;
 pub mod sieve_n2_plus_1;
 pub mod sieve_n2_plus_n_plus_1;
 pub mod slope_function;
+pub mod sqrt;
+pub mod sqrt_fraction_;
 pub mod two_sat;
 
 #[doc(inline)]
@@ -86,5 +88,9 @@ pub use sieve_n2_plus_1::SieveN2Plus1;
 pub use sieve_n2_plus_n_plus_1::SieveN2PlusNPlus1;
 #[doc(inline)]
 pub use slope_function::SlopeFunction;
+#[doc(inline)]
+pub use sqrt::Sqrt;
+#[doc(inline)]
+pub use sqrt_fraction_::{sqrt_fraction, sqrt_fraction_fn};
 #[doc(inline)]
 pub use two_sat::TwoSat;
