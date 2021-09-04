@@ -125,6 +125,7 @@ prime_pi = ["math", "count_prime"]
 scc = ["graph", "scc_"]
 sqrt_fraction = ["math", "sqrt_fraction_"]
 sqrt_fraction_fn = ["math", "sqrt_fraction_"]
+stern_brocot = ["math", "stern_brocot_"]
 tortoise_hare = ["algo", "tortoise_hare"]
 window_bisect = ["algo", "window_bisect"]
 

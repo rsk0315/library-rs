@@ -9,8 +9,10 @@
 /// なる各素数 $j$ に対して、$\\mathrm{lpf}(i\\times j) = j$ とわかる。
 /// 素因数分解の一意性から、各整数の最小素因数の更新は一回ずつしか行われず、線形時間で構築できる。
 ///
-/// ## See also
-/// <https://cp-algorithms.com/algebra/prime-sieve-linear.html>
+/// また、$\\mathrm{lpf}(i)$ が $\\mathrm{lpf}(i / \\mathrm{lpf}(i))$
+/// と等しいかで場合分けしながら DP することで、各 $i$ が $\\mathrm{lpf}(i)$
+/// で何回割り切れるかも求められる。
+/// なお、これは DP せず各 $i$ に対して愚直に計算しても $O(n)$ になることが示せるらしい。
 ///
 /// # Complexity
 /// |演算|時間計算量|
@@ -19,13 +21,13 @@
 /// |`is_prime`|$\\Theta(1)$|
 /// |`least_factor`|$\\Theta(1)$|
 /// |`factors_dup`|$\\Theta(1)$ delay|
-/// |`factors`|$\\Theta(e\_i)$ delay|
-/// |`euler_phi`|$\\Theta(\\Omega(n))$|
-/// |`euler_phi_star`|$\\O(\\Omega(n)\\log(n))$|
+/// |`factors`|$\\Theta(1)$ delay|
+/// |`euler_phi`|$\\Theta(\\omega(n))$|
+/// |`euler_phi_star`|$O(\\omega(n)\\log(n))$|
 /// |`primes`|$\\Theta(1)$ delay|
 ///
-/// $n$ の素因数の個数を $\\Omega(n)$ とすると、以下の式が成り立つらしい。
-/// $$ \\sum\_{i\\le n} \\Omega(i) = n\\ln(\\ln(n)) + O(n). $$
+/// $n$ の素因数の個数を $\\omega(n)$ とすると、以下の式が成り立つらしい。
+/// $$ \\sum\_{i\\le n} \\omega(i) = n\\ln(\\ln(n)) + O(n). $$
 ///
 /// また、$n$ 以下の素数の個数を $\\pi(n)$ とすると、以下の式が成り立つ（素数定理）。
 /// $$ \\pi(n) = \\frac{n}{\\ln(n)} + O{\\left(\\frac{n}{\\ln(n)\^2}\\right)}. $$
@@ -52,8 +54,13 @@
 ///     vec![2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
 /// );
 /// ```
+///
+/// # References
+/// - <https://cp-algorithms.com/algebra/prime-sieve-linear.html>
+/// - <https://twitter.com/hidesugar2/status/1431243186362458114>
 pub struct LinearSieve {
     lpf: Vec<usize>,
+    lpf_e: Vec<(usize, u32)>,
     pr: Vec<usize>,
 }
 
@@ -80,7 +87,17 @@ impl LinearSieve {
                 lpf[i * j] = j;
             }
         }
-        Self { lpf, pr }
+        let mut lpf_e = vec![(1, 0); n + 1];
+        for i in 2..=n {
+            let p = lpf[i];
+            let j = i / p;
+            lpf_e[i] = if lpf[j] == p {
+                (lpf_e[j].0 * p, lpf_e[j].1 + 1)
+            } else {
+                (lpf[i], 1)
+            };
+        }
+        Self { lpf, lpf_e, pr }
     }
 
     /// $n$ が素数であれば `true` を返す。
@@ -150,17 +167,9 @@ impl LinearSieve {
     /// );
     /// ```
     pub fn factors(&self, n: usize) -> impl Iterator<Item = (usize, u32)> + '_ {
-        self.factors_dup(n)
-            .chain(std::iter::once(1))
-            .scan((self.lpf[n], 0), |state, x| {
-                if state.0 == x {
-                    state.1 += 1;
-                    Some(None)
-                } else {
-                    Some(Some(std::mem::replace(state, (x, 1))))
-                }
-            })
-            .filter_map(std::convert::identity)
+        std::iter::successors(Some(n), move |&n| Some(n / self.lpf_e[n].0))
+            .take_while(|&n| n > 1)
+            .map(move |n| (self.lpf[n], self.lpf_e[n].1))
     }
 
     /// $\\phi(n)$ を求める。
@@ -176,7 +185,10 @@ impl LinearSieve {
     /// assert_eq!(sieve.euler_phi(60), 16);
     /// ```
     pub fn euler_phi(&self, n: usize) -> usize {
-        self.factors(n).map(|(p, e)| (p - 1) * p.pow(e as u32 - 1)).product()
+        std::iter::successors(Some(n), move |&n| Some(n / self.lpf_e[n].0))
+            .take_while(|&n| n > 1)
+            .map(|n| self.lpf_e[n].0 / self.lpf[n] * (self.lpf[n] - 1))
+            .product()
     }
 
     /// $\\phi^\\star(n)$ を求める。
