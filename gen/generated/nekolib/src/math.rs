@@ -7,6 +7,7 @@
 //! [`ds`]: ../ds/index.html
 pub mod modint;
 // pub mod polynomial;
+pub mod bit_binom_;
 pub mod carmichael_lambda;
 pub mod compact_sieve;
 pub mod const_div;
@@ -37,6 +38,8 @@ pub mod sqrt_fraction_;
 pub mod stern_brocot_;
 pub mod two_sat;
 
+#[doc(inline)]
+pub use bit_binom_::bit_binom;
 #[doc(inline)]
 pub use carmichael_lambda::CarmichaelLambda;
 #[doc(inline)]
