@@ -24,6 +24,9 @@
 /// |`factors`|$\\Theta(1)$ delay|
 /// |`euler_phi`|$\\Theta(\\omega(n))$|
 /// |`euler_phi_star`|$O(\\omega(n)\\log(n))$|
+/// |`divisors`|$O(\\sigma(n))$|
+/// |`divisors_count`|$O(\\omega(n))$|
+/// |`divisors_sum`|$O(\\omega(n))$|
 /// |`primes`|$\\Theta(1)$ delay|
 ///
 /// $n$ の素因数の個数を $\\omega(n)$ とすると、以下の式が成り立つらしい。
@@ -68,7 +71,6 @@ impl LinearSieve {
     /// $n$ 以下の自然数に対する篩を用意する。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -103,7 +105,6 @@ impl LinearSieve {
     /// $n$ が素数であれば `true` を返す。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -118,7 +119,6 @@ impl LinearSieve {
     /// $n$ の最小素因数を返す。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -138,7 +138,6 @@ impl LinearSieve {
     /// $n$ の素因数を列挙する。重複あり。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -155,7 +154,6 @@ impl LinearSieve {
     /// $n$ を素因数分解する。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -175,7 +173,6 @@ impl LinearSieve {
     /// $\\phi(n)$ を求める。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -198,7 +195,6 @@ impl LinearSieve {
     /// $\\phi^\\star(n) = O(\\log(n))$ である。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -226,7 +222,6 @@ impl LinearSieve {
     /// $n$ の約数を列挙する。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -259,7 +254,6 @@ impl LinearSieve {
     /// $n$ の約数の個数を返す。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
@@ -271,10 +265,27 @@ impl LinearSieve {
         self.factors(n).map(|(_, e)| e as usize + 1).product()
     }
 
+    /// $n$ の約数の総和を返す。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.divisors_sum(1), 1);
+    /// assert_eq!(sieve.divisors_sum(8), 15);
+    /// assert_eq!(sieve.divisors_sum(60), 168);
+    /// ```
+    pub fn divisors_sum(&self, n: usize) -> usize {
+        std::iter::successors(Some(n), move |&n| Some(n / self.lpf_e[n].0))
+            .take_while(|&n| n > 1)
+            .map(|n| (self.lpf_e[n].0 * self.lpf[n] - 1) / (self.lpf[n] - 1))
+            .product()
+    }
+
     /// 素数を列挙する。
     ///
     /// # Examples
-    ///
     /// ```
     /// use nekolib::math::LinearSieve;
     ///
