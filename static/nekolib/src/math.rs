@@ -34,6 +34,7 @@ pub mod sieve_n2_plus_n_plus_1;
 pub mod slope_function;
 pub mod sqrt;
 pub mod sqrt_fraction_;
+pub mod stern_brocot_;
 pub mod two_sat;
 
 #[doc(inline)]
@@ -92,5 +93,7 @@ pub use slope_function::SlopeFunction;
 pub use sqrt::Sqrt;
 #[doc(inline)]
 pub use sqrt_fraction_::{sqrt_fraction, sqrt_fraction_fn};
+#[doc(inline)]
+pub use stern_brocot_::stern_brocot;
 #[doc(inline)]
 pub use two_sat::TwoSat;
