@@ -2,6 +2,7 @@
 //!
 //! ここに何かを書く。
 pub mod bisect;
+pub mod exact_cover;
 pub mod extremum;
 pub mod extremum_float;
 pub mod karatsuba;
@@ -15,6 +16,8 @@ pub mod window_bisect;
 
 #[doc(inline)]
 pub use bisect::{bisect, bisect_slice};
+#[doc(inline)]
+pub use exact_cover::ExactCover;
 #[doc(inline)]
 pub use extremum::{extremum, extremum_slice};
 #[doc(inline)]
