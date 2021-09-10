@@ -23,6 +23,7 @@ pub mod gcd;
 pub mod gcd_recip;
 pub mod harmonic_floor_sum;
 pub mod incremental_line_set;
+pub mod interpolation;
 pub mod lcm;
 pub mod linear_floor_sum;
 pub mod linear_sieve;
@@ -70,6 +71,8 @@ pub use gcd_recip::GcdRecip;
 pub use harmonic_floor_sum::HarmonicFloorSum;
 #[doc(inline)]
 pub use incremental_line_set::IncrementalLineSet;
+#[doc(inline)]
+pub use interpolation::Interpolation;
 #[doc(inline)]
 pub use lcm::Lcm;
 #[doc(inline)]
