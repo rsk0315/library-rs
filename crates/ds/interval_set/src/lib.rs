@@ -320,4 +320,11 @@ impl<T: Clone + Debug + Ord> IntervalSet<T> {
             self.buf.remove(&k);
         }
     }
+
+    pub fn iter(
+        &self,
+    ) -> impl Iterator<Item = (&Bound<T>, &Bound<T>)> + DoubleEndedIterator + '_
+    {
+        self.buf.iter().map(|x| (&x.0, &x.1))
+    }
 }
