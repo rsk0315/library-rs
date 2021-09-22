@@ -13,7 +13,6 @@ pub mod compact_sieve;
 pub mod const_div;
 pub mod continued_fraction_;
 pub mod count_prime;
-pub mod crt;
 pub mod digit_sum;
 pub mod divisors;
 pub mod dlog;
@@ -52,8 +51,6 @@ pub use const_div::{ConstDiv, ConstDiv2};
 pub use continued_fraction_::continued_fraction;
 #[doc(inline)]
 pub use count_prime::prime_pi;
-#[doc(inline)]
-pub use crt::Crt;
 #[doc(inline)]
 pub use digit_sum::DigitSum;
 #[doc(inline)]
