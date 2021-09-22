@@ -24,11 +24,9 @@ use gcd_recip::GcdRecip;
 /// よって、$r\_1\\not\\equiv r\_0\\pmod{g}$ であれば解なしとなる。
 ///
 /// 以下、$r\_1\\equiv r\_0\\pmod{g}$ とする。このとき、$r\_1-r\_0$ は $g$ で割り切れ、
-/// $$ (y\\cdot u\_0)\\bmod u\_1 = \\left(\\frac{r\_1-r\_0}{g}\\right)\\bmod u\_1. $$
-/// 法を $u\_1$ として、
 /// $$ \\begin{aligned}
-/// y\\cdot u\_0 &\\equiv \\left(\\frac{r\_1-r\_0}{g}\\right) \\\\
-/// y &\\equiv \\left(\\frac{r\_1-r\_0}{g}\\right)\\cdot u\_0^{-1}
+/// (y\\cdot u\_0)\\bmod u\_1 &= \\left(\\frac{r\_1-r\_0}{g}\\right)\\bmod u\_1 \\\\
+/// y &\\equiv \\left(\\frac{r\_1-r\_0}{g}\\right)\\cdot u\_0^{-1} \\pmod{u\_1}
 /// \\end{aligned} $$
 /// となる。$\\gcd(u\_0, u\_1)=1$ なので $u\_0^{-1}$ は存在する。
 ///
