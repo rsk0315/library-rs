@@ -5,6 +5,8 @@
 pub mod bicremental_median;
 pub mod bicremental_median_dev;
 pub mod bit_set;
+pub mod cuckoo_hash_map;
+pub mod cuckoo_hash_set;
 pub mod disjoint_sparse_table;
 pub mod foldable_deque;
 pub mod foldable_queue;
@@ -21,6 +23,10 @@ pub use bicremental_median::BicrementalMedian;
 pub use bicremental_median_dev::BicrementalMedianDev;
 #[doc(inline)]
 pub use bit_set::BitSet;
+#[doc(inline)]
+pub use cuckoo_hash_map::CuckooHashMap;
+#[doc(inline)]
+pub use cuckoo_hash_set::CuckooHashSet;
 #[doc(inline)]
 pub use disjoint_sparse_table::DisjointSparseTable;
 #[doc(inline)]
