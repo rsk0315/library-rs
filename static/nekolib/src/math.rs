@@ -17,6 +17,7 @@ pub mod crt;
 pub mod digit_sum;
 pub mod divisors;
 pub mod dlog;
+pub mod equiv_mod;
 pub mod euler_phi;
 pub mod factors;
 pub mod gcd;
@@ -59,6 +60,8 @@ pub use digit_sum::DigitSum;
 pub use divisors::Divisors;
 #[doc(inline)]
 pub use dlog::DLog;
+#[doc(inline)]
+pub use equiv_mod::EquivMod;
 #[doc(inline)]
 pub use euler_phi::EulerPhi;
 #[doc(inline)]
