@@ -12,6 +12,7 @@ use gcd_recip::GcdRecip;
 /// - $x\\bmod m\_1 = r\_1$
 ///
 /// 中国剰余定理から、$\\gcd(m\_0, m\_1)=1$ であれば常に存在する。
+/// そうでない場合、高々一つ存在する。
 ///
 /// なお、計算の利便性のため、$\\lcm(m\_0, m\_1)$ も返す。以下の例も参照。
 ///
@@ -55,6 +56,18 @@ use gcd_recip::GcdRecip;
 /// let lcm = (2_i64..=20).fold(1, |x, y| x.lcm(y));
 /// assert_eq!(x, Some((lcm - 1, lcm)));
 /// ```
+///
+/// 簡略版もある。
+/// ```
+/// use nekolib::math::{EquivModIter, Lcm};
+///
+/// let x = (2_i64..=20).map(|m| (m - 1, m)).equiv_mod();
+/// let lcm = (2_i64..=20).fold(1, |x, y| x.lcm(y));
+/// assert_eq!(x, Some((lcm - 1, lcm)));
+///
+/// assert_eq!(std::iter::empty().equiv_mod(), Some((0_i32, 1)));
+/// ```
+///
 ///
 /// # Reference
 /// - <https://github.com/atcoder/ac-library/blob/master/atcoder/math.hpp>
@@ -121,8 +134,8 @@ fn test_uint() {
             let naive = {
                 let mut res = vec![vec![None; m1]; m0];
                 for x in (0..m0 * m1).rev() {
-                    let r0 = (x % m0);
-                    let r1 = (x % m1);
+                    let r0 = x % m0;
+                    let r1 = x % m1;
                     res[r0][r1] = Some(x);
                 }
                 res
@@ -166,6 +179,34 @@ fn test_iter() {
     let x = (2_i64..=20)
         .map(|m| (m - 1, m))
         .try_fold((0, 1), |x, y| x.equiv_mod(y));
+    let y = 232792560;
+
+    assert_eq!(x, Some((y - 1, y)));
+}
+
+/// Chinese remaindering。
+///
+/// [`EquivMod`] のイテレータ版。
+pub trait EquivModIter<I: Sized> {
+    fn equiv_mod(self) -> Option<(I, I)>;
+}
+
+macro_rules! impl_iter {
+    ($t:ty) => {
+        impl<I: Iterator<Item = ($t, $t)>> EquivModIter<$t> for I {
+            fn equiv_mod(mut self) -> Option<($t, $t)> {
+                self.try_fold((0, 1), |x, y| x.equiv_mod(y))
+            }
+        }
+    };
+    ( $($t:ty)* ) => { $(impl_iter!($t);)* };
+}
+
+impl_iter!(u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize);
+
+#[test]
+fn test_iter2() {
+    let x = (2_i64..=20).map(|m| (m - 1, m)).equiv_mod();
     let y = 232792560;
 
     assert_eq!(x, Some((y - 1, y)));

@@ -58,7 +58,7 @@ pub use divisors::Divisors;
 #[doc(inline)]
 pub use dlog::DLog;
 #[doc(inline)]
-pub use equiv_mod::EquivMod;
+pub use equiv_mod::{EquivMod, EquivModIter};
 #[doc(inline)]
 pub use euler_phi::EulerPhi;
 #[doc(inline)]
