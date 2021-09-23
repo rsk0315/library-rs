@@ -74,12 +74,13 @@ impl DisjointSet for UnionFind {
         if u == v {
             return false;
         }
-        let (su, sv) = (self.buf.borrow()[u], self.buf.borrow()[v]);
+        let mut buf = self.buf.borrow_mut();
+        let (su, sv) = (buf[u], buf[v]);
         match (su, sv) {
             (Item::Size(su), Item::Size(sv)) => {
                 let (child, par) = if su < sv { (u, v) } else { (v, u) };
-                self.buf.borrow_mut()[par] = Item::Size(su + sv);
-                self.buf.borrow_mut()[child] = Item::Parent(par);
+                buf[par] = Item::Size(su + sv);
+                buf[child] = Item::Parent(par);
             }
             _ => unreachable!(),
         }
@@ -87,15 +88,16 @@ impl DisjointSet for UnionFind {
     }
     fn repr(&self, mut u: usize) -> usize {
         let mut res = u;
-        while let Item::Parent(v) = self.buf.borrow()[res] {
+        let mut buf = self.buf.borrow_mut();
+        while let Item::Parent(v) = buf[res] {
             res = v;
         }
-        let mut bu = self.buf.borrow()[u];
+        let mut bu = buf[u];
         while let Item::Parent(pu) = bu {
             let tmp = pu;
-            self.buf.borrow_mut()[u] = Item::Parent(res);
+            buf[u] = Item::Parent(res);
             u = tmp;
-            bu = self.buf.borrow()[u];
+            bu = buf[u];
         }
         res
     }
