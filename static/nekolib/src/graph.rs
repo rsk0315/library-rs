@@ -4,6 +4,7 @@
 pub mod dijkstra_;
 pub mod dinic_;
 pub mod scc_;
+pub mod tree;
 
 #[doc(inline)]
 pub use dijkstra_::dijkstra;
@@ -11,3 +12,5 @@ pub use dijkstra_::dijkstra;
 pub use dinic_::dinic;
 #[doc(inline)]
 pub use scc_::scc;
+#[doc(inline)]
+pub use tree::Tree;
