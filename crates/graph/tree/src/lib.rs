@@ -61,6 +61,51 @@ use std::fmt::Debug;
 
 impl<T: Debug> Tree<T> {
     /// 全方位木 DP。
+    ///
+    /// `empty` と `map` と `fold` で作られる catamorphism を考える。
+    /// 頂点 $i$ ($0\\le i\\lt n$) を根としたときの catamorphism をそれぞれ求める。
+    ///
+    /// # Idea
+    /// `todo!()`
+    ///
+    /// # Implementation notes
+    /// `empty` は本来 2 種類必要なはずだが、共通であることが多いのでまとめている。
+    /// 半群からモノイドを機械的に作るのと同様に必要に応じて対処できるはず。
+    ///
+    /// # Complexity
+    /// $O(n)$ time.
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::graph::Tree;
+    ///
+    /// let n = 6;
+    /// let es = vec![(0, 1), (0, 2), (1, 3), (1, 4), (1, 5)];
+    /// let g = {
+    ///     let mut g = vec![vec![]; n];
+    ///     for &(u, v) in &es {
+    ///         g[u].push((v, ()));
+    ///         g[v].push((u, ()));
+    ///     }
+    ///     g
+    /// };
+    /// let tree: Tree<_> = g.into();
+    ///
+    /// // max distance
+    /// let empty = 0;
+    /// let map = |&x: &usize, _: &()| x + 1;
+    /// let fold = |&x: &usize, &y: &usize| x.max(y);
+    /// assert_eq!(tree.cata(empty, map, fold), [2, 2, 3, 3, 3, 3]);
+    ///
+    /// // sum of distance
+    /// let empty = (0, 0);
+    /// let map = |&(d, c): &(usize, usize), _: &()| (d + c + 1, c + 1);
+    /// let fold = |&x: &(usize, usize), &y: &(usize, usize)| (x.0 + y.0, x.1 + y.1);
+    /// assert_eq!(
+    ///     tree.cata(empty, map, fold).into_iter().map(|x| x.0).collect::<Vec<_>>(),
+    ///     [8, 6, 12, 10, 10, 10]
+    /// );
+    /// ```
     pub fn cata<U: Clone + Debug>(
         &self,
         empty: U,
