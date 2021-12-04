@@ -27,7 +27,7 @@ macro_rules! impl_uint {
                     return 0; // in case 0^0
                 }
                 let mut res = 1;
-                let mut a = self;
+                let mut a = self % n;
                 while b > 0 {
                     if b & 1 == 1 {
                         res = res * a % n;
