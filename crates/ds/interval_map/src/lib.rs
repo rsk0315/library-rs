@@ -117,7 +117,7 @@ impl<T: Ord> Interval<T> {
         }
     }
 
-    pub fn has_no_gap_with(&self, other: &Self) -> bool {
+    pub fn connected(&self, other: &Self) -> bool {
         let (left, right) =
             if self < other { (self, other) } else { (other, self) };
         if let (Some(left_1), Some(right_0)) = (left.sup(), right.inf()) {
@@ -134,7 +134,7 @@ impl<T: Ord> Interval<T> {
     }
 
     fn unite(&mut self, mut other: Self) {
-        if !self.has_no_gap_with(&other) || self.is_superset_of(&other) {
+        if !self.connected(&other) || self.is_superset_of(&other) {
             return;
         }
         if let (Some(lhs), Some(rhs)) = (self.inf(), other.inf()) {
@@ -240,7 +240,7 @@ impl<K: Ord + Clone, V: Eq + Clone> IntervalMap<K, V> {
             }
             if lv != value {
                 self.remove_one(interval.clone(), lk);
-            } else if interval.has_no_gap_with(&lk) {
+            } else if interval.connected(&lk) {
                 self.buf.remove(&lk);
                 interval.unite(lk);
             }
@@ -250,7 +250,7 @@ impl<K: Ord + Clone, V: Eq + Clone> IntervalMap<K, V> {
             let rv = s.1.clone();
             if rv != value {
                 self.remove_one(interval.clone(), rk);
-            } else if interval.has_no_gap_with(&rk) {
+            } else if interval.connected(&rk) {
                 self.buf.remove(&rk);
                 interval.unite(rk);
             }
