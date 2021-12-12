@@ -11,7 +11,7 @@ pub mod decremental_usize_set;
 pub mod disjoint_sparse_table;
 pub mod foldable_deque;
 pub mod foldable_queue;
-pub mod interval_map_2;
+pub mod interval_map;
 pub mod interval_set;
 pub mod removable_heap;
 pub mod rs_dict;
@@ -39,7 +39,7 @@ pub use foldable_deque::FoldableDeque;
 #[doc(inline)]
 pub use foldable_queue::FoldableQueue;
 #[doc(inline)]
-pub use interval_map_2::IntervalMap;
+pub use interval_map::IntervalMap;
 #[doc(inline)]
 pub use interval_set::IntervalSet;
 #[doc(inline)]

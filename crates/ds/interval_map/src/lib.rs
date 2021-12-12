@@ -1,192 +1,116 @@
-//! 区間から値への対応づけ。
-
 use std::cmp::Ordering::{self, Equal, Greater, Less};
 use std::collections::BTreeMap;
 use std::fmt::{self, Debug};
-use std::ops::{
-    Bound::{self, Excluded, Included, Unbounded},
-    RangeBounds,
-};
+use std::ops::Bound::{Excluded, Included, Unbounded};
+use std::ops::RangeBounds;
 
-#[derive(Clone, Eq, PartialEq)]
-pub struct Interval<T: Ord>(Bound<T>, Bound<T>);
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum Left<T> {
+    NegInfinity,
+    Closed(T),
+    Open(T),
+}
 
-impl<T: Ord + Debug> Debug for Interval<T> {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.0 {
-            Included(x) => write!(fmt, "[{:?}, ", x),
-            Excluded(x) => write!(fmt, "({:?}, ", x),
-            Unbounded => write!(fmt, "(-oo, "),
-        }?;
-        match &self.1 {
-            Included(x) => write!(fmt, "{:?}]", x),
-            Excluded(x) => write!(fmt, "{:?})", x),
-            Unbounded => write!(fmt, "oo)"),
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum Right<T> {
+    Open(T),
+    Closed(T),
+    PosInfinity,
+}
+
+impl<T: Debug> Debug for Left<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Left::NegInfinity => write!(f, "(-oo"),
+            Left::Closed(x) => write!(f, "[{:?}", x),
+            Left::Open(x) => write!(f, "({:?}", x),
         }
     }
 }
 
-impl<T: Ord + Clone> Interval<T> {
-    fn from_bounds<B: RangeBounds<T>>(bounds: B) -> Self {
-        let start = match bounds.start_bound() {
-            Included(x) => Included(x.clone()),
-            Excluded(x) => Excluded(x.clone()),
-            Unbounded => Unbounded,
-        };
-        let end = match bounds.end_bound() {
-            Included(x) => Included(x.clone()),
-            Excluded(x) => Excluded(x.clone()),
-            Unbounded => Unbounded,
-        };
-        Self(start, end)
+impl<T: Debug> Debug for Right<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Right::Open(x) => write!(f, "{:?})", x),
+            Right::Closed(x) => write!(f, "{:?}]", x),
+            Right::PosInfinity => write!(f, "oo)"),
+        }
     }
 }
 
-impl<T: Ord> Interval<T> {
-    pub fn inf(&self) -> Option<&T> {
-        match &self.0 {
-            Included(x) | Excluded(x) => Some(x),
-            Unbounded => None,
+impl<T> Left<T> {
+    pub fn inner(&self) -> Option<&T> {
+        match self {
+            Left::Open(x) | Left::Closed(x) => Some(x),
+            Left::NegInfinity => None,
         }
     }
-    pub fn sup(&self) -> Option<&T> {
-        match &self.1 {
-            Included(x) | Excluded(x) => Some(x),
-            Unbounded => None,
+}
+
+impl<T> Right<T> {
+    pub fn inner(&self) -> Option<&T> {
+        match self {
+            Right::PosInfinity => None,
+            Right::Closed(x) | Right::Open(x) => Some(x),
         }
     }
+}
 
-    pub fn is_empty(&self) -> bool {
-        match (&self.0, &self.1) {
-            (Unbounded, _) | (_, Unbounded) => false,
-            (Included(lo), Included(hi)) => lo > hi,
-            (Included(lo), Excluded(hi)) => lo >= hi,
-            (Excluded(lo), Included(hi)) => lo >= hi,
-            (Excluded(lo), Excluded(hi)) => lo >= hi,
+impl<T: Ord> Ord for Left<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        use Left::{Closed, NegInfinity, Open};
+        match (self, other) {
+            (NegInfinity, NegInfinity) => Equal,
+            (NegInfinity, _) => Less,
+            (_, NegInfinity) => Greater,
+            (Closed(x), Open(y)) if x == y => Less,
+            (Open(x), Closed(y)) if x == y => Greater,
+            _ => self.inner().unwrap().cmp(other.inner().unwrap()),
         }
     }
+}
 
-    pub fn is_superset_of(&self, other: &Self) -> bool {
-        if other.is_empty() {
-            return true;
-        }
-        if self.is_empty() {
-            return false;
-        }
-
-        // self.0 <= other.0
-        match (self.inf(), other.inf()) {
-            (Some(lhs), Some(rhs)) if lhs > rhs => return false,
-            (Some(lhs), Some(rhs)) if lhs == rhs => {
-                if let (Excluded(_), Included(_)) = (&self.0, &other.0) {
-                    return false;
-                }
-            }
-            (Some(_), None) => return false,
-            _ => {}
-        }
-
-        // self.1 >= other.1
-        match (self.sup(), other.sup()) {
-            (Some(lhs), Some(rhs)) if lhs < rhs => return false,
-            (Some(lhs), Some(rhs)) if lhs == rhs => {
-                if let (Excluded(_), Included(_)) = (&self.1, &other.1) {
-                    return false;
-                }
-            }
-            (Some(_), None) => return false,
-            _ => {}
-        }
-
-        true
+impl<T: Ord> PartialOrd for Left<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
+}
 
-    pub fn intersects(&self, other: &Self) -> bool {
-        let (left, right) =
-            if self < other { (self, other) } else { (other, self) };
-        if let (Some(left_1), Some(right_0)) = (left.sup(), right.inf()) {
-            if right_0 < left_1 {
-                true
-            } else if right_0 == left_1 {
-                matches!((&right.0, &left.1), (Included(_), Included(_)))
-            } else {
-                false
-            }
-        } else {
-            true
+impl<T: Ord> Ord for Right<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        use Right::{Closed, Open, PosInfinity};
+        match (self, other) {
+            (PosInfinity, PosInfinity) => Equal,
+            (_, PosInfinity) => Less,
+            (PosInfinity, _) => Greater,
+            (Open(x), Closed(y)) if x == y => Less,
+            (Closed(x), Open(y)) if x == y => Greater,
+            _ => self.inner().unwrap().cmp(other.inner().unwrap()),
         }
     }
+}
 
-    pub fn connected(&self, other: &Self) -> bool {
-        let (left, right) =
-            if self < other { (self, other) } else { (other, self) };
-        if let (Some(left_1), Some(right_0)) = (left.sup(), right.inf()) {
-            if right_0 < left_1 {
-                true
-            } else if right_0 == left_1 {
-                !matches!((&right.0, &left.1), (Excluded(_), Excluded(_)))
-            } else {
-                false
-            }
-        } else {
-            true
-        }
+impl<T: Ord> PartialOrd for Right<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
+}
 
-    fn unite(&mut self, mut other: Self) {
-        if !self.connected(&other) || self.is_superset_of(&other) {
-            return;
-        }
-        if let (Some(lhs), Some(rhs)) = (self.inf(), other.inf()) {
-            if (lhs == rhs
-                && matches!((&self.0, &other.0), (Excluded(_), Included(_))))
-                || lhs > rhs
-            {
-                self.0 = std::mem::replace(&mut other.0, Unbounded);
-            }
-        } else if other.0 == Unbounded {
-            self.0 = Unbounded;
-        }
-        if let (Some(lhs), Some(rhs)) = (self.sup(), other.sup()) {
-            if (lhs == rhs
-                && matches!((&self.1, &other.1), (Excluded(_), Included(_))))
-                || lhs < rhs
-            {
-                self.1 = std::mem::replace(&mut other.1, Unbounded);
-            }
-        } else if other.1 == Unbounded {
-            self.1 = Unbounded;
-        }
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub struct Interval<T> {
+    left: Left<T>,
+    right: Right<T>,
+}
+
+impl<T: Debug> Debug for Interval<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}, {:?}", self.left, self.right)
     }
 }
 
 impl<T: Ord> Ord for Interval<T> {
-    /// `(self.lhs.0 <=> self.rhs.0).then_with(|| self.lhs.1 <=> self.rhs.1)`
     fn cmp(&self, other: &Self) -> Ordering {
-        match (self.inf(), other.inf()) {
-            (Some(lhs), Some(rhs)) => {
-                lhs.cmp(rhs).then_with(|| match (&self.0, &other.0) {
-                    (Included(_), Excluded(_)) => Less,
-                    (Excluded(_), Included(_)) => Greater,
-                    _ => Equal,
-                })
-            }
-            (Some(_), None) => Greater,
-            (None, Some(_)) => Less,
-            (None, None) => Equal,
-        }
-        .then_with(|| match (self.sup(), other.sup()) {
-            (Some(lhs), Some(rhs)) => {
-                lhs.cmp(rhs).then_with(|| match (&self.1, &other.1) {
-                    (Included(_), Excluded(_)) => Greater,
-                    (Excluded(_), Included(_)) => Less,
-                    _ => Equal,
-                })
-            }
-            (Some(_), None) => Less,
-            (None, Some(_)) => Greater,
-            (None, None) => Equal,
-        })
+        self.left.cmp(&other.left).then_with(|| self.right.cmp(&other.right))
     }
 }
 
@@ -196,192 +120,296 @@ impl<T: Ord> PartialOrd for Interval<T> {
     }
 }
 
-fn toggle_bound<T: Ord>(b: Bound<T>) -> Bound<T> {
-    match b {
-        Included(x) => Excluded(x),
-        Excluded(x) => Included(x),
-        Unbounded => Unbounded,
+impl<T: Ord + Clone> Interval<T> {
+    pub fn from_bounds(b: impl RangeBounds<T>) -> Self {
+        let left = match b.start_bound() {
+            Unbounded => Left::NegInfinity,
+            Included(x) => Left::Closed(x.clone()),
+            Excluded(x) => Left::Open(x.clone()),
+        };
+        let right = match b.end_bound() {
+            Excluded(x) => Right::Open(x.clone()),
+            Included(x) => Right::Closed(x.clone()),
+            Unbounded => Right::PosInfinity,
+        };
+        Self { left, right }
     }
 }
 
-/// 区間から値への対応づけ。
-#[derive(Clone, Eq, PartialEq)]
-pub struct IntervalMap<K: Ord, V> {
-    buf: BTreeMap<Interval<K>, V>,
+impl<T: Ord> Interval<T> {
+    pub fn inf(&self) -> Option<&T> { self.left.inner() }
+    pub fn sup(&self) -> Option<&T> { self.right.inner() }
+
+    pub fn is_empty(&self) -> bool {
+        match (&self.left, &self.right) {
+            (Left::NegInfinity, _) => false,
+            (_, Right::PosInfinity) => false,
+            (Left::Closed(x), Right::Closed(y)) => x > y,
+            _ => self.inf().unwrap() >= self.sup().unwrap(),
+        }
+    }
+    pub fn intersects(&self, other: &Self) -> bool {
+        let (left, right) =
+            if self < other { (self, other) } else { (other, self) };
+        match (&right.left, &left.right) {
+            (Left::NegInfinity, _) => true,
+            (_, Right::PosInfinity) => true,
+            (Left::Closed(x), Right::Closed(y)) => x <= y,
+            _ => right.inf().unwrap() < left.sup().unwrap(),
+        }
+    }
+    pub fn is_connected_with(&self, other: &Self) -> bool {
+        let (left, right) =
+            if self < other { (self, other) } else { (other, self) };
+        match (&right.left, &left.right) {
+            (Left::NegInfinity, _) => true,
+            (_, Right::PosInfinity) => true,
+            (Left::Open(x), Right::Open(y)) => x < y,
+            _ => right.inf().unwrap() <= left.sup().unwrap(),
+        }
+    }
+    pub fn is_subset_of(&self, other: &Self) -> bool {
+        //      [--- self ---]
+        // [------- other -------]
+        other.left <= self.left && self.right <= other.right
+    }
+    pub fn is_superset_of(&self, other: &Self) -> bool {
+        // [------- self -------]
+        //    [--- other ---]
+        self.left <= other.left && other.right <= self.right
+    }
+
+    pub fn intersection(self, other: Self) -> Option<Interval<T>> {
+        let (left, right) =
+            if self < other { (self, other) } else { (other, self) };
+        Some(Interval { left: right.left, right: left.right })
+            .filter(|it| !it.is_empty())
+    }
+    pub fn connection(self, other: Self) -> Option<Interval<T>> {
+        let (left, right) =
+            if self < other { (self, other) } else { (other, self) };
+        if !left.is_connected_with(&right) {
+            return None;
+        }
+        Some(Interval { left: left.left, right: right.right })
+    }
 }
 
-impl<K: Ord + Debug, V: Debug> Debug for IntervalMap<K, V> {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt.debug_map().entries(self.buf.iter()).finish()
+impl<T: Ord + Clone> Interval<T> {
+    pub fn intersection_minus(
+        self,
+        other: Self,
+    ) -> (Option<Interval<T>>, Vec<Interval<T>>) {
+        if !self.intersects(&other) {
+            return (None, vec![self]);
+        }
+        if self.is_subset_of(&other) {
+            return (Some(self), vec![]);
+        }
+        if self.is_superset_of(&other) {
+            // [-----   self   ------]
+            //     [-- other ---]
+            // ======================
+            // [mi][intersection][nus]
+            let isx = other.clone();
+            let Interval { left: ll, right: lr } = self;
+            let Interval { left: rl, right: rr } = other;
+            let minus_left = {
+                let tmp = match rl {
+                    Left::NegInfinity => None,
+                    Left::Closed(x) => Some(Right::Open(x)),
+                    Left::Open(x) => Some(Right::Closed(x)),
+                };
+                tmp.map(|right| Interval { left: ll, right })
+                    .filter(|it| !it.is_empty())
+            };
+            let minus_right = {
+                let tmp = match rr {
+                    Right::Open(x) => Some(Left::Closed(x)),
+                    Right::Closed(x) => Some(Left::Open(x)),
+                    Right::PosInfinity => None,
+                };
+                tmp.map(|left| Interval { left, right: lr })
+                    .filter(|it| !it.is_empty())
+            };
+
+            let isx = if isx.is_empty() { None } else { Some(isx) };
+            let minus: Vec<_> =
+                minus_left.into_iter().chain(minus_right).collect();
+            return (isx, minus);
+        }
+        let swap = self > other;
+        let (left, right) = if swap { (other, self) } else { (self, other) };
+        // [--- self ---]
+        //          [--- other ---]
+        // ========================
+        // [ minus ][isx]
+        let Interval { left: ll, right: lr } = left;
+        let Interval { left: rl, right: rr } = right;
+        let minus = if swap {
+            let left = match lr.clone() {
+                Right::Open(x) => Left::Closed(x),
+                Right::Closed(x) => Left::Open(x),
+                Right::PosInfinity => unreachable!(),
+            };
+            Interval { left, right: rr }
+        } else {
+            let right = match rl.clone() {
+                Left::NegInfinity => unreachable!(),
+                Left::Closed(x) => Right::Open(x),
+                Left::Open(x) => Right::Closed(x),
+            };
+            Interval { left: ll, right }
+        };
+        let isx = Interval { left: rl, right: lr };
+        (Some(isx), vec![minus])
     }
+}
+
+pub struct IntervalMap<K, V> {
+    inner: BTreeMap<Interval<K>, V>,
 }
 
 impl<K: Ord + Clone, V: Eq + Clone> IntervalMap<K, V> {
-    pub fn new() -> Self { Self { buf: BTreeMap::new() } }
+    pub fn new() -> Self { Self { inner: BTreeMap::new() } }
 
-    pub fn is_empty(&self) -> bool { self.buf.is_empty() }
+    pub fn is_empty(&self) -> bool { self.inner.is_empty() }
 
-    pub fn insert<B: RangeBounds<K>>(&mut self, bounds: B, value: V) {
-        let mut interval = Interval::from_bounds(bounds);
-        if interval.is_empty() {
+    pub fn insert<B: RangeBounds<K>>(&mut self, b: B, v: V) {
+        let mut it = Interval::from_bounds(b);
+        if it.is_empty() || self.contains_internal(&it, &v) {
             return;
         }
-        self.remove_subset(&interval);
-
-        if let Some(s) = self.buf.range(..&interval).next_back() {
-            let lk = s.0.clone();
-            let lv = s.1.clone();
-            if lk.is_superset_of(&interval) {
-                if lv != value {
-                    self.remove_one(interval.clone(), lk);
-                    self.buf.insert(interval, value);
-                }
-                return;
-            }
-            if lv != value {
-                self.remove_one(interval.clone(), lk);
-            } else if interval.connected(&lk) {
-                self.buf.remove(&lk);
-                interval.unite(lk);
-            }
-        }
-        if let Some(s) = self.buf.range(&interval..).next() {
-            let rk = s.0.clone();
-            let rv = s.1.clone();
-            if rv != value {
-                self.remove_one(interval.clone(), rk);
-            } else if interval.connected(&rk) {
-                self.buf.remove(&rk);
-                interval.unite(rk);
-            }
-        }
-        self.buf.insert(interval, value);
+        self.remove_internal(it.clone());
+        self.connect(&mut it, &v);
+        self.inner.insert(it, v);
     }
 
-    fn remove_subset(
-        &mut self,
-        interval: &Interval<K>,
-    ) -> Vec<(Interval<K>, V)> {
-        let rm: Vec<_> = self
-            .buf
-            .range(interval..)
-            .take_while(|(k, _)| interval.is_superset_of(k))
-            .map(|(k, v)| (k.clone(), v.clone()))
+    pub fn remove<B: RangeBounds<K>>(&mut self, b: B) -> Vec<(Interval<K>, V)> {
+        let it = Interval::from_bounds(b);
+        if it.is_empty() {
+            return vec![];
+        }
+        self.remove_internal(it)
+    }
+
+    fn contains_internal(&self, it: &Interval<K>, v: &V) -> bool {
+        // it の superset である区間が含まれており、その値が v なら true
+        (self.inner.range(it..).next())
+            .into_iter()
+            .chain(self.inner.range(..it).next_back())
+            .any(|(ki, vi)| ki.is_superset_of(it) && vi == v)
+    }
+
+    fn remove_internal(&mut self, it: Interval<K>) -> Vec<(Interval<K>, V)> {
+        let mut rm = self.remove_subset_of(&it);
+        rm.extend(self.remove_intersection_of(it));
+        rm.sort_unstable_by(|l, r| l.0.cmp(&r.0));
+        rm
+    }
+
+    fn remove_subset_of(&mut self, it: &Interval<K>) -> Vec<(Interval<K>, V)> {
+        // it の subset である区間を削除し、それを返す
+        let rm: Vec<_> = (self.inner.range(it..))
+            .take_while(|(ki, _)| ki.is_subset_of(it))
+            .chain(
+                (self.inner.range(..it).rev())
+                    .take_while(|(ki, _)| ki.is_subset_of(it)),
+            )
+            .map(|(ki, vi)| (ki.clone(), vi.clone()))
             .collect();
         for (k, _) in &rm {
-            self.buf.remove(k);
+            self.inner.remove(k);
         }
         rm
     }
 
-    fn remove_one(
+    fn remove_intersection_of(
         &mut self,
-        new: Interval<K>,
-        old: Interval<K>,
-    ) -> Option<(Interval<K>, V)> {
-        if !old.intersects(&new) {
+        it: Interval<K>,
+    ) -> Vec<(Interval<K>, V)> {
+        // it と intersection を持つ区間を削除し、それを返す。
+        // ただし、it の subset はすでに削除済みとする
+        let mut rm = vec![];
+        if let Some((ki, _)) = self.inner.range(&it..).next() {
+            if it.intersects(ki) {
+                let ki = ki.clone();
+                let vi = self.inner.remove(&ki).unwrap();
+                let (isx, minus) = ki.intersection_minus(it.clone());
+                for k in minus {
+                    self.inner.insert(k, vi.clone());
+                }
+                rm.push((isx.unwrap(), vi));
+            }
+        }
+        if let Some((ki, _)) = self.inner.range(..&it).next_back() {
+            if it.intersects(ki) {
+                let ki = ki.clone();
+                let vi = self.inner.remove(&ki).unwrap();
+                let (isx, minus) = ki.intersection_minus(it);
+                for k in minus {
+                    self.inner.insert(k, vi.clone());
+                }
+                rm.push((isx.unwrap(), vi));
+            }
+        }
+        rm
+    }
+
+    fn connect(&mut self, it: &mut Interval<K>, v: &V) {
+        // it の両隣にくる区間の値が v であればそれらを削除し、
+        // it につなげる。
+        if let Some((ki, vi)) = self.inner.range(&*it..).next() {
+            if vi == v && it.is_connected_with(ki) {
+                let ki = ki.clone();
+                self.inner.remove(&ki);
+                it.right = ki.right;
+            }
+        }
+        if let Some((ki, vi)) = self.inner.range(..&*it).next_back() {
+            if vi == v && it.is_connected_with(ki) {
+                let ki = ki.clone();
+                self.inner.remove(&ki);
+                it.left = ki.left;
+            }
+        }
+    }
+
+    pub fn superset_of<B: RangeBounds<K>>(
+        &self,
+        b: B,
+    ) -> Option<(&Interval<K>, &V)> {
+        let it = Interval::from_bounds(b);
+        if self.inner.is_empty() || it.is_empty() {
             return None;
         }
-        let v = self.buf.remove(&old).unwrap();
-        if new.is_superset_of(&old) {
-            //    [--- old ---]
-            // [---    new    ---]
-            return Some((old, v));
-        }
-        if new < old {
-            //    [--- old ---]
-            // [--- new ---]
-            let Interval(old_0, old_1) = old;
-            if new.1 != Unbounded {
-                let new_1_t = toggle_bound(new.1.clone());
-                let v = v.clone();
-                self.buf.insert(Interval(new_1_t, old_1), v);
-            }
-            Some((Interval(old_0, new.1), v))
-        } else if old.is_superset_of(&new) {
-            // [---    old    ---]
-            //    [--- new ---]
-            let Interval(old_0, old_1) = old;
-            let Interval(new_0, new_1) = new;
-            if new_0 != Unbounded {
-                let new_0_t = toggle_bound(new_0.clone());
-                let v = v.clone();
-                self.buf.insert(Interval(old_0, new_0_t), v);
-            }
-            if new_1 != Unbounded {
-                let new_1_t = toggle_bound(new_1.clone());
-                let v = v.clone();
-                self.buf.insert(Interval(new_1_t, old_1), v);
-            }
-            Some((Interval(new_0, new_1), v))
-        } else {
-            // [--- old ---]
-            //    [--- new ---]
-            let Interval(old_0, old_1) = old;
-            if new.0 != Unbounded {
-                let new_0_t = toggle_bound(new.0.clone());
-                let v = v.clone();
-                self.buf.insert(Interval(old_0, new_0_t), v);
-            }
-            Some((Interval(new.0, old_1), v))
-        }
-    }
-
-    pub fn remove<B: RangeBounds<K>>(
-        &mut self,
-        bounds: B,
-    ) -> Vec<(Interval<K>, V)> {
-        let interval = Interval::from_bounds(bounds);
-        if interval.is_empty() {
-            return vec![];
-        }
-
-        let mut res = self.remove_subset(&interval);
-        if let Some(s) = self.buf.range(..&interval).next_back() {
-            let lk = s.0.clone();
-            res.extend(self.remove_one(interval.clone(), lk));
-        }
-        if let Some(s) = self.buf.range(&interval..).next() {
-            let rk = s.0.clone();
-            res.extend(self.remove_one(interval, rk));
-        }
-        res.sort_unstable_by(|l, r| l.0.cmp(&r.0));
-        res
-    }
-
-    pub fn clear(&mut self) { self.buf.clear(); }
-
-    pub fn covering<B: RangeBounds<K>>(
-        &self,
-        bounds: B,
-    ) -> Option<(&Interval<K>, &V)> {
-        let interval = Interval::from_bounds(bounds);
-        if self.buf.is_empty() || interval.is_empty() {
-            None
-        } else {
-            self.buf
-                .range(..=&Interval(interval.0.clone(), Unbounded))
-                .next_back()
-                .filter(|r| r.0.is_superset_of(&interval))
-        }
+        (self.inner.range(..&it).next_back().into_iter())
+            .chain(self.inner.range(&it..).next())
+            .find(|(ki, _)| ki.is_superset_of(&it))
     }
 
     pub fn iter(
         &self,
     ) -> impl Iterator<Item = (&Interval<K>, &V)> + DoubleEndedIterator + '_
     {
-        self.buf.iter()
+        self.inner.iter()
     }
 }
 
 impl<'a, K: Ord, V: Eq> IntoIterator for &'a IntervalMap<K, V> {
     type Item = (&'a Interval<K>, &'a V);
     type IntoIter = std::collections::btree_map::Iter<'a, Interval<K>, V>;
-    fn into_iter(self) -> Self::IntoIter { self.buf.iter() }
+    fn into_iter(self) -> Self::IntoIter { self.inner.iter() }
 }
 
 impl<K: Ord, V: Eq> IntoIterator for IntervalMap<K, V> {
     type Item = (Interval<K>, V);
     type IntoIter = std::collections::btree_map::IntoIter<Interval<K>, V>;
-    fn into_iter(self) -> Self::IntoIter { self.buf.into_iter() }
+    fn into_iter(self) -> Self::IntoIter { self.inner.into_iter() }
+}
+
+impl<K: Ord + Debug, V: Debug> Debug for IntervalMap<K, V> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt.debug_map().entries(self.inner.iter()).finish()
+    }
 }
