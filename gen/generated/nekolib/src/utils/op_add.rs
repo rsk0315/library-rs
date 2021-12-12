@@ -17,7 +17,7 @@ use binop::{Associative, Commutative, Identity, Magma, PartialRecip, Recip};
 /// [`Zero`]: ../../traits/additive/trait.Zero.html
 /// [`AddAssoc`]: ../../traits/additive/trait.AddAssoc.html
 /// [`AddComm`]: ../../traits/additive/trait.AddComm.html
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpAdd<T> {
     OpAddV,
     _Marker(T),
