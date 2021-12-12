@@ -12,7 +12,8 @@
 /// use nekolib::traits::Magma;
 /// use nekolib::utils::OpMin;
 ///
-/// assert_eq!(3, OpMin::op(3, 4));
+/// let op_min = OpMin::default();
+/// assert_eq!(3, op_min.op(3, 4));
 /// ```
 pub trait Magma {
     /// 集合 $M$ に対応する型。
@@ -31,9 +32,10 @@ pub trait Magma {
 /// use nekolib::utils::OpMin;
 ///
 /// let (x, y, z) = (2, 3, 4);
+/// let op_min = OpMin::default();
 /// assert_eq!(
-///     OpMin::op(OpMin::op(x, y), z),
-///     OpMin::op(x, OpMin::op(y, z)),
+///     op_min.op(op_min.op(x, y), z),
+///     op_min.op(x, op_min.op(y, z)),
 /// );
 /// ```
 pub trait Associative: Magma {}
@@ -48,9 +50,10 @@ pub trait Associative: Magma {}
 /// use nekolib::traits::{Identity, Magma};
 /// use nekolib::utils::OpMin;
 ///
+/// let op_min = OpMin::default();
 /// let x = 3;
-/// assert_eq!(OpMin::<i32>::id(), std::i32::MAX);
-/// assert_eq!(OpMin::op(x, OpMin::id()), x);
+/// assert_eq!(op_min.id(), std::i32::MAX);
+/// assert_eq!(op_min.op(x, op_min.id()), x);
 /// ```
 pub trait Identity: Magma {
     /// 単位元を返す。
@@ -68,8 +71,9 @@ pub trait Identity: Magma {
 /// use nekolib::traits::{Commutative, Magma};
 /// use nekolib::utils::OpMin;
 ///
+/// let op_min = OpMin::default();
 /// let (x, y) = (3, 4);
-/// assert_eq!(OpMin::op(x, y), OpMin::op(y, x));
+/// assert_eq!(op_min.op(x, y), op_min.op(y, x));
 /// ```
 pub trait Commutative: Magma {}
 
@@ -94,9 +98,10 @@ pub trait PartialRecip: Magma {
 /// use nekolib::traits::{Magma, Monoid, Recip};
 /// use nekolib::utils::OpAdd;
 ///
+/// let op_add = OpAdd::default();
 /// let x = 3;
-/// let y = OpAdd::recip(x);
-/// assert_eq!(OpAdd::op(x, y), 0);
+/// let y = op_add.recip(x);
+/// assert_eq!(op_add.op(x, y), 0);
 /// ```
 pub trait Recip: PartialRecip {
     fn recip(&self, x: Self::Set) -> Self::Set {
@@ -119,10 +124,12 @@ pub trait Recip: PartialRecip {
 /// use nekolib::traits::{Commutative, Magma};
 /// use nekolib::utils::{OpAdd, OpMul};
 ///
+/// let op_add = OpAdd::default();
+/// let op_mul = OpMul::default();
 /// let (x, y, z) = (3, 4, 5);
 /// assert_eq!(
-///     OpMul::op(x, OpAdd::op(y, z)),
-///     OpAdd::op(OpMul::op(x, y), OpMul::op(x, z))
+///     op_mul.op(x, op_add.op(y, z)),
+///     op_add.op(op_mul.op(x, y), op_mul.op(x, z))
 /// );
 /// ```
 pub trait Distributive<A: Magma> {}

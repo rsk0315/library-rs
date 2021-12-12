@@ -87,24 +87,17 @@ use fold::Fold;
 ///
 /// # Examples
 /// ```
-/// use nekolib::{impl_assoc_val, impl_mod_int};
 /// use nekolib::ds::DisjointSparseTable;
-/// use nekolib::math::ModInt;
-/// use nekolib::traits::{AssocVal, Fold};
+/// use nekolib::traits::Fold;
 /// use nekolib::utils::OpRollHash;
 ///
-/// impl_mod_int! { Mod1e9p7 => 1_000_000_007_i64 }
-/// type Mi = ModInt<Mod1e9p7>;
-/// impl_assoc_val! { Base<Mi> => Mi::from(123) }
-/// type OpRh = OpRollHash::<Mi, Base>;
+/// let op_rh = OpRollHash::<998244353>::default();
+/// let value_of = |s| op_rh.value_of(s);
 ///
-/// let val_from = |s| OpRh::val_from(s);
-///
-/// let dst: DisjointSparseTable<OpRh> = vec![
-///     val_from("abra"), val_from("cad"), val_from("abra")
-/// ].into();
-/// assert_eq!(dst.fold(1..=2), val_from("cadabra"));
-/// assert_eq!(dst.fold(..), val_from("abracadabra"));
+/// let base: Vec<_> = ["abra", "cad", "abra"].iter().map(|s| value_of(s)).collect();
+/// let dst: DisjointSparseTable<_> = (base, op_rh).into();
+/// assert_eq!(dst.fold(1..=2), value_of("cadabra"));
+/// assert_eq!(dst.fold(..), value_of("abracadabra"));
 /// ```
 pub struct DisjointSparseTable<M: Monoid> {
     buf: Vec<Vec<M::Set>>,

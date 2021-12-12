@@ -9,27 +9,23 @@ use binop::{Associative, Identity, Magma};
 /// # Examples
 /// ```
 /// use nekolib::math::ModInt;
-/// use nekolib::traits::{AssocVal, Magma};
+/// use nekolib::traits::Magma;
 /// use nekolib::utils::OpRollHash;
-/// use nekolib::{impl_assoc_val, impl_mod_int};
 ///
-/// impl_mod_int! { Mod1e9p7 => 1_000_000_007_i64 }
-/// type Mi = ModInt<Mod1e9p7>;
-/// impl_assoc_val! { Base<Mi> => Mi::from(123) }
+/// let op_rh = OpRollHash::<998244353>::default();
+/// let value_of = |s| op_rh.value_from(s);
+/// let op = |x, y| op_rh.op(x, y);
 ///
-/// let val = |s| OpRollHash::<Mi, Base>::val_from(s);
-/// let op = |x, y| OpRollHash::<Mi, Base>::op(x, y);
-///
-/// let abr = val("abr");
-/// let a = val("a");
-/// let abra = val("abra");
+/// let abr = value_of("abr");
+/// let a = value_of("a");
+/// let abra = value_of("abra");
 /// assert_eq!(op(abr, a), abra);
 ///
 /// let s = "abracadabra";
-/// assert_eq!(val(&s[0..4]), abra);
-/// assert_eq!(val(&s[7..11]), abra);
-/// assert_ne!(val(&s[1..5]), abra);
-/// assert_eq!(val(s), op(op(abra, val("cad")), abra));
+/// assert_eq!(value_of(&s[0..4]), abra);
+/// assert_eq!(value_of(&s[7..11]), abra);
+/// assert_ne!(value_of(&s[1..5]), abra);
+/// assert_eq!(value_of(s), op(op(abra, value_of("cad")), abra));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpRollHash<const B: u64> {
