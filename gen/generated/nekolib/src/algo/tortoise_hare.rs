@@ -31,6 +31,12 @@
 /// // 2, 6, 4, 5, 1, 3, 2, ...
 /// assert_eq!(cycle_mu_lambda(2, |x| x * 3 % 7), (0, 6));
 /// ```
+///
+/// ```
+/// use nekolib::algo::cycle_mu_lambda;
+///
+/// assert_eq!(cycle_mu_lambda(0, |x| x), (0, 1));
+/// ```
 pub fn cycle_mu_lambda<T, F>(x0: T, f: F) -> (usize, usize)
 where
     T: Eq + Clone,

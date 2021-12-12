@@ -15,7 +15,7 @@ use binop::{Associative, Identity, Magma};
 /// use nekolib::utils::OpRollHash;
 ///
 /// let op_rh = OpRollHash::<998244353>::default();
-/// let value_of = |s| op_rh.value_from(s);
+/// let value_of = |s| op_rh.value_of(s);
 /// let op = |x, y| op_rh.op(x, y);
 ///
 /// let abr = value_of("abr");
