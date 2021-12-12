@@ -16,6 +16,7 @@ pub mod get_mut;
 pub mod max;
 pub mod min;
 pub mod multiplicative;
+pub mod potential_function;
 pub mod push_pop;
 pub mod quantile;
 pub mod range_bounds;
@@ -58,6 +59,8 @@ pub use max::Max;
 pub use min::Min;
 #[doc(inline)]
 pub use multiplicative::{MulAssoc, MulComm, MulRecip, One};
+#[doc(inline)]
+pub use potential_function::PotentialFunction;
 #[doc(inline)]
 pub use push_pop::{Pop, PopBack, PopFront, Push, PushBack, PushFront};
 #[doc(inline)]
