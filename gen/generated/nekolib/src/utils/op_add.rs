@@ -18,8 +18,14 @@ use binop::{Associative, Commutative, Identity, Magma, PartialRecip, Recip};
 /// [`AddAssoc`]: ../../traits/additive/trait.AddAssoc.html
 /// [`AddComm`]: ../../traits/additive/trait.AddComm.html
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct OpAdd<T> {
-    _t: std::marker::PhantomData<T>,
+pub enum OpAdd<T> {
+    OpAddV,
+    _Marker(T),
+}
+pub use OpAdd::OpAddV;
+
+impl<T> Default for OpAdd<T> {
+    fn default() -> Self { OpAddV }
 }
 
 use std::ops::{Add, Neg};
@@ -29,25 +35,25 @@ where
     T: Add<Output = T> + Eq + Sized,
 {
     type Set = T;
-    fn op(x: Self::Set, y: Self::Set) -> Self::Set { x + y }
+    fn op(&self, x: Self::Set, y: Self::Set) -> Self::Set { x + y }
 }
 impl<T> Identity for OpAdd<T>
 where
     T: Add<Output = T> + Eq + Sized + Zero,
 {
-    fn id() -> Self::Set { T::zero() }
+    fn id(&self) -> Self::Set { T::zero() }
 }
 impl<T> PartialRecip for OpAdd<T>
 where
     T: Add<Output = T> + Eq + Sized + Neg<Output = T>,
 {
-    fn partial_recip(x: Self::Set) -> Option<Self::Set> { Some(-x) }
+    fn partial_recip(&self, x: Self::Set) -> Option<Self::Set> { Some(-x) }
 }
 impl<T> Recip for OpAdd<T>
 where
     T: Add<Output = T> + Eq + Sized + Neg<Output = T>,
 {
-    fn recip(x: Self::Set) -> Self::Set { -x }
+    fn recip(&self, x: Self::Set) -> Self::Set { -x }
 }
 impl<T> Associative for OpAdd<T> where T: Add<Output = T> + Eq + Sized + AddAssoc
 {}

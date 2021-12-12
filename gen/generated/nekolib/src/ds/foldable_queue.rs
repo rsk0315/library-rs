@@ -67,6 +67,7 @@ pub struct FoldableQueue<M: Monoid> {
     buf_folded_front: Vec<M::Set>,
     buf_back: Vec<M::Set>,
     folded_back: M::Set,
+    monoid: M,
 }
 
 impl<M: Monoid> FoldableQueue<M>
@@ -74,12 +75,20 @@ where
     M::Set: Clone,
 {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new() -> Self
+    where
+        M: Default,
+    {
+        Self::with(M::default())
+    }
+    #[must_use]
+    pub fn with(monoid: M) -> Self {
         Self {
             buf_front: vec![],
-            buf_folded_front: vec![M::id()],
+            buf_folded_front: vec![monoid.id()],
             buf_back: vec![],
-            folded_back: M::id(),
+            folded_back: monoid.id(),
+            monoid,
         }
     }
     fn rotate(&mut self) {
@@ -90,14 +99,12 @@ where
         }
     }
     fn build_folded(&mut self) {
-        self.folded_back = self
-            .buf_back
-            .iter()
-            .fold(M::id(), |acc, x| M::op(acc, x.clone()));
+        self.folded_back = (self.buf_back.iter())
+            .fold(self.monoid.id(), |acc, x| self.monoid.op(acc, x.clone()));
         let n = self.buf_front.len();
-        self.buf_folded_front = vec![M::id(); n + 1];
+        self.buf_folded_front = vec![self.monoid.id(); n + 1];
         for i in 0..n {
-            self.buf_folded_front[i + 1] = M::op(
+            self.buf_folded_front[i + 1] = self.monoid.op(
                 self.buf_folded_front[i].clone(),
                 self.buf_front[i].clone(),
             );
@@ -111,8 +118,10 @@ where
 {
     type Input = M::Set;
     fn push_back(&mut self, x: Self::Input) {
-        self.folded_back =
-            M::op(std::mem::replace(&mut self.folded_back, M::id()), x.clone());
+        self.folded_back = self.monoid.op(
+            std::mem::replace(&mut self.folded_back, self.monoid.id()),
+            x.clone(),
+        );
         self.buf_back.push(x);
     }
 }
@@ -154,12 +163,13 @@ where
     type Output = M;
     fn fold(&self, _: RangeFull) -> M::Set {
         let front = self.buf_folded_front.last().unwrap().clone();
-        M::op(front, self.folded_back.clone())
+        self.monoid.op(front, self.folded_back.clone())
     }
 }
 
 impl<M: Monoid> Default for FoldableQueue<M>
 where
+    M: Default,
     M::Set: Clone,
 {
     fn default() -> Self { Self::new() }

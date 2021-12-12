@@ -331,5 +331,5 @@ whole = [["traits", "additive"], ["traits", "binop"], ["traits", "multiplicative
 
 [[depends]]
 name = ["utils", "op_roll_hash"]
-direct = [["traits", "additive"], ["traits", "assoc_val"], ["traits", "binop"], ["traits", "multiplicative"]]
-whole = [["traits", "additive"], ["traits", "assoc_val"], ["traits", "binop"], ["traits", "multiplicative"]]
+direct = [["traits", "binop"]]
+whole = [["traits", "binop"]]

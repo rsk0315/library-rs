@@ -1,88 +1,60 @@
 //! ローリングハッシュに関する wrapper クラス。
 
-use super::super::traits::additive;
-use super::super::traits::assoc_val;
 use super::super::traits::binop;
-use super::super::traits::multiplicative;
 
 use std::fmt::Debug;
-use std::ops::{Add, Mul};
 
-use additive::Zero;
-use assoc_val::AssocVal;
 use binop::{Associative, Identity, Magma};
-use multiplicative::One;
 
 /// 文字列連結をローリングハッシュで行う演算を持つ。
 ///
 /// # Examples
 /// ```
 /// use nekolib::math::ModInt;
-/// use nekolib::traits::{AssocVal, Magma};
+/// use nekolib::traits::Magma;
 /// use nekolib::utils::OpRollHash;
-/// use nekolib::{impl_assoc_val, impl_mod_int};
 ///
-/// impl_mod_int! { Mod1e9p7 => 1_000_000_007_i64 }
-/// type Mi = ModInt<Mod1e9p7>;
-/// impl_assoc_val! { Base<Mi> => Mi::from(123) }
+/// let op_rh = OpRollHash::<998244353>::default();
+/// let value_of = |s| op_rh.value_from(s);
+/// let op = |x, y| op_rh.op(x, y);
 ///
-/// let val = |s| OpRollHash::<Mi, Base>::val_from(s);
-/// let op = |x, y| OpRollHash::<Mi, Base>::op(x, y);
-///
-/// let abr = val("abr");
-/// let a = val("a");
-/// let abra = val("abra");
+/// let abr = value_of("abr");
+/// let a = value_of("a");
+/// let abra = value_of("abra");
 /// assert_eq!(op(abr, a), abra);
 ///
 /// let s = "abracadabra";
-/// assert_eq!(val(&s[0..4]), abra);
-/// assert_eq!(val(&s[7..11]), abra);
-/// assert_ne!(val(&s[1..5]), abra);
-/// assert_eq!(val(s), op(op(abra, val("cad")), abra));
+/// assert_eq!(value_of(&s[0..4]), abra);
+/// assert_eq!(value_of(&s[7..11]), abra);
+/// assert_ne!(value_of(&s[1..5]), abra);
+/// assert_eq!(value_of(s), op(op(abra, value_of("cad")), abra));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct OpRollHash<T, B>
-where
-    T: Copy + Eq,
-    B: AssocVal<T>,
-{
-    _tb: std::marker::PhantomData<(T, B)>,
+pub enum OpRollHash<const B: u64> {
+    OpRollHashV,
+}
+pub use OpRollHash::OpRollHashV;
+
+impl<const B: u64> Default for OpRollHash<B> {
+    fn default() -> Self { OpRollHashV }
 }
 
-impl<T, B> Magma for OpRollHash<T, B>
-where
-    T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero,
-    B: AssocVal<T>,
-{
-    type Set = (T, T);
-    fn op((hx, lx): Self::Set, (hy, ly): Self::Set) -> Self::Set {
-        (hx * ly + hy, lx * ly)
+impl<const B: u64> Magma for OpRollHash<B> {
+    type Set = (u64, u64);
+    fn op(&self, (hx, lx): Self::Set, (hy, ly): Self::Set) -> Self::Set {
+        ((hx * ly + hy) % B, (lx * ly) % B)
     }
 }
 
-impl<T, B> Identity for OpRollHash<T, B>
-where
-    T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero + One,
-    B: AssocVal<T>,
-{
-    fn id() -> Self::Set { (T::zero(), T::one()) }
+impl<const B: u64> Identity for OpRollHash<B> {
+    fn id(&self) -> Self::Set { (0, 1) }
 }
 
-impl<T, B> Associative for OpRollHash<T, B>
-where
-    T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero,
-    B: AssocVal<T>,
-{
-}
+impl<const B: u64> Associative for OpRollHash<B> {}
 
-impl<T, B> OpRollHash<T, B>
-where
-    T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero + One + From<u8>,
-    B: AssocVal<T>,
-{
+impl<const B: u64> OpRollHash<B> {
     #[must_use]
-    pub fn val_from(s: &str) -> <Self as Magma>::Set {
-        s.bytes()
-            .fold(Self::id(), |acc, x| Self::op(acc, (T::from(x), B::get())))
+    pub fn value_of(&self, s: &str) -> <Self as Magma>::Set {
+        s.chars().fold((0, 0), |acc, x| self.op(acc, (x as u64, B)))
     }
 }

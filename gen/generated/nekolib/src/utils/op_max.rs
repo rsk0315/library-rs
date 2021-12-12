@@ -14,8 +14,14 @@ use min::Min;
 ///
 /// [`Min`]: ../../traits/min/trait.Min.html
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct OpMax<T> {
-    _t: std::marker::PhantomData<T>,
+pub enum OpMax<T> {
+    OpMaxV,
+    _Marker(T),
+}
+pub use OpMax::OpMaxV;
+
+impl<T> Default for OpMax<T> {
+    fn default() -> Self { OpMaxV }
 }
 
 impl<T> Magma for OpMax<T>
@@ -23,13 +29,13 @@ where
     T: Ord + Eq + Sized,
 {
     type Set = T;
-    fn op(x: Self::Set, y: Self::Set) -> Self::Set { x.max(y) }
+    fn op(&self, x: Self::Set, y: Self::Set) -> Self::Set { x.max(y) }
 }
 impl<T> Identity for OpMax<T>
 where
     T: Ord + Eq + Sized + Min,
 {
-    fn id() -> Self::Set { <T as Min>::min() }
+    fn id(&self) -> Self::Set { <T as Min>::min() }
 }
 
 impl<T> Associative for OpMax<T> where T: Ord + Eq + Sized {}
