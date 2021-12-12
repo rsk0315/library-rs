@@ -12,13 +12,14 @@
 /// use nekolib::traits::Magma;
 /// use nekolib::utils::OpMin;
 ///
-/// assert_eq!(3, OpMin::op(3, 4));
+/// let op_min = OpMin::default();
+/// assert_eq!(3, op_min.op(3, 4));
 /// ```
 pub trait Magma {
     /// 集合 $M$ に対応する型。
     type Set: Eq;
     /// $x \\circ y$ を返す。
-    fn op(x: Self::Set, y: Self::Set) -> Self::Set;
+    fn op(&self, x: Self::Set, y: Self::Set) -> Self::Set;
 }
 
 /// 結合法則を満たす。
@@ -31,9 +32,10 @@ pub trait Magma {
 /// use nekolib::utils::OpMin;
 ///
 /// let (x, y, z) = (2, 3, 4);
+/// let op_min = OpMin::default();
 /// assert_eq!(
-///     OpMin::op(OpMin::op(x, y), z),
-///     OpMin::op(x, OpMin::op(y, z)),
+///     op_min.op(op_min.op(x, y), z),
+///     op_min.op(x, op_min.op(y, z)),
 /// );
 /// ```
 pub trait Associative: Magma {}
@@ -48,13 +50,14 @@ pub trait Associative: Magma {}
 /// use nekolib::traits::{Identity, Magma};
 /// use nekolib::utils::OpMin;
 ///
+/// let op_min = OpMin::default();
 /// let x = 3;
-/// assert_eq!(OpMin::<i32>::id(), std::i32::MAX);
-/// assert_eq!(OpMin::op(x, OpMin::id()), x);
+/// assert_eq!(op_min.id(), std::i32::MAX);
+/// assert_eq!(op_min.op(x, op_min.id()), x);
 /// ```
 pub trait Identity: Magma {
     /// 単位元を返す。
-    fn id() -> Self::Set;
+    fn id(&self) -> Self::Set;
 }
 
 /// 交換法則を満たす。
@@ -68,8 +71,9 @@ pub trait Identity: Magma {
 /// use nekolib::traits::{Commutative, Magma};
 /// use nekolib::utils::OpMin;
 ///
+/// let op_min = OpMin::default();
 /// let (x, y) = (3, 4);
-/// assert_eq!(OpMin::op(x, y), OpMin::op(y, x));
+/// assert_eq!(op_min.op(x, y), op_min.op(y, x));
 /// ```
 pub trait Commutative: Magma {}
 
@@ -80,7 +84,7 @@ pub trait Commutative: Magma {}
 /// 体の乗法においては $0$ を除いて逆元を持つことが要請されるため必要かなと思った。
 /// もっといい設計はある気がする。
 pub trait PartialRecip: Magma {
-    fn partial_recip(x: Self::Set) -> Option<Self::Set>;
+    fn partial_recip(&self, x: Self::Set) -> Option<Self::Set>;
 }
 
 /// 逆元が常に存在する。
@@ -94,12 +98,15 @@ pub trait PartialRecip: Magma {
 /// use nekolib::traits::{Magma, Monoid, Recip};
 /// use nekolib::utils::OpAdd;
 ///
+/// let op_add = OpAdd::default();
 /// let x = 3;
-/// let y = OpAdd::recip(x);
-/// assert_eq!(OpAdd::op(x, y), 0);
+/// let y = op_add.recip(x);
+/// assert_eq!(op_add.op(x, y), 0);
 /// ```
 pub trait Recip: PartialRecip {
-    fn recip(x: Self::Set) -> Self::Set { Self::partial_recip(x).unwrap() }
+    fn recip(&self, x: Self::Set) -> Self::Set {
+        self.partial_recip(x).unwrap()
+    }
 }
 
 /// 分配法則を満たす。
@@ -117,10 +124,12 @@ pub trait Recip: PartialRecip {
 /// use nekolib::traits::{Commutative, Magma};
 /// use nekolib::utils::{OpAdd, OpMul};
 ///
+/// let op_add = OpAdd::default();
+/// let op_mul = OpMul::default();
 /// let (x, y, z) = (3, 4, 5);
 /// assert_eq!(
-///     OpMul::op(x, OpAdd::op(y, z)),
-///     OpAdd::op(OpMul::op(x, y), OpMul::op(x, z))
+///     op_mul.op(x, op_add.op(y, z)),
+///     op_add.op(op_mul.op(x, y), op_mul.op(x, z))
 /// );
 /// ```
 pub trait Distributive<A: Magma> {}
@@ -169,20 +178,25 @@ pub trait Ring {
     /// モノイド $(R, \\ast, 1)$ に対応する型。
     type Multiplicative: Monoid<Set = Self::Set> + Distributive<Self::Additive>;
 
+    fn additive(&self) -> &Self::Additive;
+    fn multiplicative(&self) -> &Self::Multiplicative;
+
     /// 和 $x \\circ y$ を返す。
-    fn add(x: Self::Set, y: Self::Set) -> Self::Set { Self::Additive::op(x, y) }
+    fn add(&self, x: Self::Set, y: Self::Set) -> Self::Set {
+        self.additive().op(x, y)
+    }
     /// 加法 $\\circ$ の単位元 $0$ を返す。
     #[must_use]
-    fn zero() -> Self::Set { Self::Additive::id() }
+    fn zero(&self) -> Self::Set { self.additive().id() }
     /// 加法 $\\circ$ に関する $x$ の逆元 $-x$ を返す。
-    fn neg(x: Self::Set) -> Self::Set { Self::Additive::recip(x) }
+    fn neg(&self, x: Self::Set) -> Self::Set { self.additive().recip(x) }
     /// 積 $x \\ast y$ を返す。
-    fn mul(x: Self::Set, y: Self::Set) -> Self::Set {
-        Self::Multiplicative::op(x, y)
+    fn mul(&self, x: Self::Set, y: Self::Set) -> Self::Set {
+        self.multiplicative().op(x, y)
     }
     /// 乗法 $\\ast$ の単位元 $1$ を返す。
     #[must_use]
-    fn one() -> Self::Set { Self::Multiplicative::id() }
+    fn one(&self) -> Self::Set { self.multiplicative().id() }
 }
 
 /// 可換環。
@@ -202,11 +216,11 @@ where
     Self::Multiplicative: PartialRecip,
 {
     /// 乗法 $\\ast$ における関する $x$ の逆元 $x^{-1}$ を返す。
-    fn recip(x: Self::Set) -> Self::Set {
-        if x == Self::Additive::id() {
+    fn recip(&self, x: Self::Set) -> Self::Set {
+        if x == self.additive().id() {
             panic!("zero element does not have multiplicative inverse");
         } else {
-            Self::Multiplicative::partial_recip(x).unwrap()
+            self.multiplicative().partial_recip(x).unwrap()
         }
     }
 }

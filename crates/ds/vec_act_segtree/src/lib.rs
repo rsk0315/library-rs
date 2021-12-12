@@ -20,6 +20,7 @@ where
     buf: RefCell<Vec<<A::Operand as Magma>::Set>>,
     def: RefCell<Vec<<A::Operator as Magma>::Set>>,
     len: usize,
+    action: A,
 }
 
 impl<A> VecActSegtree<A>
@@ -28,11 +29,17 @@ where
     <A::Operator as Magma>::Set: Clone,
     <A::Operand as Magma>::Set: Clone,
 {
-    pub fn new(len: usize) -> Self {
+    #[must_use]
+    pub fn new(len: usize) -> Self
+    where
+        A: Default,
+    {
+        let action = A::default();
         Self {
             len,
-            buf: RefCell::new(vec![A::Operand::id(); len + len]),
-            def: RefCell::new(vec![A::Operator::id(); len]),
+            buf: RefCell::new(vec![action.operand().id(); len + len]),
+            def: RefCell::new(vec![action.operator().id(); len]),
+            action,
         }
     }
 
@@ -71,23 +78,25 @@ where
         let def = self.def.borrow();
         while i > 1 {
             i >>= 1;
-            buf[i] =
-                A::Operand::op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
-            A::act(&mut buf[i], def[i].clone());
+            buf[i] = self
+                .action
+                .operand()
+                .op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
+            self.action.act(&mut buf[i], def[i].clone());
         }
     }
 
     fn apply(&self, i: usize, op: <A::Operator as Magma>::Set) {
         let mut buf = self.buf.borrow_mut();
         let mut def = self.def.borrow_mut();
-        A::act(&mut buf[i], op.clone());
+        self.action.act(&mut buf[i], op.clone());
         if i < self.len {
-            def[i] = A::Operator::op(def[i].clone(), op);
+            def[i] = self.action.operator().op(def[i].clone(), op);
         }
     }
 
     fn push_down(&self, i: usize) {
-        let e = A::Operator::id();
+        let e = self.action.operator().id();
         let d = std::mem::replace(&mut self.def.borrow_mut()[i], e.clone());
         if d != e {
             self.apply(i << 1, d.clone());
@@ -102,7 +111,7 @@ where
     }
 
     fn resolve_all(&self) {
-        let e = A::Operator::id();
+        let e = self.action.operator().id();
         for i in 1..self.len {
             let d = std::mem::replace(&mut self.def.borrow_mut()[i], e.clone());
             self.apply(i, d);
@@ -112,21 +121,33 @@ where
 
 impl<A> From<Vec<<A::Operand as Magma>::Set>> for VecActSegtree<A>
 where
+    A: MonoidAction + Default,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone,
+{
+    fn from(v: Vec<<A::Operand as Magma>::Set>) -> Self {
+        Self::from((v, A::default()))
+    }
+}
+
+impl<A> From<(Vec<<A::Operand as Magma>::Set>, A)> for VecActSegtree<A>
+where
     A: MonoidAction,
     <A::Operator as Magma>::Set: Clone,
     <A::Operand as Magma>::Set: Clone,
 {
-    fn from(mut v: Vec<<A::Operand as Magma>::Set>) -> Self {
+    fn from((mut v, action): (Vec<<A::Operand as Magma>::Set>, A)) -> Self {
         let len = v.len();
-        let mut buf = vec![A::Operand::id(); len];
+        let mut buf = vec![action.operand().id(); len];
         buf.append(&mut v);
         for i in (0..len).rev() {
-            buf[i] =
-                A::Operand::op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
+            buf[i] = action
+                .operand()
+                .op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
         }
         let buf = RefCell::new(buf);
-        let def = RefCell::new(vec![A::Operator::id(); len]);
-        Self { buf, def, len }
+        let def = RefCell::new(vec![action.operator().id(); len]);
+        Self { buf, def, len, action }
     }
 }
 
@@ -155,28 +176,28 @@ where
         let mut il = self.len + start;
         let mut ir = self.len + end;
         if il >= ir {
-            return A::Operand::id();
+            return self.action.operand().id();
         }
         self.resolve(il);
         self.resolve(ir - 1);
-        let mut res_l = A::Operand::id();
-        let mut res_r = A::Operand::id();
+        let mut res_l = self.action.operand().id();
+        let mut res_r = self.action.operand().id();
         let buf = self.buf.borrow();
         while il < ir {
             if il & 1 == 1 {
                 let tmp = buf[il].clone();
-                res_l = A::Operand::op(res_l, tmp);
+                res_l = self.action.operand().op(res_l, tmp);
                 il += 1;
             }
             if ir & 1 == 1 {
                 ir -= 1;
                 let tmp = buf[ir].clone();
-                res_r = A::Operand::op(tmp, res_r);
+                res_r = self.action.operand().op(tmp, res_r);
             }
             il >>= 1;
             ir >>= 1;
         }
-        A::Operand::op(res_l, res_r)
+        self.action.operand().op(res_l, res_r)
     }
 }
 
@@ -234,7 +255,7 @@ where
             self.len, l, self.len
         );
 
-        let mut x = A::Operand::id();
+        let mut x = self.action.operand().id();
         assert!(pred(&x), "`pred(id)` must hold");
         match self.fold(l..) {
             x if pred(&x) => return (self.len, x),
@@ -245,7 +266,10 @@ where
         self.resolve(self.len + self.len - 1);
 
         for v in self.nodes(l, self.len) {
-            let tmp = A::Operand::op(x.clone(), self.buf.borrow()[v].clone());
+            let tmp = self
+                .action
+                .operand()
+                .op(x.clone(), self.buf.borrow()[v].clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
@@ -254,8 +278,10 @@ where
             while v < self.len {
                 self.push_down(v);
                 v <<= 1;
-                let tmp =
-                    A::Operand::op(x.clone(), self.buf.borrow()[v].clone());
+                let tmp = self
+                    .action
+                    .operand()
+                    .op(x.clone(), self.buf.borrow()[v].clone());
                 if pred(&x) {
                     x = tmp;
                     v += 1;
@@ -287,7 +313,7 @@ where
             self.len, r, self.len
         );
 
-        let mut x = A::Operand::id();
+        let mut x = self.action.operand().id();
         assert!(pred(&x), "`pred(id)` must hold");
         match self.fold(..r) {
             x if pred(&x) => return (0, x),
@@ -298,7 +324,10 @@ where
         self.resolve(self.len + r - 1);
 
         for v in self.nodes_rev(0, r) {
-            let tmp = A::Operand::op(self.buf.borrow()[v].clone(), x.clone());
+            let tmp = self
+                .action
+                .operand()
+                .op(self.buf.borrow()[v].clone(), x.clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
@@ -307,8 +336,10 @@ where
             while v < self.len {
                 self.push_down(v);
                 v = v << 1 | 1;
-                let tmp =
-                    A::Operand::op(self.buf.borrow()[v].clone(), x.clone());
+                let tmp = self
+                    .action
+                    .operand()
+                    .op(self.buf.borrow()[v].clone(), x.clone());
                 if pred(&tmp) {
                     x = tmp;
                     v -= 1;

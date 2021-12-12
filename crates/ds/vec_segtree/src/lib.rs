@@ -71,6 +71,7 @@ where
 {
     buf: Vec<M::Set>,
     len: usize,
+    monoid: M,
 }
 
 impl<M> VecSegtree<M>
@@ -79,8 +80,12 @@ where
     M::Set: Clone,
 {
     #[must_use]
-    pub fn new(len: usize) -> Self {
-        Self { len, buf: vec![M::id(); len + len] }
+    pub fn new(len: usize) -> Self
+    where
+        M: Default,
+    {
+        let monoid = M::default();
+        Self { len, buf: vec![monoid.id(); len + len], monoid }
     }
 
     pub fn is_empty(&self) -> bool { self.len == 0 }
@@ -125,21 +130,21 @@ where
         let Range { start, end } = bounds_within(b, self.len);
         let mut il = self.len + start;
         let mut ir = self.len + end;
-        let mut res_l = M::id();
-        let mut res_r = M::id();
+        let mut res_l = self.monoid.id();
+        let mut res_r = self.monoid.id();
         while il < ir {
             if il & 1 == 1 {
-                res_l = M::op(res_l, self.buf[il].clone());
+                res_l = self.monoid.op(res_l, self.buf[il].clone());
                 il += 1;
             }
             if ir & 1 == 1 {
                 ir -= 1;
-                res_r = M::op(self.buf[ir].clone(), res_r);
+                res_r = self.monoid.op(self.buf[ir].clone(), res_r);
             }
             il >>= 1;
             ir >>= 1;
         }
-        M::op(res_l, res_r)
+        self.monoid.op(res_l, res_r)
     }
 }
 
@@ -195,7 +200,7 @@ where
         let mut i = self.tree.len + self.index;
         while i > 1 {
             i >>= 1;
-            self.tree.buf[i] = M::op(
+            self.tree.buf[i] = self.tree.monoid.op(
                 self.tree.buf[i << 1].clone(),
                 self.tree.buf[i << 1 | 1].clone(),
             );
@@ -226,17 +231,25 @@ where
 
 impl<M> From<Vec<M::Set>> for VecSegtree<M>
 where
+    M: Monoid + Default,
+    M::Set: Clone,
+{
+    fn from(v: Vec<M::Set>) -> Self { Self::from((v, M::default())) }
+}
+
+impl<M> From<(Vec<M::Set>, M)> for VecSegtree<M>
+where
     M: Monoid,
     M::Set: Clone,
 {
-    fn from(mut v: Vec<M::Set>) -> Self {
+    fn from((mut v, monoid): (Vec<M::Set>, M)) -> Self {
         let len = v.len();
-        let mut buf = vec![M::id(); len];
+        let mut buf = vec![monoid.id(); len];
         buf.append(&mut v);
         for i in (0..len).rev() {
-            buf[i] = M::op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
+            buf[i] = monoid.op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
         }
-        Self { buf, len }
+        Self { buf, len, monoid }
     }
 }
 
@@ -283,7 +296,7 @@ where
             self.len, l, self.len
         );
 
-        let mut x = M::id();
+        let mut x = self.monoid.id();
         assert!(pred(&x), "`pred(id)` must hold");
         match self.fold(l..) {
             x if pred(&x) => return (self.len, x),
@@ -291,7 +304,7 @@ where
         }
 
         for v in self.nodes(l, self.len) {
-            let tmp = M::op(x.clone(), self.buf[v].clone());
+            let tmp = self.monoid.op(x.clone(), self.buf[v].clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
@@ -299,7 +312,7 @@ where
             let mut v = v;
             while v < self.len {
                 v <<= 1;
-                let tmp = M::op(x.clone(), self.buf[v].clone());
+                let tmp = self.monoid.op(x.clone(), self.buf[v].clone());
                 if pred(&tmp) {
                     x = tmp;
                     v += 1;
@@ -326,7 +339,7 @@ where
             self.len, r, self.len
         );
 
-        let mut x = M::id();
+        let mut x = self.monoid.id();
         assert!(pred(&x), "`pred(id)` must hold");
         match self.fold(..r) {
             x if pred(&x) => return (0, x),
@@ -334,7 +347,7 @@ where
         }
 
         for v in self.nodes_rev(0, r) {
-            let tmp = M::op(self.buf[v].clone(), x.clone());
+            let tmp = self.monoid.op(self.buf[v].clone(), x.clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
@@ -342,7 +355,7 @@ where
             let mut v = v;
             while v < self.len {
                 v = v << 1 | 1;
-                let tmp = M::op(self.buf[v].clone(), x.clone());
+                let tmp = self.monoid.op(self.buf[v].clone(), x.clone());
                 if pred(&tmp) {
                     x = tmp;
                     v -= 1;
