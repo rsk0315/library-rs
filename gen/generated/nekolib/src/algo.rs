@@ -35,6 +35,6 @@ pub use parallel_bisect::parallel_bisect;
 #[doc(inline)]
 pub use permutation::next_permutation;
 #[doc(inline)]
-pub use tortoise_hare::tortoise_hare;
+pub use tortoise_hare::{cycle_mu_lambda, cycle_nth};
 #[doc(inline)]
 pub use window_bisect::window_bisect;
