@@ -1,3 +1,5 @@
+//! 区間から値への対応づけ。
+
 use std::cmp::Ordering::{self, Equal, Greater, Less};
 use std::collections::BTreeMap;
 use std::fmt::{self, Debug};
@@ -266,15 +268,23 @@ impl<T: Ord + Clone> Interval<T> {
     }
 }
 
+/// 区間から値への対応づけ。
+///
+/// # Examples
+/// `todo!()`
+#[derive(Clone)]
 pub struct IntervalMap<K, V> {
     inner: BTreeMap<Interval<K>, V>,
 }
 
 impl<K: Ord + Clone, V: Eq + Clone> IntervalMap<K, V> {
+    /// $S\\gets\\emptyset$ で初期化する。
     pub fn new() -> Self { Self { inner: BTreeMap::new() } }
 
+    /// $S=\\emptyset$ を返す。
     pub fn is_empty(&self) -> bool { self.inner.is_empty() }
 
+    /// 区間 `b` 中の各 $k$ に対して $S\\xleftarrow{\\cup} (k\\mapsto v)$ で更新する。
     pub fn insert<B: RangeBounds<K>>(&mut self, b: B, v: V) {
         let mut it = Interval::from_bounds(b);
         if it.is_empty() || self.contains_internal(&it, &v) {
@@ -285,6 +295,8 @@ impl<K: Ord + Clone, V: Eq + Clone> IntervalMap<K, V> {
         self.inner.insert(it, v);
     }
 
+    /// 区間 `b` 中の各 $k$ に対して $S\\xleftarrow{\\setminus} (k\\mapsto\\bullet)$
+    /// で更新する。
     pub fn remove<B: RangeBounds<K>>(&mut self, b: B) -> Vec<(Interval<K>, V)> {
         let it = Interval::from_bounds(b);
         if it.is_empty() {
@@ -375,6 +387,8 @@ impl<K: Ord + Clone, V: Eq + Clone> IntervalMap<K, V> {
         }
     }
 
+    /// $T\\subseteq S$ かつ `b` を含む $T$ があれば、その $T$
+    /// および対応する値を返す。
     pub fn superset_of<B: RangeBounds<K>>(
         &self,
         b: B,
