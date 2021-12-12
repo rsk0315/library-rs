@@ -16,8 +16,14 @@ use multiplicative::{MulAssoc, MulComm, MulRecip, One};
 /// [`MulAssoc`]: ../../traits/multiplicative/trait.MulAssoc.html
 /// [`MulComm`]: ../../traits/multiplicative/trait.MulComm.html
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct OpMul<T> {
-    _t: std::marker::PhantomData<T>,
+pub enum OpMul<T> {
+    OpMulV,
+    _Marker(T),
+}
+pub use OpMul::OpMulV;
+
+impl<T> Default for OpMul<T> {
+    fn default() -> Self { OpMulV }
 }
 
 use std::ops::Mul;
@@ -27,19 +33,21 @@ where
     T: Mul<Output = T> + Eq + Sized,
 {
     type Set = T;
-    fn op(x: Self::Set, y: Self::Set) -> Self::Set { x * y }
+    fn op(&self, x: Self::Set, y: Self::Set) -> Self::Set { x * y }
 }
 impl<T> Identity for OpMul<T>
 where
     T: Mul<Output = T> + Eq + Sized + One,
 {
-    fn id() -> Self::Set { Self::Set::one() }
+    fn id(&self) -> Self::Set { Self::Set::one() }
 }
 impl<T> PartialRecip for OpMul<T>
 where
     T: Mul<Output = T> + Eq + Sized + MulRecip<Output = T>,
 {
-    fn partial_recip(x: Self::Set) -> Option<Self::Set> { Some(x.mul_recip()) }
+    fn partial_recip(&self, x: Self::Set) -> Option<Self::Set> {
+        Some(x.mul_recip())
+    }
 }
 impl<T> Recip for OpMul<T> where
     T: Mul<Output = T> + Eq + Sized + MulRecip<Output = T>

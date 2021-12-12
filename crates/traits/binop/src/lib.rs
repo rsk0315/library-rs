@@ -18,7 +18,7 @@ pub trait Magma {
     /// 集合 $M$ に対応する型。
     type Set: Eq;
     /// $x \\circ y$ を返す。
-    fn op(x: Self::Set, y: Self::Set) -> Self::Set;
+    fn op(&self, x: Self::Set, y: Self::Set) -> Self::Set;
 }
 
 /// 結合法則を満たす。
@@ -54,7 +54,7 @@ pub trait Associative: Magma {}
 /// ```
 pub trait Identity: Magma {
     /// 単位元を返す。
-    fn id() -> Self::Set;
+    fn id(&self) -> Self::Set;
 }
 
 /// 交換法則を満たす。
@@ -80,7 +80,7 @@ pub trait Commutative: Magma {}
 /// 体の乗法においては $0$ を除いて逆元を持つことが要請されるため必要かなと思った。
 /// もっといい設計はある気がする。
 pub trait PartialRecip: Magma {
-    fn partial_recip(x: Self::Set) -> Option<Self::Set>;
+    fn partial_recip(&self, x: Self::Set) -> Option<Self::Set>;
 }
 
 /// 逆元が常に存在する。
@@ -99,7 +99,9 @@ pub trait PartialRecip: Magma {
 /// assert_eq!(OpAdd::op(x, y), 0);
 /// ```
 pub trait Recip: PartialRecip {
-    fn recip(x: Self::Set) -> Self::Set { Self::partial_recip(x).unwrap() }
+    fn recip(&self, x: Self::Set) -> Self::Set {
+        self.partial_recip(x).unwrap()
+    }
 }
 
 /// 分配法則を満たす。
@@ -169,20 +171,25 @@ pub trait Ring {
     /// モノイド $(R, \\ast, 1)$ に対応する型。
     type Multiplicative: Monoid<Set = Self::Set> + Distributive<Self::Additive>;
 
+    fn additive(&self) -> &Self::Additive;
+    fn multiplicative(&self) -> &Self::Multiplicative;
+
     /// 和 $x \\circ y$ を返す。
-    fn add(x: Self::Set, y: Self::Set) -> Self::Set { Self::Additive::op(x, y) }
+    fn add(&self, x: Self::Set, y: Self::Set) -> Self::Set {
+        self.additive().op(x, y)
+    }
     /// 加法 $\\circ$ の単位元 $0$ を返す。
     #[must_use]
-    fn zero() -> Self::Set { Self::Additive::id() }
+    fn zero(&self) -> Self::Set { self.additive().id() }
     /// 加法 $\\circ$ に関する $x$ の逆元 $-x$ を返す。
-    fn neg(x: Self::Set) -> Self::Set { Self::Additive::recip(x) }
+    fn neg(&self, x: Self::Set) -> Self::Set { self.additive().recip(x) }
     /// 積 $x \\ast y$ を返す。
-    fn mul(x: Self::Set, y: Self::Set) -> Self::Set {
-        Self::Multiplicative::op(x, y)
+    fn mul(&self, x: Self::Set, y: Self::Set) -> Self::Set {
+        self.multiplicative().op(x, y)
     }
     /// 乗法 $\\ast$ の単位元 $1$ を返す。
     #[must_use]
-    fn one() -> Self::Set { Self::Multiplicative::id() }
+    fn one(&self) -> Self::Set { self.multiplicative().id() }
 }
 
 /// 可換環。
@@ -202,11 +209,11 @@ where
     Self::Multiplicative: PartialRecip,
 {
     /// 乗法 $\\ast$ における関する $x$ の逆元 $x^{-1}$ を返す。
-    fn recip(x: Self::Set) -> Self::Set {
-        if x == Self::Additive::id() {
+    fn recip(&self, x: Self::Set) -> Self::Set {
+        if x == self.additive().id() {
             panic!("zero element does not have multiplicative inverse");
         } else {
-            Self::Multiplicative::partial_recip(x).unwrap()
+            self.multiplicative().partial_recip(x).unwrap()
         }
     }
 }

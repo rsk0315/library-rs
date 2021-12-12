@@ -1,12 +1,8 @@
 //! ローリングハッシュに関する wrapper クラス。
 
 use std::fmt::Debug;
-use std::ops::{Add, Mul};
 
-use additive::Zero;
-use assoc_val::AssocVal;
 use binop::{Associative, Identity, Magma};
-use multiplicative::One;
 
 /// 文字列連結をローリングハッシュで行う演算を持つ。
 ///
@@ -36,48 +32,31 @@ use multiplicative::One;
 /// assert_eq!(val(s), op(op(abra, val("cad")), abra));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct OpRollHash<T, B>
-where
-    T: Copy + Eq,
-    B: AssocVal<T>,
-{
-    _tb: std::marker::PhantomData<(T, B)>,
+pub enum OpRollHash<const B: u64> {
+    OpRollHashV,
+}
+pub use OpRollHash::OpRollHashV;
+
+impl<const B: u64> Default for OpRollHash<B> {
+    fn default() -> Self { OpRollHashV }
 }
 
-impl<T, B> Magma for OpRollHash<T, B>
-where
-    T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero,
-    B: AssocVal<T>,
-{
-    type Set = (T, T);
-    fn op((hx, lx): Self::Set, (hy, ly): Self::Set) -> Self::Set {
-        (hx * ly + hy, lx * ly)
+impl<const B: u64> Magma for OpRollHash<B> {
+    type Set = (u64, u64);
+    fn op(&self, (hx, lx): Self::Set, (hy, ly): Self::Set) -> Self::Set {
+        ((hx * ly + hy) % B, (lx * ly) % B)
     }
 }
 
-impl<T, B> Identity for OpRollHash<T, B>
-where
-    T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero + One,
-    B: AssocVal<T>,
-{
-    fn id() -> Self::Set { (T::zero(), T::one()) }
+impl<const B: u64> Identity for OpRollHash<B> {
+    fn id(&self) -> Self::Set { (0, 1) }
 }
 
-impl<T, B> Associative for OpRollHash<T, B>
-where
-    T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero,
-    B: AssocVal<T>,
-{
-}
+impl<const B: u64> Associative for OpRollHash<B> {}
 
-impl<T, B> OpRollHash<T, B>
-where
-    T: Copy + Eq + Add<Output = T> + Mul<Output = T> + Zero + One + From<u8>,
-    B: AssocVal<T>,
-{
+impl<const B: u64> OpRollHash<B> {
     #[must_use]
-    pub fn val_from(s: &str) -> <Self as Magma>::Set {
-        s.bytes()
-            .fold(Self::id(), |acc, x| Self::op(acc, (T::from(x), B::get())))
+    pub fn value_of(&self, s: &str) -> <Self as Magma>::Set {
+        s.chars().fold((0, 0), |acc, x| self.op(acc, (x as u64, B)))
     }
 }
