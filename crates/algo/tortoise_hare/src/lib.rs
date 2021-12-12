@@ -24,14 +24,14 @@
 ///
 /// # Examples
 /// ```
-/// use nekolib::algo::tortoise_hare;
+/// use nekolib::algo::cycle_mu_lambda;
 ///
 /// // 3, 9, 11, 9, 11, ...
-/// assert_eq!(tortoise_hare(3, |x| x * x % 14), (1, 2));
+/// assert_eq!(cycle_mu_lambda(3, |x| x * x % 14), (1, 2));
 /// // 2, 6, 4, 5, 1, 3, 2, ...
-/// assert_eq!(tortoise_hare(2, |x| x * 3 % 7), (0, 6));
+/// assert_eq!(cycle_mu_lambda(2, |x| x * 3 % 7), (0, 6));
 /// ```
-pub fn tortoise_hare<T, F>(x0: T, f: F) -> (usize, usize)
+pub fn cycle_mu_lambda<T, F>(x0: T, f: F) -> (usize, usize)
 where
     T: Eq + Clone,
     F: Fn(T) -> T,
@@ -44,7 +44,7 @@ where
         har = f(f(har));
     }
 
-    tor = x0;
+    let mut tor = x0;
     let mut mu = 0;
     while tor != har {
         tor = f(tor);
@@ -60,4 +60,86 @@ where
     }
 
     (mu, lambda)
+}
+
+/// $n$ 項目を求める。
+///
+/// 与えられた $x\_0$ と $f$ を用いて $x\_i = f(x\_{i-1})$ ($i > 0$) として
+/// 定義される列 $\\{x\_i\\}\_{i=0}\^\\infty$ の $n$ 項目を求める。
+///
+/// # Requirements
+/// $f$ は参照透過である。
+///
+/// # Complexuty
+/// $x\_{\\mu} = x\_{\\mu+\\lambda}$ なる最小の $(\\mu, \\lambda)$
+/// に対し、$O(\\min\\{n, \\mu+\\lambda\\})$ time.
+///
+/// # Examples
+/// ```
+/// use nekolib::algo::cycle_nth;
+///
+/// let x0 = 0;
+/// let f = |x| (x + 1) % 100; // (mu, lambda) = (0, 100)
+/// assert_eq!(cycle_nth(x0, f, 0), 0);
+/// assert_eq!(cycle_nth(x0, f, 99), 99);
+/// assert_eq!(cycle_nth(x0, f, 100), 0);
+/// assert_eq!(cycle_nth(x0, f, 1000), 0);
+/// assert_eq!(cycle_nth(x0, f, 10_usize.pow(9)), 0);
+///
+/// let x0 = -10;
+/// let f = |x| (x + 1) % 100; // (mu, lambda) = (10, 100)
+/// assert_eq!(cycle_nth(x0, f, 0), -10);
+/// assert_eq!(cycle_nth(x0, f, 99), 89);
+/// assert_eq!(cycle_nth(x0, f, 100), 90);
+/// assert_eq!(cycle_nth(x0, f, 1000), 90);
+/// assert_eq!(cycle_nth(x0, f, 10_usize.pow(9)), 90);
+/// ```
+pub fn cycle_nth<T, F>(x0: T, f: F, n: usize) -> T
+where
+    T: Eq + Clone,
+    F: Fn(T) -> T,
+{
+    if n == 0 {
+        return x0;
+    }
+    if n == 1 {
+        return f(x0);
+    }
+
+    let mut tor = f(x0.clone());
+    let mut har = f(tor.clone());
+    let mut i = 2;
+    while i + 2 <= n && tor != har {
+        tor = f(tor);
+        har = f(f(har));
+        i += 2;
+    }
+    if i == n {
+        return har;
+    }
+    if i + 1 == n {
+        return f(har);
+    }
+
+    let mut tor = x0.clone();
+    let mut mu = 0;
+    while tor != har {
+        tor = f(tor);
+        har = f(har);
+        mu += 1;
+    }
+
+    let mut lambda = 1;
+    har = f(tor.clone());
+    while tor != har {
+        har = f(har);
+        lambda += 1;
+    }
+
+    let n = if n <= mu { n } else { mu + (n - mu) % lambda };
+    let mut x = x0;
+    for _ in 0..n {
+        x = f(x);
+    }
+    x
 }
