@@ -2,7 +2,6 @@
 
 use std::collections::BTreeMap;
 use std::fmt::Debug;
-use std::marker::PhantomData;
 
 use binop::CommutativeGroup;
 
@@ -33,38 +32,46 @@ where
     upper_len: usize,
     lower: BTreeMap<M::Set, usize>,
     upper: BTreeMap<M::Set, usize>,
-    _p: PhantomData<M>,
+    cgroup: M,
 }
 
 impl<M: CommutativeGroup> BicrementalMedianDev<M>
 where
     M::Set: Ord + Clone,
 {
-    pub fn new() -> Self {
+    pub fn new() -> Self
+    where
+        M: Default,
+    {
+        Self::with(M::default())
+    }
+    pub fn with(cgroup: M) -> Self {
         Self {
-            lower_sum: M::id(),
-            upper_sum: M::id(),
+            lower_sum: cgroup.id(),
+            upper_sum: cgroup.id(),
             lower_len: 0,
             upper_len: 0,
             lower: BTreeMap::new(),
             upper: BTreeMap::new(),
-            _p: PhantomData,
+            cgroup,
         }
     }
     pub fn insert(&mut self, x: M::Set) {
         if self.lower_len == 0 {
-            self.lower_sum = M::op(self.lower_sum.clone(), x.clone());
+            self.lower_sum = self.cgroup.op(self.lower_sum.clone(), x.clone());
             self.lower.insert(x, 1);
             self.lower_len += 1;
         } else if self.lower_len == self.upper_len {
             // [LLL] X [RRR]
             if &x <= self.upper.iter().next().unwrap().0 {
                 // [LLXL] [RRR]
-                self.lower_sum = M::op(self.lower_sum.clone(), x.clone());
+                self.lower_sum =
+                    self.cgroup.op(self.lower_sum.clone(), x.clone());
                 *self.lower.entry(x).or_insert(0) += 1;
             } else {
                 // [LLLR] [RRX]
-                self.upper_sum = M::op(self.upper_sum.clone(), x.clone());
+                self.upper_sum =
+                    self.cgroup.op(self.upper_sum.clone(), x.clone());
                 self.rotate_to_lower();
                 *self.upper.entry(x).or_insert(0) += 1;
             }
@@ -73,11 +80,13 @@ where
             // [LLL] X [RR]
             if self.lower.iter().next_back().unwrap().0 < &x {
                 // [LLL] [RXR]
-                self.upper_sum = M::op(self.upper_sum.clone(), x.clone());
+                self.upper_sum =
+                    self.cgroup.op(self.upper_sum.clone(), x.clone());
                 *self.upper.entry(x).or_insert(0) += 1;
             } else {
                 // [XLL] [LRR]
-                self.lower_sum = M::op(self.lower_sum.clone(), x.clone());
+                self.lower_sum =
+                    self.cgroup.op(self.lower_sum.clone(), x.clone());
                 self.rotate_to_upper();
                 *self.lower.entry(x).or_insert(0) += 1;
             }
@@ -124,14 +133,16 @@ where
     }
     pub fn median_dev(&self) -> M::Set {
         if self.lower_len == 0 {
-            M::id()
+            self.cgroup.id()
         } else {
-            let diff =
-                M::op(self.upper_sum.clone(), M::recip(self.lower_sum.clone()));
+            let diff = self.cgroup.op(
+                self.upper_sum.clone(),
+                self.cgroup.recip(self.lower_sum.clone()),
+            );
             if self.lower_len == self.upper_len {
                 diff
             } else {
-                M::op(diff, self.median().unwrap().clone())
+                self.cgroup.op(diff, self.median().unwrap().clone())
             }
         }
     }
@@ -149,8 +160,10 @@ where
         } else {
             *self.upper.get_mut(&x).unwrap() -= 1;
         }
-        self.upper_sum = M::op(self.upper_sum.clone(), M::recip(x.clone()));
-        self.lower_sum = M::op(self.lower_sum.clone(), x.clone());
+        self.upper_sum = self
+            .cgroup
+            .op(self.upper_sum.clone(), self.cgroup.recip(x.clone()));
+        self.lower_sum = self.cgroup.op(self.lower_sum.clone(), x.clone());
         *self.lower.entry(x).or_insert(0) += 1;
     }
     fn rotate_to_upper(&mut self) {
@@ -165,8 +178,10 @@ where
         } else {
             *self.lower.get_mut(&x).unwrap() -= 1;
         }
-        self.lower_sum = M::op(self.lower_sum.clone(), M::recip(x.clone()));
-        self.upper_sum = M::op(self.upper_sum.clone(), x.clone());
+        self.lower_sum = self
+            .cgroup
+            .op(self.lower_sum.clone(), self.cgroup.recip(x.clone()));
+        self.upper_sum = self.cgroup.op(self.upper_sum.clone(), x.clone());
         *self.upper.entry(x).or_insert(0) += 1;
     }
     fn remove_from_lower(&mut self, x: M::Set, rotate: bool) {
@@ -175,7 +190,8 @@ where
         } else {
             *self.lower.get_mut(&x).unwrap() -= 1;
         }
-        self.lower_sum = M::op(self.lower_sum.clone(), M::recip(x));
+        self.lower_sum =
+            self.cgroup.op(self.lower_sum.clone(), self.cgroup.recip(x));
         if rotate {
             self.rotate_to_lower();
             self.upper_len -= 1;
@@ -189,7 +205,8 @@ where
         } else {
             *self.upper.get_mut(&x).unwrap() -= 1;
         }
-        self.upper_sum = M::op(self.upper_sum.clone(), M::recip(x));
+        self.upper_sum =
+            self.cgroup.op(self.upper_sum.clone(), self.cgroup.recip(x));
         if rotate {
             self.rotate_to_upper();
             self.lower_len -= 1;

@@ -108,6 +108,7 @@ use fold::Fold;
 /// ```
 pub struct DisjointSparseTable<M: Monoid> {
     buf: Vec<Vec<M::Set>>,
+    monoid: M,
 }
 
 impl<M, B> Fold<B> for DisjointSparseTable<M>
@@ -120,7 +121,7 @@ where
     fn fold(&self, b: B) -> M::Set {
         let Range { start, end } = bounds_within(b, self.buf[0].len());
         if start >= end {
-            return M::id();
+            return self.monoid.id();
         }
         let len = end - start;
         let end = end - 1;
@@ -140,16 +141,24 @@ where
             }
         }
 
-        M::op(self.buf[row][start].clone(), self.buf[row][end].clone())
+        self.monoid.op(self.buf[row][start].clone(), self.buf[row][end].clone())
     }
 }
 
 impl<M> From<Vec<M::Set>> for DisjointSparseTable<M>
 where
+    M: Monoid + Default,
+    M::Set: Clone,
+{
+    fn from(base: Vec<M::Set>) -> Self { Self::from((base, M::default())) }
+}
+
+impl<M> From<(Vec<M::Set>, M)> for DisjointSparseTable<M>
+where
     M: Monoid,
     M::Set: Clone,
 {
-    fn from(base: Vec<M::Set>) -> Self {
+    fn from((base, monoid): (Vec<M::Set>, M)) -> Self {
         let len = base.len();
 
         let height = len.next_power_of_two().trailing_zeros().max(1) as usize;
@@ -160,7 +169,7 @@ where
             for j in (1..).step_by(2).take_while(|&j| j * w <= len) {
                 let mid = j * w;
                 for r in (1..w).take_while(|r| mid + r < len) {
-                    buf[i][mid + r] = M::op(
+                    buf[i][mid + r] = monoid.op(
                         buf[i][mid + r - 1].clone(),
                         buf[0][mid + r].clone(),
                     );
@@ -178,7 +187,7 @@ where
                         let ej = mid;
                         buf[ei][ej].clone()
                     } else {
-                        M::op(
+                        monoid.op(
                             buf[0][mid - l].clone(),
                             buf[i][mid - l + 1].clone(),
                         )
@@ -186,7 +195,7 @@ where
                 }
             }
         }
-        Self { buf }
+        Self { buf, monoid }
     }
 }
 

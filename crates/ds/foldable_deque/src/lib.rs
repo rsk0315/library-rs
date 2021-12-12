@@ -59,6 +59,7 @@ pub struct FoldableDeque<M: Monoid> {
     buf_folded_front: Vec<M::Set>,
     buf_back: Vec<M::Set>,
     buf_folded_back: Vec<M::Set>,
+    monoid: M,
 }
 
 impl<M: Monoid> FoldableDeque<M>
@@ -66,12 +67,20 @@ where
     M::Set: Clone,
 {
     #[must_use]
-    pub fn new() -> Self {
+    pub fn new() -> Self
+    where
+        M: Default,
+    {
+        Self::with(M::default())
+    }
+    #[must_use]
+    pub fn with(monoid: M) -> Self {
         Self {
             buf_front: vec![],
-            buf_folded_front: vec![M::id()],
+            buf_folded_front: vec![monoid.id()],
             buf_back: vec![],
-            buf_folded_back: vec![M::id()],
+            buf_folded_back: vec![monoid.id()],
+            monoid,
         }
     }
     fn rotate_to_front(&mut self) {
@@ -100,9 +109,9 @@ where
         {
             // front
             let n = self.buf_front.len();
-            self.buf_folded_front = vec![M::id(); n + 1];
+            self.buf_folded_front = vec![self.monoid.id(); n + 1];
             for i in 0..n {
-                self.buf_folded_front[i + 1] = M::op(
+                self.buf_folded_front[i + 1] = self.monoid.op(
                     self.buf_front[i].clone(),
                     self.buf_folded_front[i].clone(),
                 );
@@ -111,9 +120,9 @@ where
         {
             // back
             let n = self.buf_back.len();
-            self.buf_folded_back = vec![M::id(); n + 1];
+            self.buf_folded_back = vec![self.monoid.id(); n + 1];
             for i in 0..n {
-                self.buf_folded_back[i + 1] = M::op(
+                self.buf_folded_back[i + 1] = self.monoid.op(
                     self.buf_folded_back[i].clone(),
                     self.buf_back[i].clone(),
                 );
@@ -129,8 +138,9 @@ where
     type Input = M::Set;
     fn push_back(&mut self, x: Self::Input) {
         self.buf_back.push(x.clone());
-        self.buf_folded_back
-            .push(M::op(self.buf_folded_back.last().unwrap().clone(), x));
+        self.buf_folded_back.push(
+            self.monoid.op(self.buf_folded_back.last().unwrap().clone(), x),
+        );
     }
 }
 
@@ -141,8 +151,9 @@ where
     type Input = M::Set;
     fn push_front(&mut self, x: Self::Input) {
         self.buf_front.push(x.clone());
-        self.buf_folded_front
-            .push(M::op(x, self.buf_folded_front.last().unwrap().clone()));
+        self.buf_folded_front.push(
+            self.monoid.op(x, self.buf_folded_front.last().unwrap().clone()),
+        );
     }
 }
 
@@ -182,12 +193,13 @@ where
     fn fold(&self, _: RangeFull) -> M::Set {
         let front = self.buf_folded_front.last().unwrap().clone();
         let back = self.buf_folded_back.last().unwrap().clone();
-        M::op(front, back)
+        self.monoid.op(front, back)
     }
 }
 
 impl<M: Monoid> Default for FoldableDeque<M>
 where
+    M: Default,
     M::Set: Clone,
 {
     fn default() -> Self { Self::new() }

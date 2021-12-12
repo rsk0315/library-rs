@@ -1,3 +1,5 @@
+fn main() {}
+
 #[cfg(test)]
 mod tests {
     use std::marker::PhantomData;
@@ -13,6 +15,8 @@ mod tests {
     use vec_act_segtree::VecActSegtree;
 
     struct ActAddToMax<T: Ord + Eq + Min + AddAssign + AddAssoc + Zero + Sized> {
+        op_add: OpAdd<T>,
+        op_max: OpMax<T>,
         _t: PhantomData<T>,
     }
 
@@ -21,6 +25,8 @@ mod tests {
     {
         type Operand = OpMax<T>;
         type Operator = OpAdd<T>;
+        fn operand(&self) -> Operand { self.op_max }
+        fn operator(&self) -> Operator { self.op_add }
         fn act(x: &mut T, op: T) { *x += op; }
     }
 
