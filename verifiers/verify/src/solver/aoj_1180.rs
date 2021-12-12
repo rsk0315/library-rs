@@ -1,4 +1,4 @@
-use tortoise_hare::tortoise_hare;
+use tortoise_hare::cycle_mu_lambda;
 
 use crate::jury;
 use crate::test_set::Solver;
@@ -19,7 +19,7 @@ impl Solver for Aoj1180 {
                         s.iter().rev().collect::<String>().parse().unwrap();
                     s1 - s0
                 };
-                let (mu, lambda) = tortoise_hare(a, f);
+                let (mu, lambda) = cycle_mu_lambda(a, f);
                 let a = std::iter::successors(Some(a), |&x| Some(f(x)))
                     .nth(mu)
                     .unwrap();

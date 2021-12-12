@@ -15,7 +15,7 @@ use multiplicative::{MulAssoc, MulComm, MulRecip, One};
 /// [`MulRecip`]: ../../traits/multiplicative/trait.MulRecip.html
 /// [`MulAssoc`]: ../../traits/multiplicative/trait.MulAssoc.html
 /// [`MulComm`]: ../../traits/multiplicative/trait.MulComm.html
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpMul<T> {
     OpMulV,
     _Marker(T),

@@ -8,7 +8,7 @@ pub trait PotentialFunction {
     type Item: CommutativeGroup;
 
     /// 要素数 $n$ の集合 $\\{0, 1, \\dots, n-1\\}$ で初期化する。
-    fn new(n: usize) -> Self;
+    fn new(n: usize, cgroup: Self::Item) -> Self;
     /// 集合の要素数 $n$ を返す。
     fn len(&self) -> usize;
     /// 集合が空であれば `true` を返す。

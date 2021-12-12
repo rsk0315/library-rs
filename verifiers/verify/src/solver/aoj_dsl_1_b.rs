@@ -18,7 +18,7 @@ where
 {
     type Jury = jury::AojDsl1B;
     fn solve((n, qs): (usize, Vec<Query>)) -> Vec<Option<i32>> {
-        let mut ds = D::new(n);
+        let mut ds = D::new(n, OpAdd::<i32>::default());
         qs.into_iter()
             .filter_map(|q| match q {
                 Query::Relate(u, v, w) => {

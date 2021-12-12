@@ -20,39 +20,44 @@ enum Item {
 ///
 /// 代表元を探してパスを縮約する際、ポテンシャル差の更新を適切に行う。
 #[derive(Clone)]
-pub struct PotentializedUnionFind<T: CommutativeGroup>
+pub struct PotentializedUnionFind<G: CommutativeGroup>
 where
-    <T as Magma>::Set: Clone,
+    <G as Magma>::Set: Clone,
 {
     n: usize,
     buf: RefCell<Vec<Item>>,
-    pot: RefCell<Vec<<T as Magma>::Set>>,
+    pot: RefCell<Vec<<G as Magma>::Set>>,
+    cgroup: G,
 }
 
-impl<T: CommutativeGroup> PotentialFunction for PotentializedUnionFind<T>
+impl<G: CommutativeGroup> PotentialFunction for PotentializedUnionFind<G>
 where
-    <T as Magma>::Set: Clone,
+    <G as Magma>::Set: Clone,
 {
-    type Item = T;
-    fn new(n: usize) -> Self {
+    type Item = G;
+    fn new(n: usize, cgroup: G) -> Self {
         Self {
             n,
             buf: RefCell::new(vec![Item::Size(1); n]),
-            pot: RefCell::new(vec![T::id(); n]),
+            pot: RefCell::new(vec![cgroup.id(); n]),
+            cgroup,
         }
     }
 
     fn len(&self) -> usize { self.n }
 
-    fn relate(&mut self, u: usize, v: usize, w: T::Set) -> Option<bool> {
+    fn relate(&mut self, u: usize, v: usize, w: G::Set) -> Option<bool> {
         let ru = self.repr(u);
         let rv = self.repr(v);
         let mut buf = self.buf.borrow_mut();
         let mut pot = self.pot.borrow_mut();
         // w += p[v] - p[u];
-        let w = T::op(w, T::op(pot[v].clone(), T::recip(pot[u].clone())));
+        let w = self.cgroup.op(
+            w,
+            self.cgroup.op(pot[v].clone(), self.cgroup.recip(pot[u].clone())),
+        );
         if ru == rv {
-            return if w == T::id() { Some(false) } else { None };
+            return if w == self.cgroup.id() { Some(false) } else { None };
         }
 
         let (su, sv) = match (buf[ru], buf[rv]) {
@@ -60,45 +65,48 @@ where
             _ => unreachable!(),
         };
 
-        let (child, par, d) = if su < sv {
-            (ru, rv, w)
-        } else {
-            (rv, ru, T::recip(w))
-        };
+        let (child, par, d) =
+            if su < sv { (ru, rv, w) } else { (rv, ru, self.cgroup.recip(w)) };
         buf[par] = Item::Size(su + sv);
         buf[child] = Item::Parent(par);
         pot[child] = d;
         Some(true)
     }
 
-    fn diff(&self, u: usize, v: usize) -> Option<T::Set> {
-        if self.repr(u) == self.repr(v) {
-            let pot = self.pot.borrow();
-            Some(T::op(pot[u].clone(), T::recip(pot[v].clone())))
-        } else {
-            None
+    fn diff(&self, u: usize, v: usize) -> Option<G::Set> {
+        if self.repr(u) != self.repr(v) {
+            return None;
         }
+        let pot = self.pot.borrow();
+        Some(self.cgroup.op(pot[u].clone(), self.cgroup.recip(pot[v].clone())))
     }
 }
 
-impl<T: CommutativeGroup> PotentializedUnionFind<T>
+impl<G: CommutativeGroup> PotentializedUnionFind<G>
 where
-    <T as Magma>::Set: Clone,
+    <G as Magma>::Set: Clone,
 {
+    pub fn with_len(n: usize) -> Self
+    where
+        G: Default,
+    {
+        Self::new(n, G::default())
+    }
+
     fn repr(&self, mut u: usize) -> usize {
         let mut res = u;
         let mut buf = self.buf.borrow_mut();
         let mut pot = self.pot.borrow_mut();
-        let mut p = T::id();
+        let mut p = self.cgroup.id();
         while let Item::Parent(v) = buf[res] {
-            p = T::op(p.clone(), pot[res].clone());
+            p = self.cgroup.op(p.clone(), pot[res].clone());
             res = v;
         }
         let mut bu = buf[u];
         while let Item::Parent(pu) = bu {
             buf[u] = Item::Parent(res);
             let tmp = p.clone();
-            p = T::op(p.clone(), T::recip(pot[u].clone()));
+            p = self.cgroup.op(p.clone(), self.cgroup.recip(pot[u].clone()));
             pot[u] = tmp;
             u = pu;
             bu = buf[u];

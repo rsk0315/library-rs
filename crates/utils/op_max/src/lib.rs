@@ -10,7 +10,7 @@ use min::Min;
 /// 単位元は [`Min`] で定義する。
 ///
 /// [`Min`]: ../../traits/min/trait.Min.html
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OpMax<T> {
     OpMaxV,
     _Marker(T),

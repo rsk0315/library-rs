@@ -14,6 +14,7 @@ mod tests {
     use op_max::OpMax;
     use vec_act_segtree::VecActSegtree;
 
+    #[derive(Clone, Copy, Default)]
     struct ActAddToMax<T: Ord + Eq + Min + AddAssign + AddAssoc + Zero + Sized> {
         op_add: OpAdd<T>,
         op_max: OpMax<T>,
@@ -25,9 +26,9 @@ mod tests {
     {
         type Operand = OpMax<T>;
         type Operator = OpAdd<T>;
-        fn operand(&self) -> Operand { self.op_max }
-        fn operator(&self) -> Operator { self.op_add }
-        fn act(x: &mut T, op: T) { *x += op; }
+        fn operand(&self) -> &Self::Operand { &self.op_max }
+        fn operator(&self) -> &Self::Operator { &self.op_add }
+        fn act(&self, x: &mut T, op: T) { *x += op; }
     }
 
     #[test]
