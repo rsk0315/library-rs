@@ -10,6 +10,24 @@ use buf_range::bounds_within;
 use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
 
+// todo!()
+// - 改名？
+//   - push_down() -> force()
+//   - resolve() -> ?
+//   - def -> lazy? (folded, acting)?
+// - resolve(l), resolve(r-1) -> resolve(l, r-1)
+//   - r = l に注意。特に l = 0
+//   - l, r-1 の LCA を xor とかで求めることで無駄をなくせる
+//   - l, r-1 が 2 べきをまたぐかどうかで場合分け
+//   - build も
+// - action、スコープの初めで operand とか operator とかを得ちゃう
+//   - borrow{,_mut}() とかも同様
+// - act も &mut じゃなくて owned をもらう？
+
+const WORD_SIZE: usize = 0_usize.count_zeros() as usize;
+
+fn bsr(i: usize) -> usize { WORD_SIZE - 1 - i.leading_zeros() as usize }
+
 #[derive(Clone)]
 pub struct VecActSegtree<A>
 where
@@ -44,10 +62,9 @@ where
     }
 
     pub fn is_empty(&self) -> bool { self.len == 0 }
-
     pub fn len(&self) -> usize { self.len }
 
-    fn nodes(&self, l: usize, r: usize) -> Vec<usize> {
+    fn nodes_pair(&self, l: usize, r: usize) -> (Vec<usize>, Vec<usize>) {
         let mut l = self.len + l;
         let mut r = self.len + r;
         let mut vl = vec![];
@@ -64,25 +81,31 @@ where
             l >>= 1;
             r >>= 1;
         }
-        vr.reverse();
-        vl.append(&mut vr);
+        (vl, vr)
+    }
+
+    fn nodes(&self, l: usize, r: usize) -> Vec<usize> {
+        let (mut vl, vr) = self.nodes_pair(l, r);
+        vl.extend(vr.into_iter().rev());
         vl
     }
 
     fn nodes_rev(&self, l: usize, r: usize) -> Vec<usize> {
-        self.nodes(l, r).into_iter().rev().collect()
+        let (vl, mut vr) = self.nodes_pair(l, r);
+        vr.extend(vl.into_iter().rev());
+        vr
     }
 
     fn build(&mut self, mut i: usize) {
+        // build_range?
         let mut buf = self.buf.borrow_mut();
         let def = self.def.borrow();
+        let action = &self.action;
+        let operand = action.operand();
         while i > 1 {
             i >>= 1;
-            buf[i] = self
-                .action
-                .operand()
-                .op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
-            self.action.act(&mut buf[i], def[i].clone());
+            buf[i] = operand.op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
+            action.act(&mut buf[i], def[i].clone());
         }
     }
 
@@ -95,25 +118,49 @@ where
         }
     }
 
-    fn push_down(&self, i: usize) {
+    fn force(&self, i: usize) {
         let e = self.action.operator().id();
-        let d = std::mem::replace(&mut self.def.borrow_mut()[i], e.clone());
+        let d = {
+            let mut def = self.def.borrow_mut();
+            std::mem::replace(&mut def[i], e.clone())
+        };
         if d != e {
             self.apply(i << 1, d.clone());
             self.apply(i << 1 | 1, d);
         }
     }
 
-    fn resolve(&self, i: usize) {
-        for h in (1..=(i + 1).next_power_of_two().trailing_zeros() - 1).rev() {
-            self.push_down(i >> h);
+    fn force_range(&self, l: usize, r: usize) {
+        let l = self.len + l;
+        for i in (1..=bsr(l)).rev() {
+            self.force(l >> i);
+        }
+        if l == r {
+            return;
+        }
+
+        let r = self.len + r - 1;
+        if l.leading_zeros() == r.leading_zeros() {
+            if l != r {
+                for i in (1..=bsr(l ^ r)).rev() {
+                    self.force(r >> i);
+                }
+            }
+        } else {
+            if l != r >> 1 {
+                for i in (1..=bsr(l ^ (r >> 1))).rev() {
+                    self.force(r >> (i + 1));
+                }
+            }
+            self.force(r >> 1);
         }
     }
 
-    fn resolve_all(&self) {
+    fn force_all(&self) {
+        let mut def = self.def.borrow_mut();
         let e = self.action.operator().id();
         for i in 1..self.len {
-            let d = std::mem::replace(&mut self.def.borrow_mut()[i], e.clone());
+            let d = std::mem::replace(&mut def[i], e.clone());
             self.apply(i, d);
         }
     }
@@ -158,7 +205,7 @@ where
     <A::Operand as Magma>::Set: Clone,
 {
     fn from(v: VecActSegtree<A>) -> Self {
-        v.resolve_all();
+        v.force_all();
         v.buf.into_inner()
     }
 }
@@ -173,31 +220,17 @@ where
     type Output = A::Operand;
     fn fold(&self, b: B) -> <Self::Output as Magma>::Set {
         let Range { start, end } = bounds_within(b, self.len);
-        let mut il = self.len + start;
-        let mut ir = self.len + end;
-        if il >= ir {
-            return self.action.operand().id();
+        let operand = self.action.operand();
+        if start >= end {
+            return operand.id();
         }
-        self.resolve(il);
-        self.resolve(ir - 1);
-        let mut res_l = self.action.operand().id();
-        let mut res_r = self.action.operand().id();
+        self.force_range(start, end);
+        let mut res = operand.id();
         let buf = self.buf.borrow();
-        while il < ir {
-            if il & 1 == 1 {
-                let tmp = buf[il].clone();
-                res_l = self.action.operand().op(res_l, tmp);
-                il += 1;
-            }
-            if ir & 1 == 1 {
-                ir -= 1;
-                let tmp = buf[ir].clone();
-                res_r = self.action.operand().op(tmp, res_r);
-            }
-            il >>= 1;
-            ir >>= 1;
+        for v in self.nodes(start, end) {
+            res = operand.op(res, buf[v].clone());
         }
-        self.action.operand().op(res_l, res_r)
+        res
     }
 }
 
@@ -211,24 +244,12 @@ where
     type Action = A;
     fn act(&mut self, b: B, op: <A::Operator as Magma>::Set) {
         let Range { start, end } = bounds_within(b, self.len);
-        let mut il = self.len + start;
-        let mut ir = self.len + end;
-        if il >= ir {
+        if start >= end {
             return;
         }
-        self.resolve(il);
-        self.resolve(ir - 1);
-        while il < ir {
-            if il & 1 == 1 {
-                self.apply(il, op.clone());
-                il += 1;
-            }
-            if ir & 1 == 1 {
-                ir -= 1;
-                self.apply(ir, op.clone());
-            }
-            il >>= 1;
-            ir >>= 1;
+        self.force_range(start, end);
+        for v in self.nodes(start, end) {
+            self.apply(v, op.clone());
         }
         self.build(self.len + start);
         self.build(self.len + end - 1);
@@ -255,33 +276,27 @@ where
             self.len, l, self.len
         );
 
-        let mut x = self.action.operand().id();
+        let operand = self.action.operand();
+        let mut x = operand.id();
         assert!(pred(&x), "`pred(id)` must hold");
         match self.fold(l..) {
             x if pred(&x) => return (self.len, x),
             _ => {}
         }
 
-        self.resolve(self.len + l);
-        self.resolve(self.len + self.len - 1);
-
+        self.force_range(l, self.len);
+        let buf = self.buf.borrow();
         for v in self.nodes(l, self.len) {
-            let tmp = self
-                .action
-                .operand()
-                .op(x.clone(), self.buf.borrow()[v].clone());
+            let tmp = operand.op(x.clone(), buf[v].clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
             }
             let mut v = v;
             while v < self.len {
-                self.push_down(v);
+                self.force(v);
                 v <<= 1;
-                let tmp = self
-                    .action
-                    .operand()
-                    .op(x.clone(), self.buf.borrow()[v].clone());
+                let tmp = operand.op(x.clone(), buf[v].clone());
                 if pred(&x) {
                     x = tmp;
                     v += 1;
@@ -313,33 +328,27 @@ where
             self.len, r, self.len
         );
 
-        let mut x = self.action.operand().id();
+        let operand = self.action.operand();
+        let mut x = operand.id();
         assert!(pred(&x), "`pred(id)` must hold");
         match self.fold(..r) {
             x if pred(&x) => return (0, x),
             _ => {}
         }
 
-        self.resolve(self.len);
-        self.resolve(self.len + r - 1);
-
+        self.force_range(0, r);
+        let buf = self.buf.borrow();
         for v in self.nodes_rev(0, r) {
-            let tmp = self
-                .action
-                .operand()
-                .op(self.buf.borrow()[v].clone(), x.clone());
+            let tmp = operand.op(buf[v].clone(), x.clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
             }
             let mut v = v;
             while v < self.len {
-                self.push_down(v);
+                self.force(v);
                 v = v << 1 | 1;
-                let tmp = self
-                    .action
-                    .operand()
-                    .op(self.buf.borrow()[v].clone(), x.clone());
+                let tmp = operand.op(buf[v].clone(), x.clone());
                 if pred(&tmp) {
                     x = tmp;
                     v -= 1;

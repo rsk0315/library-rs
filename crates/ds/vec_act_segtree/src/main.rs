@@ -31,13 +31,43 @@ mod tests {
         fn act(&self, x: &mut T, op: T) { *x += op; }
     }
 
+    // 手軽に作れるように、OpClosure と ActClosureToClosure みたいなのを
+    // 用意しておく。
+
     #[test]
-    fn test() {
+    fn test1() {
         let mut a: VecActSegtree<ActAddToMax<i32>> =
             vec![1_i32, 6, 2, 8, 6, 3].into();
         assert_eq!(8, a.fold(2..5));
         a.act(2..4, -5);
         // [1, 6, -3, 3, 6, 3]
         assert_eq!(6, a.fold(2..5));
+    }
+
+    #[test]
+    fn test2() {
+        let n = 100;
+        let mut st: VecActSegtree<ActAddToMax<i128>> = vec![0; n].into();
+        let mut a = vec![0_i128; n];
+        let mut it =
+            std::iter::successors(Some(3_usize), |x| Some(3 * x % 46337));
+        for x in 1..=100 {
+            let i1 = it.next().unwrap() % n;
+            let i2 = it.next().unwrap() % n;
+            let l = i1.min(i2);
+            let r = i1.max(i2) + 1;
+            st.act(l..r, x);
+            for i in l..r {
+                a[i] += x;
+            }
+
+            let i1 = it.next().unwrap() % n;
+            let i2 = it.next().unwrap() % n;
+            let l = i1.min(i2);
+            let r = i1.max(i2) + 1;
+            let actual = st.fold(l..r);
+            let expected = a[l..r].iter().copied().max().unwrap();
+            assert_eq!(actual, expected);
+        }
     }
 }
