@@ -10,11 +10,6 @@ use buf_range::bounds_within;
 use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
 
-// todo!()
-// - 改名？
-//   - def -> lazy? (folded, acting)?
-// - act も &mut じゃなくて owned をもらう？
-
 const WORD_SIZE: usize = 0_usize.count_zeros() as usize;
 
 fn bsr(i: usize) -> usize { WORD_SIZE - 1 - i.leading_zeros() as usize }
@@ -92,7 +87,7 @@ where
         let def = self.def.borrow();
         let action = &self.action;
         let operand = action.operand();
-        for i in self.ancestors(start, end) {
+        for i in self.ancestors_upward(start, end) {
             buf[i] = operand.op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
             action.act(&mut buf[i], def[i].clone());
         }
@@ -119,31 +114,59 @@ where
         }
     }
 
-    fn ancestors(&self, start: usize, end: usize) -> Vec<usize> {
+    fn ancestors_downward(&self, start: usize, end: usize) -> Vec<usize> {
         let mut res = vec![];
         let l = self.len + start;
-        res.extend((1..=bsr(l)).map(|i| l >> i));
+        res.extend((1..=bsr(l)).rev().map(|i| l >> i));
         if start == end {
             return res;
         }
         let r = self.len + end - 1;
         if l.leading_zeros() == r.leading_zeros() {
             if l != r {
-                res.extend((1..=bsr(l ^ r)).map(|i| r >> i));
+                res.extend((1..=bsr(l ^ r)).rev().map(|i| r >> i));
             }
         } else {
             if l != r >> 1 {
-                res.extend((1..=bsr(l ^ (r >> 1))).map(|i| r >> (i + 1)));
+                res.extend((1..=bsr(l ^ (r >> 1))).rev().map(|i| r >> (i + 1)));
+                res.push(r >> 1);
             }
-            res.push(r >> 1);
         }
-        res.sort_unstable(); // build は下から順じゃないとこわれちゃう
-        res.reverse();
+        res
+    }
+
+    fn ancestors_upward(&self, start: usize, end: usize) -> Vec<usize> {
+        let mut res = vec![];
+        let mut l = self.len + start;
+        if start == end {
+            while l > 1 {
+                l >>= 1;
+                res.push(l);
+            }
+            return res;
+        }
+
+        let mut r = self.len + end - 1;
+        if l.leading_zeros() != r.leading_zeros() {
+            r >>= 1;
+            res.push(r);
+        }
+
+        while l != r {
+            l >>= 1;
+            r >>= 1;
+            res.push(l);
+            res.push(r);
+        }
+        while l > 1 {
+            l >>= 1;
+            res.push(l);
+        }
         res
     }
 
     fn force_range(&self, l: usize, r: usize) {
-        for i in self.ancestors(l, r).into_iter().rev() {
+        for i in self.ancestors_downward(l, r) {
             self.force(i);
         }
     }
