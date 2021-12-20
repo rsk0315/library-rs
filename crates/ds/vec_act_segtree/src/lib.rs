@@ -12,16 +12,7 @@ use fold_bisect::{FoldBisect, FoldBisectRev};
 
 // todo!()
 // - 改名？
-//   - push_down() -> force()
-//   - resolve() -> ?
 //   - def -> lazy? (folded, acting)?
-// - resolve(l), resolve(r-1) -> resolve(l, r-1)
-//   - r = l に注意。特に l = 0
-//   - l, r-1 の LCA を xor とかで求めることで無駄をなくせる
-//   - l, r-1 が 2 べきをまたぐかどうかで場合分け
-//   - build も
-// - action、スコープの初めで operand とか operator とかを得ちゃう
-//   - borrow{,_mut}() とかも同様
 // - act も &mut じゃなくて owned をもらう？
 
 const WORD_SIZE: usize = 0_usize.count_zeros() as usize;
@@ -64,7 +55,7 @@ where
     pub fn is_empty(&self) -> bool { self.len == 0 }
     pub fn len(&self) -> usize { self.len }
 
-    fn nodes_pair(&self, l: usize, r: usize) -> (Vec<usize>, Vec<usize>) {
+    fn arch_pair(&self, l: usize, r: usize) -> (Vec<usize>, Vec<usize>) {
         let mut l = self.len + l;
         let mut r = self.len + r;
         let mut vl = vec![];
@@ -84,26 +75,24 @@ where
         (vl, vr)
     }
 
-    fn nodes(&self, l: usize, r: usize) -> Vec<usize> {
-        let (mut vl, vr) = self.nodes_pair(l, r);
+    fn arch(&self, l: usize, r: usize) -> Vec<usize> {
+        let (mut vl, vr) = self.arch_pair(l, r);
         vl.extend(vr.into_iter().rev());
         vl
     }
 
-    fn nodes_rev(&self, l: usize, r: usize) -> Vec<usize> {
-        let (vl, mut vr) = self.nodes_pair(l, r);
+    fn arch_rev(&self, l: usize, r: usize) -> Vec<usize> {
+        let (vl, mut vr) = self.arch_pair(l, r);
         vr.extend(vl.into_iter().rev());
         vr
     }
 
-    fn build(&mut self, mut i: usize) {
-        // build_range?
+    fn build_range(&mut self, start: usize, end: usize) {
         let mut buf = self.buf.borrow_mut();
         let def = self.def.borrow();
         let action = &self.action;
         let operand = action.operand();
-        while i > 1 {
-            i >>= 1;
+        for i in self.ancestors(start, end) {
             buf[i] = operand.op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
             action.act(&mut buf[i], def[i].clone());
         }
@@ -130,29 +119,32 @@ where
         }
     }
 
-    fn force_range(&self, l: usize, r: usize) {
-        let l = self.len + l;
-        for i in (1..=bsr(l)).rev() {
-            self.force(l >> i);
+    fn ancestors(&self, start: usize, end: usize) -> Vec<usize> {
+        let mut res = vec![];
+        let l = self.len + start;
+        res.extend((1..=bsr(l)).map(|i| l >> i));
+        if start == end {
+            return res;
         }
-        if l == r {
-            return;
-        }
-
-        let r = self.len + r - 1;
+        let r = self.len + end - 1;
         if l.leading_zeros() == r.leading_zeros() {
             if l != r {
-                for i in (1..=bsr(l ^ r)).rev() {
-                    self.force(r >> i);
-                }
+                res.extend((1..=bsr(l ^ r)).map(|i| r >> i));
             }
         } else {
             if l != r >> 1 {
-                for i in (1..=bsr(l ^ (r >> 1))).rev() {
-                    self.force(r >> (i + 1));
-                }
+                res.extend((1..=bsr(l ^ (r >> 1))).map(|i| r >> (i + 1)));
             }
-            self.force(r >> 1);
+            res.push(r >> 1);
+        }
+        res.sort_unstable(); // build は下から順じゃないとこわれちゃう
+        res.reverse();
+        res
+    }
+
+    fn force_range(&self, l: usize, r: usize) {
+        for i in self.ancestors(l, r).into_iter().rev() {
+            self.force(i);
         }
     }
 
@@ -227,7 +219,7 @@ where
         self.force_range(start, end);
         let mut res = operand.id();
         let buf = self.buf.borrow();
-        for v in self.nodes(start, end) {
+        for v in self.arch(start, end) {
             res = operand.op(res, buf[v].clone());
         }
         res
@@ -248,11 +240,10 @@ where
             return;
         }
         self.force_range(start, end);
-        for v in self.nodes(start, end) {
+        for v in self.arch(start, end) {
             self.apply(v, op.clone());
         }
-        self.build(self.len + start);
-        self.build(self.len + end - 1);
+        self.build_range(start, end);
     }
 }
 
@@ -286,7 +277,7 @@ where
 
         self.force_range(l, self.len);
         let buf = self.buf.borrow();
-        for v in self.nodes(l, self.len) {
+        for v in self.arch(l, self.len) {
             let tmp = operand.op(x.clone(), buf[v].clone());
             if pred(&tmp) {
                 x = tmp;
@@ -338,7 +329,7 @@ where
 
         self.force_range(0, r);
         let buf = self.buf.borrow();
-        for v in self.nodes_rev(0, r) {
+        for v in self.arch_rev(0, r) {
             let tmp = operand.op(buf[v].clone(), x.clone());
             if pred(&tmp) {
                 x = tmp;

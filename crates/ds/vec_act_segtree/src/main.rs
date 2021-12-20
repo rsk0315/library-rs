@@ -46,12 +46,12 @@ mod tests {
 
     #[test]
     fn test2() {
-        let n = 100;
+        let n = 10000;
         let mut st: VecActSegtree<ActAddToMax<i128>> = vec![0; n].into();
         let mut a = vec![0_i128; n];
         let mut it =
             std::iter::successors(Some(3_usize), |x| Some(3 * x % 46337));
-        for x in 1..=100 {
+        for x in 1..=100000 {
             let i1 = it.next().unwrap() % n;
             let i2 = it.next().unwrap() % n;
             let l = i1.min(i2);
