@@ -87,16 +87,19 @@ where
         let def = self.def.borrow();
         let action = &self.action;
         let operand = action.operand();
+        let id = action.operator().id();
         for i in self.ancestors_upward(start, end) {
+            if def[i] != id {
+                continue;
+            }
             buf[i] = operand.op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
-            action.act(&mut buf[i], def[i].clone());
         }
     }
 
     fn apply(&self, i: usize, op: <A::Operator as Magma>::Set) {
         let mut buf = self.buf.borrow_mut();
         let mut def = self.def.borrow_mut();
-        self.action.act(&mut buf[i], op.clone());
+        buf[i] = self.action.act(buf[i].clone(), op.clone());
         if i < self.len {
             def[i] = self.action.operator().op(def[i].clone(), op);
         }
@@ -116,11 +119,11 @@ where
 
     fn ancestors_downward(&self, start: usize, end: usize) -> Vec<usize> {
         let mut res = vec![];
-        let l = self.len + start;
-        res.extend((1..=bsr(l)).rev().map(|i| l >> i));
         if start == end {
             return res;
         }
+        let l = self.len + start;
+        res.extend((1..=bsr(l)).rev().map(|i| l >> i));
         let r = self.len + end - 1;
         if l.leading_zeros() == r.leading_zeros() {
             if l != r {
@@ -137,15 +140,11 @@ where
 
     fn ancestors_upward(&self, start: usize, end: usize) -> Vec<usize> {
         let mut res = vec![];
-        let mut l = self.len + start;
         if start == end {
-            while l > 1 {
-                l >>= 1;
-                res.push(l);
-            }
             return res;
         }
 
+        let mut l = self.len + start;
         let mut r = self.len + end - 1;
         if l.leading_zeros() != r.leading_zeros() {
             r >>= 1;

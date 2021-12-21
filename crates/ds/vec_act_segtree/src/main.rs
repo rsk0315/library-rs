@@ -1,35 +1,39 @@
 fn main() {}
 
+use std::marker::PhantomData;
+use std::ops::Add;
+
+use action::MonoidAction;
+use additive::{AddAssoc, Zero};
+use min::Min;
+use op_add::OpAdd;
+use op_max::OpMax;
+
+#[derive(Clone, Copy, Default)]
+struct ActAddToMax<T: Ord + Eq + Min + Add + AddAssoc + Zero + Sized> {
+    op_add: OpAdd<T>,
+    op_max: OpMax<T>,
+    _t: PhantomData<T>,
+}
+
+impl<T: Ord + Eq + Min + Add + AddAssoc + Zero + Sized> MonoidAction
+    for ActAddToMax<T>
+{
+    type Operand = OpMax<T>;
+    type Operator = OpAdd<T>;
+    fn operand(&self) -> &Self::Operand { &self.op_max }
+    fn operator(&self) -> &Self::Operator { &self.op_add }
+    fn act(&self, x: T, op: T) -> T { x + op }
+}
+
 #[cfg(test)]
 mod tests {
-    use std::marker::PhantomData;
-    use std::ops::AddAssign;
 
     use act::Act;
-    use action::MonoidAction;
-    use additive::{AddAssoc, Zero};
     use fold::Fold;
-    use min::Min;
-    use op_add::OpAdd;
-    use op_max::OpMax;
     use vec_act_segtree::VecActSegtree;
 
-    #[derive(Clone, Copy, Default)]
-    struct ActAddToMax<T: Ord + Eq + Min + AddAssign + AddAssoc + Zero + Sized> {
-        op_add: OpAdd<T>,
-        op_max: OpMax<T>,
-        _t: PhantomData<T>,
-    }
-
-    impl<T: Ord + Eq + Min + AddAssign + AddAssoc + Zero + Sized> MonoidAction
-        for ActAddToMax<T>
-    {
-        type Operand = OpMax<T>;
-        type Operator = OpAdd<T>;
-        fn operand(&self) -> &Self::Operand { &self.op_max }
-        fn operator(&self) -> &Self::Operator { &self.op_add }
-        fn act(&self, x: &mut T, op: T) { *x += op; }
-    }
+    use crate::ActAddToMax;
 
     // 手軽に作れるように、OpClosure と ActClosureToClosure みたいなのを
     // 用意しておく。
