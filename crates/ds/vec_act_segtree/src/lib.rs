@@ -10,9 +10,21 @@ use buf_range::bounds_within;
 use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
 
-const WORD_SIZE: usize = 0_usize.count_zeros() as usize;
+const WORD_SIZE: u32 = 0_usize.count_zeros();
 
-fn bsr(i: usize) -> usize { WORD_SIZE - 1 - i.leading_zeros() as usize }
+fn lcp(i: usize, j: usize) -> usize {
+    if i == 0 || j == 0 {
+        return 0;
+    }
+    if i == j {
+        return i;
+    }
+    let (i, j) = (i.min(j), i.max(j));
+    let iz = i.leading_zeros();
+    let i = i << iz;
+    let j = j << j.leading_zeros();
+    i >> iz.max(WORD_SIZE - (i ^ j).leading_zeros())
+}
 
 #[derive(Clone)]
 pub struct VecActSegtree<A>
@@ -88,10 +100,7 @@ where
         let action = &self.action;
         let operand = action.operand();
         let id = action.operator().id();
-        for i in self.ancestors_upward(start, end) {
-            if def[i] != id {
-                continue;
-            }
+        for i in self.ancestors_upward(start, end).filter(|&i| def[i] == id) {
             buf[i] = operand.op(buf[i << 1].clone(), buf[i << 1 | 1].clone());
         }
     }
@@ -117,51 +126,60 @@ where
         }
     }
 
-    fn ancestors_downward(&self, start: usize, end: usize) -> Vec<usize> {
-        let mut res = vec![];
-        if start == end {
-            return res;
+    fn parent_root(&self, i: usize) -> usize {
+        let n = self.len;
+        if n.is_power_of_two() {
+            return 0;
         }
-        let l = self.len + start;
-        res.extend((1..=bsr(l)).rev().map(|i| l >> i));
-        let r = self.len + end - 1;
-        if l.leading_zeros() == r.leading_zeros() {
-            if l != r {
-                res.extend((1..=bsr(l ^ r)).rev().map(|i| r >> i));
-            }
-        } else {
-            if l != r >> 1 {
-                res.extend((1..=bsr(l ^ (r >> 1))).rev().map(|i| r >> (i + 1)));
-                res.push(r >> 1);
-            }
-        }
-        res
+        let n2 = 2 * n;
+        let lsb = n2 & n2.wrapping_neg();
+        lcp(i, if i < n2 ^ lsb { n2 ^ lsb } else { n2 })
     }
 
-    fn ancestors_upward(&self, start: usize, end: usize) -> Vec<usize> {
-        let mut res = vec![];
-        if start == end {
-            return res;
-        }
+    fn ancestors_downward(
+        &self,
+        start: usize,
+        end: usize,
+    ) -> impl Iterator<Item = usize> + DoubleEndedIterator {
+        self.ancestors_upward(start, end).rev()
+    }
 
+    fn ancestors_upward(
+        &self,
+        start: usize,
+        end: usize,
+    ) -> impl Iterator<Item = usize> + DoubleEndedIterator {
+        let mut res = vec![];
         let mut l = self.len + start;
         let mut r = self.len + end - 1;
-        if l.leading_zeros() != r.leading_zeros() {
+        let pl = self.parent_root(l);
+        let pr = self.parent_root(r);
+        if pl != pr {
+            l >>= 1;
+            while l != pl {
+                res.push(l);
+                l >>= 1;
+            }
             r >>= 1;
-            res.push(r);
-        }
-
-        while l != r {
+            while r != pr {
+                res.push(r);
+                r >>= 1;
+            }
+        } else {
             l >>= 1;
             r >>= 1;
-            res.push(l);
-            res.push(r);
+            while l != r {
+                res.push(l);
+                res.push(r);
+                l >>= 1;
+                r >>= 1;
+            }
+            while l != pl {
+                res.push(l);
+                l >>= 1;
+            }
         }
-        while l > 1 {
-            l >>= 1;
-            res.push(l);
-        }
-        res
+        res.into_iter()
     }
 
     fn force_range(&self, l: usize, r: usize) {
