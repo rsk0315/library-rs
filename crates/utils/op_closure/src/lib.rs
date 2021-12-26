@@ -1,5 +1,7 @@
 //! クロージャの wrapper クラス。
 
+use std::fmt::Debug;
+
 use binop::{Associative, Identity, Magma};
 
 /// 任意の結合的な演算を持つ。
@@ -32,7 +34,7 @@ use binop::{Associative, Identity, Magma};
 /// assert_eq!(*op_memo.borrow(), [(1, 9), (3, 8), (-5, -3)]);
 /// assert_eq!(*id_times.borrow(), 1);
 /// ```
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct OpClosure<T, Op: Fn(T, T) -> T, Id: Fn() -> T>(Op, Id);
 
 impl<T: Eq, Op: Fn(T, T) -> T, Id: Fn() -> T> OpClosure<T, Op, Id> {
