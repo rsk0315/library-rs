@@ -8,7 +8,6 @@ use binop::{Associative, Identity, Magma};
 ///
 /// # Examples
 /// ```
-/// use nekolib::math::ModInt;
 /// use nekolib::traits::Magma;
 /// use nekolib::utils::OpRollHash;
 ///
