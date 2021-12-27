@@ -149,36 +149,32 @@ where
         start: usize,
         end: usize,
     ) -> impl Iterator<Item = usize> + DoubleEndedIterator {
+        // start <= end
+
         let mut res = vec![];
-        let mut l = self.len + start;
-        let mut r = self.len + end - 1;
+        let l = self.len + start;
+        let r = self.len + end;
         let pl = self.parent_root(l);
-        let pr = self.parent_root(r);
-        if pl != pr || l.leading_zeros() != r.leading_zeros() {
-            l >>= 1;
-            while l != pl {
-                res.push(l);
-                l >>= 1;
+        let pr = self.parent_root(r - 1);
+
+        let mut il = 1;
+        let mut ir = 1;
+        while l >> il != pl || (r - 1) >> ir != pr {
+            if r >> ir != pr {
+                if r >> ir << ir != r {
+                    res.push((r - 1) >> ir);
+                }
+                ir += 1;
             }
-            r >>= 1;
-            while r != pr {
-                res.push(r);
-                r >>= 1;
-            }
-        } else {
-            l >>= 1;
-            r >>= 1;
-            while l != r {
-                res.push(l);
-                res.push(r);
-                l >>= 1;
-                r >>= 1;
-            }
-            while l != pl {
-                res.push(l);
-                l >>= 1;
+            if l >> il != pl {
+                if l >> il << il != l {
+                    res.push(l >> il);
+                }
+                il += 1;
             }
         }
+
+        res.dedup();
         res.into_iter()
     }
 
@@ -195,6 +191,20 @@ where
             let d = std::mem::replace(&mut def[i], e.clone());
             self.apply(i, d);
         }
+    }
+
+    #[cfg(test)]
+    pub fn unforced(&self) -> Vec<usize> {
+        let def = self.def.borrow();
+        let id = self.action.operator().id();
+        (0..self.len).filter(|&i| def[i] != id).collect()
+    }
+
+    #[cfg(test)]
+    pub fn ancestors_sorted(&self, start: usize, end: usize) -> Vec<usize> {
+        let mut res: Vec<_> = self.ancestors_upward(start, end).collect();
+        res.sort_unstable();
+        res
     }
 }
 
@@ -388,5 +398,83 @@ where
             return (v - self.len + 1, x);
         }
         unreachable!();
+    }
+}
+
+#[test]
+fn test_ancestors() {
+    use op_closure::OpClosure;
+    use op_closure_on_op_closure::OpClosureOnOpClosure;
+
+    for n in 1..=100 {
+        let mut height = vec![0; n + n];
+        for i in n..n + n {
+            height[i] = 1;
+        }
+        for i in (1..n).rev() {
+            if height[i << 1] == height[i << 1 | 1] {
+                height[i] = height[i << 1] + 1;
+            }
+        }
+
+        let action = OpClosureOnOpClosure::new(
+            OpClosure::new(|_, _| (), || ()),
+            OpClosure::new(|_, _| (), || ()),
+            |_, _| (),
+        );
+        let st: VecActSegtree<_> = (vec![(); n], action).into();
+        for l in 0..n {
+            for r in l..n {
+                let arch = {
+                    let mut arch = vec![];
+                    let mut l = n + l;
+                    let mut r = n + r + 1;
+                    while l < r {
+                        if l & 1 == 1 {
+                            arch.push(l);
+                            l += 1;
+                        }
+                        if r & 1 == 1 {
+                            r -= 1;
+                            arch.push(r);
+                        }
+                        l >>= 1;
+                        r >>= 1;
+                    }
+                    arch
+                };
+
+                let mut expected = vec![];
+                for mut i in arch {
+                    i >>= 1;
+                    while height[i] != 0 {
+                        expected.push(i);
+                        i >>= 1;
+                    }
+                }
+                expected.sort_unstable();
+                expected.dedup();
+
+                let actual = st.ancestors_sorted(l, r + 1);
+                assert_eq!(actual, expected);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+#[allow(dead_code)]
+fn dump(n: usize, node: &[usize]) {
+    use std::collections::BTreeSet;
+    let node: BTreeSet<_> = node.iter().copied().collect();
+
+    let len = n.next_power_of_two() << 1;
+    for i in 1..n + n {
+        let shift = WORD_SIZE - 1 - i.leading_zeros();
+        let ch = if node.contains(&i) { "o" } else { "-" };
+        eprint!("[{}]", ch.repeat((len >> shift) - 2));
+        if i + 1 == n + n || (i + 1).is_power_of_two() {
+            eprintln!();
+        }
     }
 }

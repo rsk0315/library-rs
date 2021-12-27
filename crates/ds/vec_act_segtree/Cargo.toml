@@ -19,3 +19,5 @@ op_max = { path = "../../utils/op_max" }
 op_add = { path = "../../utils/op_add" }
 min = { path = "../../traits/min" }
 additive = { path = "../../traits/additive" }
+op_closure = { path = "../../utils/op_closure" }
+op_closure_on_op_closure = { path = "../../utils/op_closure_on_op_closure" }
