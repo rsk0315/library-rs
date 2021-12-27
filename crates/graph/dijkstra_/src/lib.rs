@@ -45,6 +45,34 @@ use std::collections::BinaryHeap;
 /// assert_eq!(dist, vec![Some(0), Some(2), Some(5), None, Some(9)]);
 /// ```
 ///
+/// 頂点数の上限 $n$ さえ既知であれば、`index` は動的に決められる。
+/// ```
+/// use std::collections::BTreeMap;
+///
+/// use nekolib::graph::dijkstra;
+///
+/// let n = 10;
+///
+/// let s = 10001;
+/// let t = 10015;
+/// let u = t - 1;
+/// let mut enc = BTreeMap::new();
+/// let index = |&v: &usize| match enc.get(&v) {
+///     Some(&i) => i,
+///     None => {
+///         let len = enc.len();
+///         enc.insert(v, len);
+///         len
+///     }
+/// };
+/// let delta =
+///   |&v: &usize| Some((v + 2, 1)).filter(|&(v, _)| v <= t).into_iter();
+///
+/// let res = dijkstra(n, s, 0, index, delta);
+/// assert_eq!(res[enc[&t]], Some(7));
+/// assert!(!enc.contains_key(&u))
+/// ```
+///
 /// # Notes
 /// 複数のグラフを扱う際に `delta` を使い回すと、意図しないグラフを見てしまいがちなので注意。
 ///
@@ -59,8 +87,8 @@ pub fn dijkstra<V, W, E>(
     n: usize,
     s: V,
     zero: W,
-    index: impl Fn(&V) -> usize,
-    delta: impl Fn(&V) -> E,
+    mut index: impl FnMut(&V) -> usize,
+    mut delta: impl FnMut(&V) -> E,
 ) -> Vec<Option<W>>
 where
     V: Ord,
