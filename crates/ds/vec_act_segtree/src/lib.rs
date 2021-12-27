@@ -154,7 +154,7 @@ where
         let mut r = self.len + end - 1;
         let pl = self.parent_root(l);
         let pr = self.parent_root(r);
-        if pl != pr {
+        if pl != pr || l.leading_zeros() != r.leading_zeros() {
             l >>= 1;
             while l != pl {
                 res.push(l);
