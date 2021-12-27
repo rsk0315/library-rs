@@ -9,7 +9,7 @@ use op_add::OpAdd;
 use op_max::OpMax;
 
 #[derive(Clone, Copy, Debug, Default)]
-struct OpAddOnOpMax<T> {
+pub struct OpAddOnOpMax<T> {
     op_add: OpAdd<T>,
     op_max: OpMax<T>,
 }

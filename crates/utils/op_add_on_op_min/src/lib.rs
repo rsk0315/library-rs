@@ -9,7 +9,7 @@ use op_add::OpAdd;
 use op_min::OpMin;
 
 #[derive(Clone, Copy, Debug, Default)]
-struct OpAddOnOpMin<T> {
+pub struct OpAddOnOpMin<T> {
     op_add: OpAdd<T>,
     op_min: OpMin<T>,
 }
