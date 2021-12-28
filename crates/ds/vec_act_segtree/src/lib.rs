@@ -160,17 +160,17 @@ where
         let mut il = 1;
         let mut ir = 1;
         while l >> il != pl || (r - 1) >> ir != pr {
-            if r >> ir != pr {
-                if r >> ir << ir != r {
-                    res.push((r - 1) >> ir);
-                }
-                ir += 1;
-            }
             if l >> il != pl {
                 if l >> il << il != l {
                     res.push(l >> il);
                 }
                 il += 1;
+            }
+            if r >> ir != pr {
+                if r >> ir << ir != r {
+                    res.push((r - 1) >> ir);
+                }
+                ir += 1;
             }
         }
 
