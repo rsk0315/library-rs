@@ -63,13 +63,10 @@ impl<T: Clone + Eq> From<Vec<T>> for ZSearcher<T> {
 
 impl<T: Eq> ZSearcher<T> {
     pub fn occurrences<'a>(&'a self, s: &'a [T]) -> Occurrences<'a, T> {
-        Occurrences {
-            text_index: 0,
-            match_len: 0,
-            z: &self,
-            text: s,
-        }
+        Occurrences { text_index: 0, match_len: 0, z: &self, text: s }
     }
+
+    pub fn z(&self, i: usize) -> usize { self.z[i] }
 }
 
 pub struct Occurrences<'a, T: Eq> {
