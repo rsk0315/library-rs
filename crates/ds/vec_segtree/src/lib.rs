@@ -292,7 +292,7 @@ where
     {
         assert!(
             l < self.len,
-            "index out of bounds: the len is {} but the index is {}; valid range: 0..{}",
+            "index out of bounds: the len is {} but the index is {}; valid range: 0..={}",
             self.len, l, self.len
         );
 

@@ -21,3 +21,4 @@ min = { path = "../../traits/min" }
 additive = { path = "../../traits/additive" }
 op_closure = { path = "../../utils/op_closure" }
 op_closure_on_op_closure = { path = "../../utils/op_closure_on_op_closure" }
+op_affine_on_op_add_count = { path = "../../utils/op_affine_on_op_add_count" }

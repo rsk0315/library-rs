@@ -185,11 +185,18 @@ where
     }
 
     fn force_all(&self) {
+        let mut buf = self.buf.borrow_mut();
         let mut def = self.def.borrow_mut();
-        let e = self.action.operator().id();
+        let operator = &self.action.operator();
+        let e = operator.id();
         for i in 1..self.len {
             let d = std::mem::replace(&mut def[i], e.clone());
-            self.apply(i, d);
+            for &j in &[i << 1, i << 1 | 1] {
+                if j < self.len {
+                    def[j] = operator.op(def[j].clone(), d.clone());
+                }
+                buf[j] = self.action.act(buf[j].clone(), d.clone());
+            }
         }
     }
 
@@ -248,7 +255,9 @@ where
 {
     fn from(v: VecActSegtree<A>) -> Self {
         v.force_all();
-        v.buf.into_inner()
+        let mut res = v.buf.into_inner();
+        res.drain(..v.len);
+        res
     }
 }
 
@@ -312,8 +321,8 @@ where
         F: Fn(&<A::Operand as Magma>::Set) -> bool,
     {
         assert!(
-            l < self.len,
-            "index out of bound: the len is {} but the index is {}; valid range: 0..{}",
+            l <= self.len,
+            "index out of bound: the len is {} but the index is {}; valid range: 0..={}",
             self.len, l, self.len
         );
 
@@ -326,9 +335,9 @@ where
         }
 
         self.force_range(l, self.len);
-        let buf = self.buf.borrow();
+        let buf = || self.buf.borrow();
         for v in self.arch(l, self.len) {
-            let tmp = operand.op(x.clone(), buf[v].clone());
+            let tmp = operand.op(x.clone(), buf()[v].clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
@@ -337,8 +346,8 @@ where
             while v < self.len {
                 self.force(v);
                 v <<= 1;
-                let tmp = operand.op(x.clone(), buf[v].clone());
-                if pred(&x) {
+                let tmp = operand.op(x.clone(), buf()[v].clone());
+                if pred(&tmp) {
                     x = tmp;
                     v += 1;
                 }
@@ -378,9 +387,9 @@ where
         }
 
         self.force_range(0, r);
-        let buf = self.buf.borrow();
+        let buf = || self.buf.borrow();
         for v in self.arch_rev(0, r) {
-            let tmp = operand.op(buf[v].clone(), x.clone());
+            let tmp = operand.op(buf()[v].clone(), x.clone());
             if pred(&tmp) {
                 x = tmp;
                 continue;
@@ -389,7 +398,7 @@ where
             while v < self.len {
                 self.force(v);
                 v = v << 1 | 1;
-                let tmp = operand.op(buf[v].clone(), x.clone());
+                let tmp = operand.op(buf()[v].clone(), x.clone());
                 if pred(&tmp) {
                     x = tmp;
                     v -= 1;
@@ -477,4 +486,112 @@ fn dump(n: usize, node: &[usize]) {
             eprintln!();
         }
     }
+}
+
+#[test]
+fn test_fold_bisect() {
+    for n in (0..=32).chain(250..=260) {
+        test_fold_bisect_n(n);
+    }
+}
+
+#[cfg(test)]
+fn test_fold_bisect_n(n: usize) {
+    use op_affine_on_op_add_count::OpAffineOnOpAddCount;
+
+    let init = (1, 1);
+    let a = vec![init; n];
+    let mut st: VecActSegtree<OpAffineOnOpAddCount<i128>> = a.into();
+
+    let range_n: Vec<_> =
+        range(n).into_iter().filter_map(std::convert::identity).collect();
+
+    let actions: Vec<_> = (range_n.iter().rev())
+        .map(|&(l, r)| {
+            let range = l..r;
+            let x1 = (r - l).trailing_zeros() + 1;
+            let x0 = l;
+            (range, (x1 as i128, x0 as i128))
+        })
+        .collect();
+
+    let mut naive = vec![init; n];
+    for &(ref range, elt) in &actions {
+        for i in range.clone() {
+            let x = naive[i].0;
+            let (a, b) = elt;
+            naive[i].0 = a * x + b;
+        }
+        st.act(range.clone(), elt);
+    }
+
+    assert_eq!(st.unforced().len(), range_n.len() - n);
+    assert_eq!(Vec::<_>::from(st.clone()), naive);
+
+    let acc = {
+        let mut acc = vec![0; n + 1];
+        for i in 0..n {
+            acc[i + 1] = acc[i] + naive[i].0;
+        }
+        acc
+    };
+
+    for l in 0..=n {
+        for r in l..=n {
+            let st = st.clone();
+
+            let pred = |&(x, _): &(i128, _)| x <= acc[r] - acc[l];
+            let (index, folded) = st.fold_bisect(l, pred);
+
+            // return value
+            assert_eq!(
+                (index, folded),
+                (r, (acc[r] - acc[l], (r - l) as i128))
+            );
+
+            // postcondition
+            assert!(pred(&st.fold(l..index)));
+            assert!(index == n || !pred(&st.fold(l..index + 1)));
+
+            // actual values
+            assert_eq!(Vec::<_>::from(st), naive);
+        }
+    }
+
+    for r in 0..=n {
+        for l in 0..=r {
+            let st = st.clone();
+
+            let pred = |&(x, _): &(i128, _)| x <= acc[r] - acc[l];
+            let (index, folded) = st.fold_bisect_rev(r, pred);
+
+            // return value
+            assert_eq!(
+                (index, folded),
+                (l, (acc[r] - acc[l], (r - l) as i128))
+            );
+
+            // postcondition
+            assert!(pred(&st.fold(index..r)));
+            assert!(index == 0 || !pred(&st.fold(index - 1..r)));
+
+            // actual values
+            assert_eq!(Vec::<_>::from(st), naive);
+        }
+    }
+}
+
+#[cfg(test)]
+fn range(n: usize) -> Vec<Option<(usize, usize)>> {
+    let mut a = vec![None; n + n];
+    for i in 0..n {
+        a[n + i] = Some((i, i + 1));
+    }
+    for i in (1..n).rev() {
+        a[i] = match (a[2 * i], a[2 * i + 1]) {
+            (Some((ll, lr)), Some((rl, rr))) if lr == rl => Some((ll, rr)),
+            _ => None,
+        }
+    }
+    a
 }
