@@ -16,7 +16,7 @@ pub trait MonoidAction {
     /// 作用を行う。
     fn act(
         &self,
-        x: &mut <Self::Operand as Magma>::Set,
+        x: <Self::Operand as Magma>::Set,
         op: <Self::Operator as Magma>::Set,
-    );
+    ) -> <Self::Operand as Magma>::Set;
 }
