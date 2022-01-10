@@ -1,0 +1,53 @@
+<style>
+  .ferris-container {
+      position: absolute;
+      z-index: 9999;
+      width: 4.5em;
+      right: 5px;
+      top: 10px;
+  }
+</style>
+
+<script>
+  let ferrisTypes = [
+      {
+          attr: 'compile_fail',
+          title: 'This code does not compile!',
+      },
+      {
+          attr: 'should_panic',
+          title: 'This code panics!',
+      },
+  ];
+
+  let src = "https://raw.githubusercontent.com/rust-lang/book/b54090a99ec7c4b46a5203a9c927fdbc311bb1f5/2018-edition/src/img/ferris/panics.svg";
+
+  document.addEventListener('DOMContentLoaded', () => {
+      for (let ferrisType of ferrisTypes) {
+          attachFerrises(ferrisType);
+      }
+  });
+
+  function attachFerrises(type) {
+      let elements = document.getElementsByClassName(type.attr);
+      for (let codeBlock of elements) {
+          if (codeBlock.tagName === 'PRE') {
+              attachFerris(codeBlock, type);
+          }
+      }
+  }
+
+  function attachFerris(element, type) {
+      let div = document.createElement('div');
+      div.className = 'ferris-container';
+
+      let img = document.createElement('img');
+      img.setAttribute('src', src);
+      img.setAttribute('title', type.title);
+      img.className = 'ferris';
+
+      div.appendChild(img);
+
+      element.parentElement.insertBefore(div, element);
+  }
+</script>
