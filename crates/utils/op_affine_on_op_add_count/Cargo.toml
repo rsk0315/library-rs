@@ -1,0 +1,13 @@
+[package]
+name = "op_affine_on_op_add_count"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+action = { path = "../../traits/action" }
+additive = { path = "../../traits/additive" }
+multiplicative = { path = "../../traits/multiplicative" }
+op_add_count = { path = "../op_add_count" }
+op_affine = { path = "../op_affine" }

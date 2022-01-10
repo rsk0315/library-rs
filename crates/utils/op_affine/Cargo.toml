@@ -1,0 +1,11 @@
+[package]
+name = "op_affine"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+additive = { path = "../../traits/additive" }
+multiplicative = { path = "../../traits/multiplicative" }
+binop = { path = "../../traits/binop" }

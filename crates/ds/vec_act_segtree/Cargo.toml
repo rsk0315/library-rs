@@ -13,9 +13,13 @@ binop = { path = "../../traits/binop" }
 buf_range = { path = "../../utils/buf_range" }
 fold = { path = "../../traits/fold" }
 fold_bisect = { path = "../../traits/fold_bisect" }
+get_mut = { path = "../../traits/get_mut" }
 
 [dev-dependencies]
 op_max = { path = "../../utils/op_max" }
 op_add = { path = "../../utils/op_add" }
 min = { path = "../../traits/min" }
 additive = { path = "../../traits/additive" }
+op_closure = { path = "../../utils/op_closure" }
+op_closure_on_op_closure = { path = "../../utils/op_closure_on_op_closure" }
+op_affine_on_op_add_count = { path = "../../utils/op_affine_on_op_add_count" }
