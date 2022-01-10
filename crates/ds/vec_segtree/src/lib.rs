@@ -5,7 +5,7 @@ use std::iter::{IntoIterator, Iterator};
 use std::ops::{Deref, DerefMut, Index, Range, RangeBounds};
 
 use binop::Monoid;
-use buf_range::bounds_within;
+use buf_range::{bounds_within, check_bounds, check_bounds_range};
 use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
 use get_mut::GetMut;
@@ -155,13 +155,7 @@ where
 {
     type Input = M::Set;
     fn set_value(&mut self, i: usize, x: Self::Input) {
-        assert!(
-            i < self.len,
-            "index out of bounds: the len is {} but the index is {}",
-            self.len,
-            i
-        );
-
+        check_bounds(i, self.len);
         *self.get_mut(i).unwrap() = x;
     }
 }
@@ -260,13 +254,7 @@ where
 {
     type Output = M::Set;
     fn index(&self, i: usize) -> &Self::Output {
-        assert!(
-            i < self.len,
-            "index out of bounds: the len is {} but the index is {}",
-            self.len,
-            i
-        );
-
+        check_bounds(i, self.len);
         &self.buf[i + self.len]
     }
 }
@@ -290,11 +278,7 @@ where
     where
         F: Fn(&M::Set) -> bool,
     {
-        assert!(
-            l < self.len,
-            "index out of bounds: the len is {} but the index is {}; valid range: 0..={}",
-            self.len, l, self.len
-        );
+        check_bounds_range(l, 0..=self.len);
 
         let mut x = self.monoid.id();
         assert!(pred(&x), "`pred(id)` must hold");
@@ -333,11 +317,7 @@ where
     where
         F: Fn(&M::Set) -> bool,
     {
-        assert!(
-            r <= self.len,
-            "index out of bounds: the len is {} but the index is {}; valid range: 0..={}",
-            self.len, r, self.len
-        );
+        check_bounds_range(r, 0..=self.len);
 
         let mut x = self.monoid.id();
         assert!(pred(&x), "`pred(id)` must hold");

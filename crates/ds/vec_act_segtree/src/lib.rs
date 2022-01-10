@@ -1,14 +1,15 @@
 //! `Vec` ベースの区間作用セグ木。
 
 use std::cell::RefCell;
-use std::ops::{Range, RangeBounds};
+use std::ops::{Deref, DerefMut, Range, RangeBounds};
 
 use act::Act;
 use action::MonoidAction;
 use binop::{Identity, Magma};
-use buf_range::bounds_within;
+use buf_range::{bounds_within, check_bounds_range};
 use fold::Fold;
 use fold_bisect::{FoldBisect, FoldBisectRev};
+use get_mut::GetMut;
 
 const WORD_SIZE: u32 = 0_usize.count_zeros();
 
@@ -320,11 +321,7 @@ where
     where
         F: Fn(&<A::Operand as Magma>::Set) -> bool,
     {
-        assert!(
-            l <= self.len,
-            "index out of bound: the len is {} but the index is {}; valid range: 0..={}",
-            self.len, l, self.len
-        );
+        check_bounds_range(l, 0..=self.len);
 
         let operand = self.action.operand();
         let mut x = operand.id();
@@ -372,11 +369,7 @@ where
     where
         F: Fn(&<A::Operand as Magma>::Set) -> bool,
     {
-        assert!(
-            r <= self.len,
-            "index out of bounds: the len is {} but the index is {}; valid range: 0..={}",
-            self.len, r, self.len
-        );
+        check_bounds_range(r, 0..=self.len);
 
         let operand = self.action.operand();
         let mut x = operand.id();
@@ -408,6 +401,72 @@ where
         }
         unreachable!();
     }
+}
+
+#[doc(hidden)]
+pub struct GetMutIndex<'a, A>
+where
+    A: MonoidAction,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone,
+{
+    tree: &'a mut VecActSegtree<A>,
+    index: usize,
+    elt: <A::Operand as Magma>::Set,
+}
+
+impl<'a, A: 'a> GetMut<'a> for VecActSegtree<A>
+where
+    A: MonoidAction,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone,
+{
+    type Output = GetMutIndex<'a, A>;
+    fn get_mut(&'a mut self, index: usize) -> Option<GetMutIndex<'a, A>> {
+        if index >= self.len {
+            return None;
+        }
+
+        self.force_range(index, index + 1);
+        let i = self.len + index;
+        let e = self.action.operand().id();
+        let elt = std::mem::replace(&mut self.buf.borrow_mut()[i], e);
+        Some(GetMutIndex { tree: self, index, elt })
+    }
+}
+
+impl<A> Drop for GetMutIndex<'_, A>
+where
+    A: MonoidAction,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone,
+{
+    fn drop(&mut self) {
+        let Self { index, tree, elt } = self;
+        let i = *index;
+        let elt = std::mem::replace(elt, tree.action.operand().id());
+        tree.buf.borrow_mut()[tree.len + i] = elt;
+        tree.build_range(i, i + 1);
+    }
+}
+
+impl<A> Deref for GetMutIndex<'_, A>
+where
+    A: MonoidAction,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone,
+{
+    type Target = <A::Operand as Magma>::Set;
+    fn deref(&self) -> &Self::Target { &self.elt }
+}
+
+impl<A> DerefMut for GetMutIndex<'_, A>
+where
+    A: MonoidAction,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone,
+{
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.elt }
 }
 
 #[test]
@@ -560,6 +619,7 @@ fn test_fold_bisect_n(n: usize) {
 
     for r in 0..=n {
         for l in 0..=r {
+            // clone to save unforced-ness
             let st = st.clone();
 
             let pred = |&(x, _): &(i128, _)| x <= acc[r] - acc[l];
@@ -594,4 +654,53 @@ fn range(n: usize) -> Vec<Option<(usize, usize)>> {
         }
     }
     a
+}
+
+#[test]
+fn test_get_mut() {
+    for n in (0..=32).chain(1020..=1030) {
+        test_get_mut_n(n);
+    }
+}
+
+#[cfg(test)]
+fn test_get_mut_n(n: usize) {
+    use op_affine_on_op_add_count::OpAffineOnOpAddCount;
+
+    let init = (1, 1);
+    let a = vec![init; n];
+    let mut st: VecActSegtree<OpAffineOnOpAddCount<i128>> = a.into();
+
+    let range_n: Vec<_> =
+        range(n).into_iter().filter_map(std::convert::identity).collect();
+
+    let actions: Vec<_> = (range_n.iter().rev())
+        .map(|&(l, r)| {
+            let range = l..r;
+            let x1 = (r - l).trailing_zeros() + 1;
+            let x0 = l;
+            (range, (x1 as i128, x0 as i128))
+        })
+        .collect();
+
+    let mut naive = vec![init; n];
+    for &(ref range, elt) in &actions {
+        for i in range.clone() {
+            let x = naive[i].0;
+            let (a, b) = elt;
+            naive[i].0 = a * x + b;
+        }
+        st.act(range.clone(), elt);
+    }
+
+    for i in 0..n {
+        // clone to save unforced-ness
+        let mut st = st.clone();
+        let mut naive = naive.clone();
+
+        st.get_mut(i).unwrap().0 = 0;
+        naive[i].0 = 0;
+
+        assert_eq!(Vec::<_>::from(st), naive);
+    }
 }

@@ -13,6 +13,7 @@ binop = { path = "../../traits/binop" }
 buf_range = { path = "../../utils/buf_range" }
 fold = { path = "../../traits/fold" }
 fold_bisect = { path = "../../traits/fold_bisect" }
+get_mut = { path = "../../traits/get_mut" }
 
 [dev-dependencies]
 op_max = { path = "../../utils/op_max" }

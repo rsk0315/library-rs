@@ -18,7 +18,7 @@ pub mod op_roll_hash;
 pub mod scanner;
 
 #[doc(inline)]
-pub use buf_range::bounds_within;
+pub use buf_range::{bounds_within, check_bounds, check_bounds_range};
 #[doc(inline)]
 pub use op_add::OpAdd;
 #[doc(inline)]
