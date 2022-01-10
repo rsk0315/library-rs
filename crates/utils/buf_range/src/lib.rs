@@ -63,15 +63,15 @@ pub fn check_bounds(i: usize, len: usize) {
 /// use nekolib::utils::check_bounds_range;
 ///
 /// let a = [0, 1, 2];
-/// check_bounds(2, 0..a.len());
-/// check_bounds(3, 0..=a.len());
+/// check_bounds_range(2, 0..a.len());
+/// check_bounds_range(3, 0..=a.len());
 /// ```
 ///
 /// ```should_panic
 /// use nekolib::utils::check_bounds_range;
 ///
 /// let a = [0, 1, 2];
-/// check_bounds(4, 0..=a.len());
+/// check_bounds_range(4, 0..=a.len());
 /// ```
 pub fn check_bounds_range(i: usize, range: impl RangeBounds<usize> + Debug) {
     assert!(
