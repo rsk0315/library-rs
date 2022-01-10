@@ -8,7 +8,7 @@ use op_add_count::OpAddCount;
 use op_affine::OpAffine;
 
 #[derive(Clone, Copy, Debug, Default)]
-struct OpAffineOnOpAddCount<T> {
+pub struct OpAffineOnOpAddCount<T> {
     op_affine: OpAffine<T>,
     op_add_count: OpAddCount<T>,
 }

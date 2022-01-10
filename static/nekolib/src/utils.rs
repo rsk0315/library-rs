@@ -3,8 +3,12 @@
 //! ここに何かを書く。
 pub mod buf_range;
 pub mod op_add;
+pub mod op_add_count;
+pub mod op_add_on_op_add_count;
 pub mod op_add_on_op_max;
 pub mod op_add_on_op_min;
+pub mod op_affine;
+pub mod op_affine_on_op_add_count;
 pub mod op_closure;
 pub mod op_closure_on_op_closure;
 pub mod op_max;
@@ -18,9 +22,17 @@ pub use buf_range::bounds_within;
 #[doc(inline)]
 pub use op_add::OpAdd;
 #[doc(inline)]
+pub use op_add_count::OpAddCount;
+#[doc(inline)]
+pub use op_add_on_op_add_count::OpAddOnOpAddCount;
+#[doc(inline)]
 pub use op_add_on_op_max::OpAddOnOpMax;
 #[doc(inline)]
 pub use op_add_on_op_min::OpAddOnOpMin;
+#[doc(inline)]
+pub use op_affine::OpAffine;
+#[doc(inline)]
+pub use op_affine_on_op_add_count::OpAffineOnOpAddCount;
 #[doc(inline)]
 pub use op_closure::OpClosure;
 #[doc(inline)]

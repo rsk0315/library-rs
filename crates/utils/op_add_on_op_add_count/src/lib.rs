@@ -7,7 +7,7 @@ use op_add::OpAdd;
 use op_add_count::OpAddCount;
 
 #[derive(Clone, Copy, Debug, Default)]
-struct OpAddOnOpAddCount<T> {
+pub struct OpAddOnOpAddCount<T> {
     op_add: OpAdd<T>,
     op_add_count: OpAddCount<T>,
 }
