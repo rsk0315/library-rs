@@ -8,6 +8,11 @@ use std::ops::{Range, RangeBounds};
 ///
 /// 与えられた区間 `r` と `0..len` の共通部分を、有界な半開区間として返す。
 ///
+/// # Notes
+///
+/// 終端が陽に与えられたとき（有限のとき）は out of bounds でもそのまま返す。
+/// 潜在的なバグの原因を見逃すのを防ぎたいので。
+///
 /// # Examples
 /// ```
 /// use nekolib::utils::bounds_within;
@@ -20,8 +25,7 @@ pub fn bounds_within<R: RangeBounds<usize>>(r: R, len: usize) -> Range<usize> {
         Included(&e) => e + 1,
         Excluded(&e) => e,
         Unbounded => len,
-    }
-    .min(len);
+    };
     let s_in = match r.start_bound() {
         Included(&s) => s,
         Excluded(&s) => s + 1,
@@ -45,6 +49,7 @@ pub fn bounds_within<R: RangeBounds<usize>>(r: R, len: usize) -> Range<usize> {
 /// use nekolib::utils::check_bounds;
 ///
 /// let a = [0, 1, 2];
+/// // panicked at 'index out of bounds: the len is 3 but the index is 3'
 /// check_bounds(3, a.len());
 /// ```
 pub fn check_bounds(i: usize, len: usize) {
@@ -71,6 +76,7 @@ pub fn check_bounds(i: usize, len: usize) {
 /// use nekolib::utils::check_bounds_range;
 ///
 /// let a = [0, 1, 2];
+/// // panicked at 'index out of bounds: the range is 0..=3 but the index is 4'
 /// check_bounds_range(4, 0..=a.len());
 /// ```
 pub fn check_bounds_range(i: usize, range: impl RangeBounds<usize> + Debug) {
@@ -80,4 +86,10 @@ pub fn check_bounds_range(i: usize, range: impl RangeBounds<usize> + Debug) {
         range,
         i
     );
+}
+
+#[test]
+fn test() {
+    let a = [0, 1, 2];
+    check_bounds_range(4, 0..=a.len());
 }
