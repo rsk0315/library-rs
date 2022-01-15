@@ -152,11 +152,8 @@ impl Scan for char {
     fn scan(buf: &str) -> (Result<Self, Self::Err>, usize) {
         let start = buf.find(|c| !char::is_whitespace(c)).unwrap_or(buf.len());
         let buf = &buf[start..];
-        let len = buf
-            .char_indices()
-            .nth(1)
-            .map(|(i, _)| i)
-            .unwrap_or(buf.len());
+        let len =
+            buf.char_indices().nth(1).map(|(i, _)| i).unwrap_or(buf.len());
         (buf[..len].parse(), start + len)
     }
 }
@@ -165,7 +162,7 @@ impl Scan for char {
 pub struct ScanTupleError();
 
 impl std::fmt::Display for ScanTupleError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "error: while parsing tuple")
     }
 }
