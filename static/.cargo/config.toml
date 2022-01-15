@@ -8,4 +8,5 @@ p = "clippy -- -W clippy::pedantic -A clippy::doc_markdown -A clippy::module_nam
 rustdocflags = [
     "--html-in-header", "katex-header.html",
     "--html-in-header", "lato-header.html",
+    "--html-in-header", "ferris-in-doc.html",
 ]
