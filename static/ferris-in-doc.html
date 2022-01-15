@@ -13,14 +13,14 @@
       {
           attr: 'compile_fail',
           title: 'This code does not compile!',
+          src: 'https://raw.githubusercontent.com/rust-lang/book/b54090a99ec7c4b46a5203a9c927fdbc311bb1f5/2018-edition/src/img/ferris/does_not_compile.svg',
       },
       {
           attr: 'should_panic',
           title: 'This code panics!',
+          src: 'https://raw.githubusercontent.com/rust-lang/book/b54090a99ec7c4b46a5203a9c927fdbc311bb1f5/2018-edition/src/img/ferris/panics.svg',
       },
-  ];
-
-  let src = "https://raw.githubusercontent.com/rust-lang/book/b54090a99ec7c4b46a5203a9c927fdbc311bb1f5/2018-edition/src/img/ferris/panics.svg";
+  ];  
 
   document.addEventListener('DOMContentLoaded', () => {
       for (let ferrisType of ferrisTypes) {
@@ -42,7 +42,7 @@
       div.className = 'ferris-container';
 
       let img = document.createElement('img');
-      img.setAttribute('src', src);
+      img.setAttribute('src', type.src);
       img.setAttribute('title', type.title);
       img.className = 'ferris';
 
