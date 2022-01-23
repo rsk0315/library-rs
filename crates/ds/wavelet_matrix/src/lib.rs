@@ -94,6 +94,9 @@ impl WaveletMatrix {
         if start == end {
             return (0, 0);
         }
+        if (value >> self.bitlen) > 0 {
+            return (end - start, 0);
+        }
         let mut lt = 0;
         let mut gt = 0;
         for i in (0..self.bitlen).rev() {
@@ -196,6 +199,9 @@ impl FindNth<u128> for WaveletMatrix {
 }
 
 impl WaveletMatrix {
+    pub fn len(&self) -> usize { self.len }
+    pub fn is_empty(&self) -> bool { self.len == 0 }
+
     pub fn rank(&self, end: usize, value: u128) -> usize {
         self.count(0..end, value..=value)
     }
