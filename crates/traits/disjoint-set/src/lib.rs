@@ -22,4 +22,14 @@ pub trait DisjointSet {
     fn subset(&self, u: usize) -> Vec<usize> {
         (0..self.len()).filter(|&v| self.equiv(u, v)).collect()
     }
+    /// 分割を返す。
+    ///
+    /// $u$ が代表元のとき、$u$ 番目の `Vec` にそれと等価な要素たちが入る。
+    fn partition(&self) -> Vec<Vec<usize>> {
+        let mut res = vec![vec![]; self.len()];
+        for i in 0..self.len() {
+            res[self.repr(i)].push(i);
+        }
+        res
+    }
 }
