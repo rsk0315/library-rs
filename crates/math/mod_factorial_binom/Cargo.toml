@@ -1,0 +1,9 @@
+[package]
+name = "mod_factorial_binom"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mod_recip_table_ = { path = "../mod_recip_table_" }
