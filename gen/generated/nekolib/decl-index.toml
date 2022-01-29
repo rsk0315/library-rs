@@ -270,6 +270,11 @@ direct = [["math", "mod_pow"], ["math", "mod_tetration"]]
 whole = [["math", "euler_phi"], ["math", "factors"], ["math", "mod_pow"], ["math", "mod_tetration"]]
 
 [[depends]]
+name = ["math", "mod_factorial_binom"]
+direct = [["math", "mod_recip_table_"]]
+whole = [["math", "mod_recip_table_"]]
+
+[[depends]]
 name = ["math", "mod_ord"]
 direct = [["math", "carmichael_lambda"], ["math", "factors"], ["math", "gcd"], ["math", "mod_pow"]]
 whole = [["math", "carmichael_lambda"], ["math", "factors"], ["math", "gcd"], ["math", "lcm"], ["math", "mod_pow"]]

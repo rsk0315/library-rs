@@ -21,18 +21,18 @@
 //! にゃー。
 //! 
 //! ## Revision
-//! [`1028d49740bfda981ba8b9f494e1bb44eb01ef1c`](https://github.com/rsk0315/library-rs/tree/1028d49740bfda981ba8b9f494e1bb44eb01ef1c)
+//! [`0ff86aff71345da56b00e6539fee1926f3397942`](https://github.com/rsk0315/library-rs/tree/0ff86aff71345da56b00e6539fee1926f3397942)
 //! 
 //! ```text
 //! +----------------+
-//! |..ooo.o         |
-//! | . o.+          |
-//! |  . ...         |
-//! | . o  .S        |
-//! |  * +.          |
-//! | o E=           |
-//! |o.B+=.          |
-//! |+. Oo           |
+//! |         o .   o|
+//! |        o o . o.|
+//! |      .  o ..+. |
+//! |     . S  .oo.. |
+//! |      . o .o.E  |
+//! |       . o .O = |
+//! |     ..   o  O .|
+//! |    ......    + |
 //! +----------------+
 //! ```
 pub mod algo;
