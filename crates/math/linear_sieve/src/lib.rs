@@ -1,16 +1,19 @@
 //! 線形篩。
 
+use gcd_recip::GcdRecip;
+
 /// 線形篩。
 ///
 /// # Idea
 /// 各整数の最小素因数を求めつつ、素数のリストを作成していく。
 ///
-/// $i$ の最小素因数を $\\mathrm{lpf}(i)$ と書く。$j \\le \\mathrm{lpf}(i)$
-/// なる各素数 $j$ に対して、$\\mathrm{lpf}(i\\times j) = j$ とわかる。
+/// $\\gdef\\lpf#1{\\operatorname{lpf}(#1)}$
+/// $i$ の最小素因数を $\\mathrm{lpf}(i)$ と書く。$j \\le \\lpf{i}$
+/// なる各素数 $j$ に対して、$\\lpf{i\\times j} = j$ とわかる。
 /// 素因数分解の一意性から、各整数の最小素因数の更新は一回ずつしか行われず、線形時間で構築できる。
 ///
-/// また、$\\mathrm{lpf}(i)$ が $\\mathrm{lpf}(i / \\mathrm{lpf}(i))$
-/// と等しいかで場合分けしながら DP することで、各 $i$ が $\\mathrm{lpf}(i)$
+/// また、$\\lpf{i}$ が $\\lpf{i / \\lpf{i}}$
+/// と等しいかで場合分けしながら DP することで、各 $i$ が $\\lpf{i}$
 /// で何回割り切れるかも求められる。
 /// なお、これは DP せず各 $i$ に対して愚直に計算しても $O(n)$ になることが示せるらしい。
 ///
@@ -28,6 +31,7 @@
 /// |`divisors_count`|$O(\\omega(n))$|
 /// |`divisors_sum`|$O(\\omega(n))$|
 /// |`primes`|$\\Theta(1)$ delay|
+/// |`recips`|$O(n)$|
 ///
 /// $n$ の素因数の個数を $\\omega(n)$ とすると、以下の式が成り立つらしい。
 /// $$ \\sum\_{i\\le n} \\omega(i) = n\\ln(\\ln(n)) + O(n). $$
@@ -61,6 +65,7 @@
 /// # References
 /// - <https://cp-algorithms.com/algebra/prime-sieve-linear.html>
 /// - <https://twitter.com/hidesugar2/status/1431243186362458114>
+/// - <https://maspypy.com/%E7%B4%A0%E6%95%B0%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8B%E4%B8%8A%E3%81%8B%E3%82%89%E3%81%AE%E8%A9%95%E4%BE%A1%EF%BC%88%E5%88%9D%E7%AD%89%E7%9A%84%E3%81%AA%E8%A8%BC%E6%98%8E%EF%BC%89>
 pub struct LinearSieve {
     lpf: Vec<usize>,
     lpf_e: Vec<(usize, u32)>,
@@ -299,5 +304,78 @@ impl LinearSieve {
         &self,
     ) -> impl Iterator<Item = usize> + DoubleEndedIterator + '_ {
         self.pr.iter().copied()
+    }
+
+    /// 法 $m$ での逆元を返す。
+    ///
+    /// $\\gdef\\recip#1#2{#1^{-1}\_{(#2)}}$
+    /// $i^{-1}\\bmod j$ を $\\recip{i}{j}$ と書く。
+    /// 次で定められる $a = (a\_0, a\_1, \\dots, a\_n)$ を返す。
+    /// $$
+    /// a\_i = \\begin{cases}
+    /// \\recip{i}{m}, & \\text{if }\\recip{i}{m}\\text{ exists}; \\\\
+    /// 0, & \\text{otherwise}.
+    /// \\end{cases}
+    /// $$
+    /// Note: $\\recip{i}{m}\\ne 0$。
+    ///
+    /// # Idea
+    ///
+    /// $$
+    /// \\recip{i}{m} \\equiv \\recip{\\lpf{i}}{m}\\cdot\\recip{(i/\\lpf{i})}{m}\\pmod{m}
+    /// $$
+    /// に基づく。素数は $O(n/\\log(n))$ 個しかないため、互除法で愚直に求めても全体では
+    /// $O(n)$ 時間となる。
+    ///
+    /// # See also
+    /// <https://37zigen.com/linear-sieve/#i-4>
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(60);
+    /// assert_eq!(sieve.recips(0, 1), [0]);
+    /// assert_eq!(sieve.recips(4, 5), [0, 1, 3, 2, 4]);
+    /// assert_eq!(sieve.recips(9, 10), [0, 1, 0, 7, 0, 0, 0, 3, 0, 9]);
+    /// ```
+    pub fn recips(&self, n: usize, m: usize) -> Vec<usize> {
+        assert!(m > 0);
+        if n == 0 {
+            return vec![0];
+        }
+
+        let mut dp = vec![0; n + 1];
+        dp[1] = 1;
+        for i in 2..=n {
+            let lpf_i = self.lpf[i];
+            if lpf_i == i {
+                if let (1, r) = i.gcd_recip(m) {
+                    dp[i] = r;
+                }
+            } else {
+                dp[i] = dp[lpf_i] * dp[i / lpf_i] % m;
+            }
+        }
+        dp
+    }
+}
+
+#[test]
+fn test_recips() {
+    let m_max = 2000;
+    let ls = LinearSieve::new(m_max);
+    for m in 2..=m_max {
+        let n = m - 1;
+        let actual = ls.recips(m_max, m);
+        for i in 0..=n {
+            let recip = actual[i];
+            if recip == 0 {
+                assert_ne!(i.gcd_recip(m).0, 1);
+            } else {
+                assert!(recip < m);
+                assert_eq!(i * recip % m, 1);
+            }
+        }
     }
 }

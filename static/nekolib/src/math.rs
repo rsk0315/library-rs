@@ -30,6 +30,7 @@ pub mod linear_sieve;
 pub mod mod_ackermann;
 pub mod mod_ord;
 pub mod mod_pow;
+pub mod mod_recip_table_;
 pub mod mod_tetration;
 pub mod sieve_n2_plus_1;
 pub mod sieve_n2_plus_n_plus_1;
@@ -85,6 +86,8 @@ pub use mod_ackermann::ModAckermann;
 pub use mod_ord::ModOrd;
 #[doc(inline)]
 pub use mod_pow::ModPow;
+#[doc(inline)]
+pub use mod_recip_table_::mod_recip_table_prime;
 #[doc(inline)]
 pub use mod_tetration::ModTetration;
 #[doc(inline)]
