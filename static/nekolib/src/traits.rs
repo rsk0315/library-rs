@@ -13,6 +13,7 @@ pub mod find_nth;
 pub mod fold;
 pub mod fold_bisect;
 pub mod get_mut;
+pub mod group_by;
 pub mod max;
 pub mod min;
 pub mod multiplicative;
@@ -53,6 +54,8 @@ pub use fold::Fold;
 pub use fold_bisect::{FoldBisect, FoldBisectRev};
 #[doc(inline)]
 pub use get_mut::GetMut;
+#[doc(inline)]
+pub use group_by::GroupBy;
 #[doc(inline)]
 pub use max::Max;
 #[doc(inline)]
