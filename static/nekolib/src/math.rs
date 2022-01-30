@@ -28,6 +28,7 @@ pub mod lcm;
 pub mod linear_floor_sum;
 pub mod linear_sieve;
 pub mod mod_ackermann;
+pub mod mod_factorial_binom;
 pub mod mod_ord;
 pub mod mod_pow;
 pub mod mod_recip_table_;
@@ -82,6 +83,8 @@ pub use linear_floor_sum::LinearFloorSum;
 pub use linear_sieve::LinearSieve;
 #[doc(inline)]
 pub use mod_ackermann::ModAckermann;
+#[doc(inline)]
+pub use mod_factorial_binom::ModFactorialBinom;
 #[doc(inline)]
 pub use mod_ord::ModOrd;
 #[doc(inline)]
