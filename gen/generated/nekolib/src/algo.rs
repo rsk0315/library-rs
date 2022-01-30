@@ -5,10 +5,12 @@ pub mod bisect;
 pub mod exact_cover;
 pub mod extremum;
 pub mod extremum_float;
+pub mod index_order;
 pub mod karatsuba;
 pub mod majority_;
 pub mod minmax;
 pub mod mo;
+pub mod ordered_hash_;
 pub mod parallel_bisect;
 pub mod permutation;
 pub mod tortoise_hare;
@@ -23,6 +25,8 @@ pub use extremum::{extremum, extremum_slice};
 #[doc(inline)]
 pub use extremum_float::extremum_float;
 #[doc(inline)]
+pub use index_order::{index_order_by, index_order_by_key};
+#[doc(inline)]
 pub use karatsuba::convolve;
 #[doc(inline)]
 pub use majority_::majority;
@@ -30,6 +34,8 @@ pub use majority_::majority;
 pub use minmax::{minmax, minmax_by, minmax_by_key};
 #[doc(inline)]
 pub use mo::mo;
+#[doc(inline)]
+pub use ordered_hash_::ordered_hash;
 #[doc(inline)]
 pub use parallel_bisect::parallel_bisect;
 #[doc(inline)]
