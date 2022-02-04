@@ -230,6 +230,14 @@ where
     }
 }
 
+impl<M> Default for VecSegtree<M>
+where
+    M: Monoid + Default,
+    M::Set: Clone,
+{
+    fn default() -> Self { Self { buf: vec![], len: 0, monoid: M::default() } }
+}
+
 impl<M> From<Vec<M::Set>> for VecSegtree<M>
 where
     M: Monoid + Default,
