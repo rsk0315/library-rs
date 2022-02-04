@@ -27,7 +27,7 @@ fn lcp(i: usize, j: usize) -> usize {
     i >> iz.max(WORD_SIZE - (i ^ j).leading_zeros())
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct VecActSegtree<A>
 where
     A: MonoidAction,
