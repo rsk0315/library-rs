@@ -5,6 +5,7 @@ pub mod bisect;
 pub mod exact_cover;
 pub mod extremum;
 pub mod extremum_float;
+pub mod hilbert_mo_;
 pub mod index_order;
 pub mod karatsuba;
 pub mod majority_;
@@ -24,6 +25,8 @@ pub use exact_cover::ExactCover;
 pub use extremum::{extremum, extremum_slice};
 #[doc(inline)]
 pub use extremum_float::extremum_float;
+#[doc(inline)]
+pub use hilbert_mo_::hilbert_mo;
 #[doc(inline)]
 pub use index_order::{index_order_by, index_order_by_key};
 #[doc(inline)]
