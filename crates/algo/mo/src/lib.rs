@@ -1,11 +1,11 @@
 //! Mo's algorithm。
 
-use std::cmp::Ordering::Equal;
 use std::ops::Range;
 
 use elastic_slice::{
     ElasticSlice, ExpandBack, ExpandFront, ShrinkBack, ShrinkFront, SliceHash,
 };
+use sqrt::Sqrt;
 
 /// Mo's algorithm。
 ///
@@ -133,20 +133,14 @@ where
 {
     let b = match b {
         Some(b) => b,
-        None => todo!("sqrt(usize) is to be implemented"),
+        None => 1.max(slice.len().sqrt()),
     };
     let qn = q.len();
     let mut q: Vec<_> = q.into_iter().enumerate().collect();
-    q.sort_unstable_by(|(_, (ir, _)), (_, (jr, _))| {
-        let Range { start: is, end: ie } = ir;
-        let Range { start: js, end: je } = jr;
+    q.sort_unstable_by_key(|(_, (ir, _))| {
+        let &Range { start: is, end: ie } = ir;
         let ib = is / b;
-        let jb = js / b;
-        match ib.cmp(&jb) {
-            Equal if ib % 2 == 0 => ie.cmp(&je),
-            Equal => je.cmp(&ie),
-            c => c,
-        }
+        if ib % 2 == 0 { (ib, ie) } else { (ib, !ie) }
     });
 
     let mut res = vec![None; qn];

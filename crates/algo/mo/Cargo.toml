@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 elastic_slice = { path = "../../traits/elastic_slice" }
+sqrt = { path = "../../math/sqrt" }
