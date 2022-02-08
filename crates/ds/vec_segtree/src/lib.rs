@@ -1,6 +1,7 @@
 //! `Vec` ベースのセグ木。
 
 use std::convert::From;
+use std::fmt::{self, Debug};
 use std::iter::{IntoIterator, Iterator};
 use std::ops::{Deref, DerefMut, Index, Range, RangeBounds};
 
@@ -274,6 +275,16 @@ where
 {
     fn from(v: VecSegtree<M>) -> Self {
         v.buf.into_iter().skip(v.len).collect()
+    }
+}
+
+impl<M> Debug for VecSegtree<M>
+where
+    M: Monoid,
+    M::Set: Clone + Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_list().entries(self.buf[self.len..].iter()).finish()
     }
 }
 
