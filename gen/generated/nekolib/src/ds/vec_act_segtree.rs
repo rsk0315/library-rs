@@ -9,6 +9,7 @@ use super::super::traits::get_mut;
 use super::super::utils::buf_range;
 
 use std::cell::RefCell;
+use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut, Range, RangeBounds};
 
 use act::Act;
@@ -253,6 +254,18 @@ where
         let buf = RefCell::new(buf);
         let def = RefCell::new(vec![action.operator().id(); len]);
         Self { buf, def, len, action }
+    }
+}
+
+impl<A> Debug for VecActSegtree<A>
+where
+    A: MonoidAction,
+    <A::Operator as Magma>::Set: Clone,
+    <A::Operand as Magma>::Set: Clone + Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.force_all();
+        f.debug_list().entries(self.buf[self.len..].iter()).finish()
     }
 }
 
