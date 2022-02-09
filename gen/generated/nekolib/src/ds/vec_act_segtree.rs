@@ -265,7 +265,7 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.force_all();
-        f.debug_list().entries(self.buf[self.len..].iter()).finish()
+        f.debug_list().entries(self.buf.borrow()[self.len..].iter()).finish()
     }
 }
 
