@@ -1,7 +1,7 @@
 //! アルゴリズムたち。
 //!
 //! ここに何かを書く。
-pub mod bisect;
+pub mod bisect_;
 pub mod exact_cover;
 pub mod extremum;
 pub mod extremum_float;
@@ -18,7 +18,7 @@ pub mod tortoise_hare;
 pub mod window_bisect;
 
 #[doc(inline)]
-pub use bisect::{bisect, bisect_slice};
+pub use bisect_::{bisect, bisect_slice};
 #[doc(inline)]
 pub use exact_cover::ExactCover;
 #[doc(inline)]

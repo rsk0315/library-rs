@@ -6,6 +6,7 @@ pub mod action;
 pub mod additive;
 pub mod assoc_val;
 pub mod binop;
+pub mod bisect;
 pub mod count;
 pub mod disjoint_set;
 pub mod elastic_slice;
@@ -38,6 +39,8 @@ pub use binop::{
     CommutativeRing, Distributive, Field, Group, Identity, Magma, Monoid,
     PartialRecip, Recip, Ring, Semigroup,
 };
+#[doc(inline)]
+pub use bisect::Bisect;
 #[doc(inline)]
 pub use count::{Count, Count3way};
 #[doc(inline)]
