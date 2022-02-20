@@ -1,4 +1,4 @@
-use bisect::bisect_slice;
+use bisect_::bisect_slice;
 
 use crate::jury;
 use crate::test_set::Solver;
