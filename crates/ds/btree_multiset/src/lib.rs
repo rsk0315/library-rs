@@ -38,6 +38,7 @@ impl<K: Ord> BTreeMultiset<K> {
     pub fn max(&self) -> Option<&K> { self.0.keys().next_back() }
     pub fn is_empty(&self) -> bool { self.0.is_empty() }
     pub fn len(&self) -> usize { self.1 }
+    pub fn count(&self, k: &K) -> usize { *self.0.get(k).unwrap_or(&0) }
 
     pub fn iter(&self) -> Iter<'_, K> { Iter::new(self) }
 }
@@ -122,7 +123,11 @@ fn test_count() {
 
     ms.insert_n(5, 2);
     assert_eq!(ms.len(), 2);
+    assert_eq!(ms.count(&5), 2);
+    assert_eq!(ms.count(&4), 0);
 
     ms.remove_n(&5, 3);
     assert_eq!(ms.len(), 0);
+    assert_eq!(ms.count(&5), 0);
+    assert_eq!(ms.count(&4), 0);
 }
