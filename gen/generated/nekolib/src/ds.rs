@@ -5,6 +5,7 @@
 pub mod bicremental_median;
 pub mod bicremental_median_dev;
 pub mod bit_set;
+pub mod btree_multiset;
 pub mod cuckoo_hash_map;
 pub mod cuckoo_hash_set;
 pub mod decremental_usize_set;
@@ -27,6 +28,8 @@ pub use bicremental_median::BicrementalMedian;
 pub use bicremental_median_dev::BicrementalMedianDev;
 #[doc(inline)]
 pub use bit_set::BitSet;
+#[doc(inline)]
+pub use btree_multiset::BTreeMultiset;
 #[doc(inline)]
 pub use cuckoo_hash_map::CuckooHashMap;
 #[doc(inline)]
