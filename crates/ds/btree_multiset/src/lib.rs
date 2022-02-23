@@ -4,6 +4,7 @@ use std::collections::{btree_map::Iter as BTreeMapIter, BTreeMap};
 use std::fmt::{self, Debug};
 
 /// 多重集合。
+#[derive(Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct BTreeMultiset<K>(BTreeMap<K, usize>, usize);
 
 impl<K: Ord> BTreeMultiset<K> {
