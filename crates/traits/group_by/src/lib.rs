@@ -6,6 +6,11 @@ use std::collections::BTreeMap;
 ///
 /// # Suggestions
 /// `BTreeMap` と `HashMap` 用で分けるべき？ メソッド名を冗長にしたくない。
+///
+/// # See also
+/// [`UsizeGroupBy`]
+///
+/// [`UsizeGroupBy`]: trait.UsizeGroupBy.html
 pub trait GroupBy<V> {
     /// # Examples
     /// ```

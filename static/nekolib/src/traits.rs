@@ -24,6 +24,7 @@ pub mod quantile;
 pub mod range_bounds;
 pub mod set_value;
 pub mod stateful_predicate;
+pub mod usize_group_by;
 
 #[doc(inline)]
 pub use act::Act;
@@ -80,3 +81,5 @@ pub use range_bounds::{
 pub use set_value::SetValue;
 #[doc(inline)]
 pub use stateful_predicate::StatefulPred;
+#[doc(inline)]
+pub use usize_group_by::UsizeGroupBy;
