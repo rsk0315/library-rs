@@ -14,6 +14,7 @@ pub mod foldable_deque;
 pub mod foldable_queue;
 pub mod interval_map;
 pub mod interval_set;
+pub mod n1_rmq;
 pub mod potentialized_union_find;
 pub mod removable_heap;
 pub mod rs_dict;
@@ -46,6 +47,8 @@ pub use foldable_queue::FoldableQueue;
 pub use interval_map::IntervalMap;
 #[doc(inline)]
 pub use interval_set::IntervalSet;
+#[doc(inline)]
+pub use n1_rmq::N1Rmq;
 #[doc(inline)]
 pub use potentialized_union_find::PotentializedUnionFind;
 #[doc(inline)]
