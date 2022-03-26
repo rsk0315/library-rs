@@ -3,6 +3,7 @@
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Debug;
+use std::ops::Index;
 
 /// 接尾辞配列。
 ///
@@ -633,6 +634,40 @@ impl<T: Ord> SuffixArray<T> {
         self.sa[lo..hi].iter().cloned()
     }
 
+    /// 高さ配列を返す。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::seq::SuffixArray;
+    ///
+    /// let s: Vec<_> = "abracadabra".chars().collect();
+    /// let sa: SuffixArray<_> = s.into();
+    /// assert_eq!(sa.lcpa(), [0, 0, 1, 4, 1, 1, 0, 3, 0, 0, 0, 2]);
+    /// ```
+    pub fn lcpa(&self) -> Vec<usize> {
+        let n = self.buf.len();
+        let mut rank = vec![0; n + 1];
+        for i in 0..=n {
+            rank[self.sa[i]] = i;
+        }
+        let mut h = 0;
+        let mut res = vec![0; n + 1];
+        for i in 0..n {
+            let j = self.sa[rank[i] - 1];
+            if h > 0 {
+                h -= 1;
+            }
+            while j + h < n && i + h < n {
+                if self.buf[j + h] != self.buf[i + h] {
+                    break;
+                }
+                h += 1;
+            }
+            res[rank[i]] = h;
+        }
+        res
+    }
+
     /// 自身を消費し、内部表現を返す。
     ///
     /// # Examples
@@ -666,6 +701,11 @@ impl SuffixArray<char> {
         let pat: Vec<_> = pat.chars().collect();
         self.search(&pat)
     }
+}
+
+impl<T: Ord> Index<usize> for SuffixArray<T> {
+    type Output = usize;
+    fn index(&self, i: usize) -> &usize { &self.sa[i] }
 }
 
 impl<T: Ord> From<SuffixArray<T>> for Vec<usize> {
