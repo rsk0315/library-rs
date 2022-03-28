@@ -17,7 +17,7 @@
 pub struct N1Rmq<T> {
     base: Vec<T>,
     large: SparseTable<T>,
-    small: Vec<usize>,
+    small: Vec<u8>,
     types: Vec<usize>,
     b: usize,
 }
@@ -44,7 +44,7 @@ impl<T: Clone + Ord> From<Vec<T>> for N1Rmq<T> {
                             j = r;
                         }
                         let i = (ty * b + l) * b + r;
-                        small[i] = j;
+                        small[i] = j as u8;
                     }
                 }
                 seen[ty] = true;
@@ -66,20 +66,22 @@ impl<T: Clone + Ord> N1Rmq<T> {
         let lb = l / b;
         let rb = (r - 1) / b;
         if lb == rb {
-            return &self.base
-                [lb * b + self.small[self.index(lb, l % b, (r - 1) % b)]];
+            let j = self.small[self.index(lb, l % b, (r - 1) % b)] as usize;
+            return &self.base[lb * b + j];
         }
 
         let mut res = if l % b == 0 {
             self.large.min(lb, lb + 1)
         } else {
-            &self.base[lb * b + self.small[self.index(lb, l % b, b - 1)]]
+            let j = self.small[self.index(lb, l % b, b - 1)] as usize;
+            &self.base[lb * b + j]
         };
 
         res = res.min(if r % b == 0 {
             self.large.min(rb, rb + 1)
         } else {
-            &self.base[rb * b + self.small[self.index(rb, 0, (r - 1) % b)]]
+            let j = self.small[self.index(rb, 0, (r - 1) % b)] as usize;
+            &self.base[rb * b + j]
         });
 
         if lb + 1 < rb {
