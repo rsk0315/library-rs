@@ -110,7 +110,9 @@ fn bundle(filename: &str, index_path: &Path) -> Result<(), Box<dyn Error>> {
 
     println!("");
     println!("/// This module is bundled automatically.");
-    println!("/// See <https://rsk0315.github.io/library-rs/nekolib/> for documentation.");
+    println!(
+        "/// See <https://rsk0315.github.io/library-rs/nekolib/> for documentation."
+    );
     println!("pub mod nekolib {{");
     for (crate_name, v) in includes {
         println!("    pub mod {} {{", &crate_name);
@@ -124,7 +126,8 @@ fn bundle(filename: &str, index_path: &Path) -> Result<(), Box<dyn Error>> {
             println!("        }}");
             let uses =
                 pub_uses[&(crate_name.clone(), mod_name.clone())].join(", ");
-            println!("        pub use {}::{{{}}};", &mod_name, uses);
+            // 古いと self:: が必要？ GCJ でだめだった。要調査。
+            println!("        pub use self::{}::{{{}}};", &mod_name, uses);
         }
         println!("    }}");
     }
