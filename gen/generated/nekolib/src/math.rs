@@ -9,6 +9,7 @@ pub mod modint;
 // pub mod polynomial;
 pub mod bit_binom_;
 pub mod carmichael_lambda;
+pub mod common_quot;
 pub mod compact_sieve;
 pub mod const_div;
 pub mod continued_fraction_;
@@ -46,6 +47,8 @@ pub mod two_sat;
 pub use bit_binom_::bit_binom;
 #[doc(inline)]
 pub use carmichael_lambda::CarmichaelLambda;
+#[doc(inline)]
+pub use common_quot::CommonQuot;
 #[doc(inline)]
 pub use compact_sieve::CompactSieve;
 #[doc(inline)]
