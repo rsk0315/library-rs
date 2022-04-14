@@ -1,12 +1,12 @@
 //! 位数。
 
 use super::carmichael_lambda;
-use super::factors;
+use super::factors_dup;
 use super::gcd;
 use super::mod_pow;
 
 use carmichael_lambda::CarmichaelLambda;
-use factors::Factors;
+use factors_dup::FactorsDup;
 use gcd::Gcd;
 use mod_pow::ModPow;
 
@@ -79,11 +79,7 @@ fn test() {
             let mut x = 1;
             let expected = (1..=n).find_map(|i| {
                 x = x * a % n;
-                if x == 1 {
-                    Some(i)
-                } else {
-                    None
-                }
+                if x == 1 { Some(i) } else { None }
             });
             eprintln!("{:?}", (a, n));
             assert_eq!(actual, expected);
