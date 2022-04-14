@@ -11,8 +11,9 @@ use std::ops::{Range, RangeFrom, RangeTo};
 ///
 /// この $x$ を返す。
 ///
-/// # Implementation notes
-/// `impl Bisect for Range<f64>`（精度を指定しない方）に関して、回数指定が下手そう。
+/// # Idea
+/// - `RangeFrom<u32>` などに関しては [指数探索](https://rsk0315.hatenablog.com/entry/2021/12/19/124017)。
+/// - `Range<f64>` などに関しては [ビット表現を整数と見て二分探索](https://rsk0315.hatenablog.com/entry/2022/04/07/004618)。
 ///
 /// # Examples
 /// ```
@@ -30,8 +31,9 @@ use std::ops::{Range, RangeFrom, RangeTo};
 ///
 /// let pred = |&x: &f64| 2.0_f64.powf(x) < 3.0;
 /// let lg3 = 3.0_f64.log2();
-/// assert!(((1.0_f64..2.0).bisect(pred) - lg3).abs() <= 5e-324);
-/// assert!(((1.0_f64..2.0, 1e-9).bisect(pred) - lg3).abs() <= 1e-9);
+/// // 1.584962500721156
+/// assert!(((1.0_f64..2.0).bisect(pred) - lg3).abs() <= 1e-16);
+/// assert_eq!((1.0_f64..2.0).bisect(pred), lg3); // !
 /// ```
 pub trait Bisect {
     type Input;
@@ -95,55 +97,40 @@ macro_rules! impl_bisect_int {
 
 impl_bisect_int! { i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
 
-trait BisectTimes {
-    type Input;
-    type Output;
-    fn bisect_times(
-        &self,
-        times: u32,
-        pred: impl Fn(&Self::Input) -> bool,
-    ) -> Self::Output;
-}
-
 macro_rules! impl_bisect_float {
-    ($t:ty) => {
-        impl Bisect for Range<$t> {
-            type Input = $t;
-            type Output = $t;
-            fn bisect(&self, pred: impl Fn(&$t) -> bool) -> $t {
+    (
+        $(
+            (
+                $fty:ty, $ity:ty, $uty:ty, $w:literal,
+                $f2u:ident, $u2f:ident, $mask:ident
+            ),
+        )*
+    ) => { $(
+        impl Bisect for Range<$fty> {
+            type Input = $fty;
+            type Output = $fty;
+            fn bisect(&self, pred: impl Fn(&$fty) -> bool) -> $fty {
                 let Range { start, end } = *self;
-                let times = (end - start).log2().ceil() as u32 + 64 + 1;
-                self.bisect_times(times, pred)
+                let start = $f2u(start);
+                let end = $f2u(end);
+                $u2f((start..end).bisect(|&u| pred(&$u2f(u))))
             }
         }
-
-        impl Bisect for (Range<$t>, $t) {
-            type Input = $t;
-            type Output = $t;
-            fn bisect(&self, pred: impl Fn(&$t) -> bool) -> $t {
-                let (Range { start, end }, eps) = *self;
-                let times = ((end - start) / eps).log2().ceil() as u32 + 1;
-                (start..end).bisect_times(times, pred)
-            }
+        fn $mask(u: $uty) -> $uty {
+            ((u as $ity >> ($w - 1)) as $uty >> 1) | 1 << ($w - 1)
         }
-
-        impl BisectTimes for Range<$t> {
-            type Input = $t;
-            type Output = $t;
-            fn bisect_times(&self, times: u32, pred: impl Fn(&$t) -> bool) -> $t {
-                let Range { start: mut ok, end: mut bad } = *self;
-                for _ in 0..times {
-                    let mid = 0.5 * (ok + bad);
-                    *(if pred(&mid) { &mut ok } else { &mut bad }) = mid;
-                }
-                bad
-            }
+        fn $f2u(f: $fty) -> $uty {
+            let u = f.to_bits();
+            u ^ $mask(u)
         }
-    };
-    ( $( $t:ty )* ) => { $( impl_bisect_float! { $t } )* };
+        fn $u2f(u: $uty) -> $fty { <$fty>::from_bits(u ^ $mask(!u)) }
+    )* };
 }
 
-impl_bisect_float! { f32 f64 }
+impl_bisect_float! {
+    (f32, i32, u32, 32, f2u32, u2f32, mask32),
+    (f64, i64, u64, 64, f2u64, u2f64, mask64),
+}
 
 impl<T> Bisect for [T] {
     type Input = T;
@@ -188,18 +175,13 @@ fn test() {
     {
         let pred = |&x: &f64| 2.0_f64.powf(x) < 3.0;
         assert!(((1.0_f64..2.0).bisect(pred) - 3.0_f64.log2()) <= 5.0e-324);
-        println!("{}", (1.0_f64..2.0).bisect(pred));
+        // println!("{:.40}", 3.0_f64.log2());
+        // println!("{:.40}", (1.0_f64..2.0).bisect(pred));
     }
     {
         assert_eq!([0, 1, 4, 5, 9].bisect(|&x: &i32| x < 5), 3);
         assert_eq!((0..100).bisect(|&x: &i32| x * x < 200), 15);
         assert_eq!((0..).bisect(|&x: &i32| x * x < 200), 15);
-    }
-    {
-        let lg3 = |&x: &f64| 2.0_f64.powf(x) < 3.0;
-        let range = 1.0_f64..2.0;
-        assert!((range.bisect(lg3) - 3.0_f64.log2()).abs() <= 5e-324);
-        assert!(((range, 1e-9).bisect(lg3) - 3.0_f64.log2()).abs() <= 1e-9);
     }
     {
         let pred = |&x: &i32| x * x < 200;
