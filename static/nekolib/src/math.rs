@@ -19,6 +19,7 @@ pub mod dlog;
 pub mod equiv_mod;
 pub mod euler_phi;
 pub mod factors;
+pub mod factors_dup;
 pub mod gcd;
 pub mod gcd_recip;
 pub mod harmonic_floor_sum;
@@ -65,6 +66,8 @@ pub use equiv_mod::{EquivMod, EquivModIter};
 pub use euler_phi::EulerPhi;
 #[doc(inline)]
 pub use factors::Factors;
+#[doc(inline)]
+pub use factors_dup::FactorsDup;
 #[doc(inline)]
 pub use gcd::Gcd;
 #[doc(inline)]

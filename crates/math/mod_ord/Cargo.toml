@@ -9,5 +9,5 @@ edition = "2018"
 [dependencies]
 mod_pow = { path = "../mod_pow" }
 carmichael_lambda = { path = "../carmichael_lambda" }
-factors = { path = "../factors" }
+factors_dup = { path = "../factors_dup" }
 gcd = { path = "../gcd" }
