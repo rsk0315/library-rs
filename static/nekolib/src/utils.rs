@@ -2,6 +2,7 @@
 //!
 //! ここに何かを書く。
 pub mod buf_range;
+pub mod e_macro;
 pub mod op_add;
 pub mod op_add_count;
 pub mod op_add_on_op_add_count;
