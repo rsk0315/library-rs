@@ -16,6 +16,7 @@ pub mod op_max;
 pub mod op_min;
 pub mod op_mul;
 pub mod op_roll_hash;
+pub mod output;
 pub mod scanner;
 
 #[doc(inline)]
@@ -46,5 +47,7 @@ pub use op_min::OpMin;
 pub use op_mul::OpMul;
 #[doc(inline)]
 pub use op_roll_hash::OpRollHash;
+#[doc(inline)]
+pub use output::{PerLine, SpaceSep};
 #[doc(inline)]
 pub use scanner::Scanner;
