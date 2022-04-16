@@ -179,7 +179,6 @@ impl RsDict {
         let sel = if x == 0 { &self.sel0 } else { &self.sel1 };
         let il = n / WORD_SIZE;
         let is = n % WORD_SIZE;
-        eprintln!("{:?}", sel[il]);
         match &sel[il] {
             Sparse(dir) => dir[is],
             Dense(range) => {
