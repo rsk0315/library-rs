@@ -1,10 +1,11 @@
 //! データ構造たち。
 //!
-//! 主に抽象化したデータ構造たち。union find や wavelet matrix
+//! 主に抽象化したデータ構造たち。union find や bit set
 //! は抽象化されていないという気もするが...
 pub mod bicremental_median;
 pub mod bicremental_median_dev;
 pub mod bit_set;
+pub mod btree_bimap;
 pub mod btree_multiset;
 pub mod cuckoo_hash_map;
 pub mod cuckoo_hash_set;
@@ -12,6 +13,7 @@ pub mod decremental_usize_set;
 pub mod disjoint_sparse_table;
 pub mod foldable_deque;
 pub mod foldable_queue;
+pub mod incremental_line_set;
 pub mod interval_map;
 pub mod interval_set;
 pub mod n1_rmq;
@@ -30,6 +32,8 @@ pub use bicremental_median_dev::BicrementalMedianDev;
 #[doc(inline)]
 pub use bit_set::BitSet;
 #[doc(inline)]
+pub use btree_bimap::BTreeBimap;
+#[doc(inline)]
 pub use btree_multiset::BTreeMultiset;
 #[doc(inline)]
 pub use cuckoo_hash_map::CuckooHashMap;
@@ -43,6 +47,8 @@ pub use disjoint_sparse_table::DisjointSparseTable;
 pub use foldable_deque::FoldableDeque;
 #[doc(inline)]
 pub use foldable_queue::FoldableQueue;
+#[doc(inline)]
+pub use incremental_line_set::IncrementalLineSet;
 #[doc(inline)]
 pub use interval_map::IntervalMap;
 #[doc(inline)]

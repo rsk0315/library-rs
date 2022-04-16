@@ -24,7 +24,6 @@ pub mod factors_dup;
 pub mod gcd;
 pub mod gcd_recip;
 pub mod harmonic_floor_sum;
-pub mod incremental_line_set;
 pub mod interpolation;
 pub mod lcm;
 pub mod linear_floor_sum;
@@ -77,8 +76,6 @@ pub use gcd::Gcd;
 pub use gcd_recip::GcdRecip;
 #[doc(inline)]
 pub use harmonic_floor_sum::HarmonicFloorSum;
-#[doc(inline)]
-pub use incremental_line_set::IncrementalLineSet;
 #[doc(inline)]
 pub use interpolation::Interpolation;
 #[doc(inline)]
