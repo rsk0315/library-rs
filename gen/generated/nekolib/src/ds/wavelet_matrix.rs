@@ -6,10 +6,7 @@ use super::super::traits::find_nth;
 use super::super::traits::quantile;
 use super::super::utils::buf_range;
 
-use std::ops::{
-    Bound::{Excluded, Included, Unbounded},
-    Range, RangeBounds,
-};
+use std::ops::{Index, Range, RangeBounds, RangeInclusive};
 
 use buf_range::bounds_within;
 use count::{Count, Count3way, Count3wayResult};
@@ -18,37 +15,59 @@ use quantile::Quantile;
 use rs_dict::RsDict;
 
 /// wavelet matrix。
-pub struct WaveletMatrix {
+///
+/// 整数に関する多くの区間クエリを処理できる。
+///
+/// # Examples
+/// ```
+/// use nekolib::ds::WaveletMatrix;
+/// use nekolib::traits::{Count3way, FindNth, Quantile};
+///
+/// let wm: WaveletMatrix<u32> = vec![1, 8, 4, 9, 2, 7, 5, 2].into();
+///
+/// assert_eq!(wm.count_3way(2.., 5).lt(), 3); // [4, _, 2, _, _, _, 2]
+///
+/// let c3 = wm.count_3way(..6, 2..=7); // [1, 8, 4, 9, 2, 7]
+/// assert_eq!(c3.lt(), 1); // [1, _, _, _, _, _]
+/// assert_eq!(c3.eq(), 3); // [_, _, 4, _, 2, 7]
+/// assert_eq!(c3.gt(), 2); // [_, 8, _, 9, _, _]
+/// assert_eq!(c3.le(), 4);
+/// assert_eq!(c3.ge(), 5);
+///
+/// assert_eq!(wm.quantile(2..=4, 0), Some(2)); // [_, _, 2]
+/// assert_eq!(wm.quantile(2..=4, 1), Some(4)); // [4, _, _]
+/// assert_eq!(wm.quantile(2..=4, 2), Some(9)); // [_, 9, _]
+/// assert_eq!(wm.quantile(2..=4, 3), None);
+///
+/// assert_eq!(wm.find_nth(3.., 2, 0), Some(4));
+/// assert_eq!(wm.find_nth(3.., 2, 1), Some(7));
+/// assert_eq!(wm.find_nth(4.., 2, 0), Some(4));
+/// assert_eq!(wm.find_nth(5.., 2, 0), Some(7));
+/// assert_eq!(wm.find_nth(5.., 2, 1), None);
+/// ```
+pub struct WaveletMatrix<I> {
     len: usize,
     bitlen: usize,
     buf: Vec<RsDict>,
     zeros: Vec<usize>,
+    orig: Vec<I>,
 }
 
-impl From<Vec<u128>> for WaveletMatrix {
-    fn from(orig: Vec<u128>) -> Self {
-        if orig.is_empty() {
-            return Self { len: 0, bitlen: 0, buf: vec![], zeros: vec![] };
-        }
-
+impl<I: WmInt> From<Vec<I>> for WaveletMatrix<I> {
+    fn from(orig: Vec<I>) -> Self {
         let len = orig.len();
+        let bitlen =
+            orig.iter().map(|ai| ai.bitlen()).max().unwrap_or(0) as usize;
         let mut whole = orig.clone();
-        let &max = orig.iter().max().unwrap();
-        let bitlen = if max >= 1 << 127 {
-            128
-        } else {
-            (max + 1).next_power_of_two().trailing_zeros() as usize
-        };
         let mut zeros = vec![0; bitlen];
         let mut buf = vec![];
         for i in (0..bitlen).rev() {
             let mut zero = vec![];
             let mut one = vec![];
             let mut vb = vec![false; len];
-            for j in 0..len {
-                (if whole[j] >> i & 1 == 0 { &mut zero } else { &mut one })
-                    .push(whole[j]);
-                vb[j] = whole[j] >> i & 1 != 0;
+            for (j, aj) in whole.into_iter().enumerate() {
+                (if aj.test(i) { &mut one } else { &mut zero }).push(aj);
+                vb[j] = aj.test(i);
             }
             zeros[i] = zero.len();
             buf.push(vb.into());
@@ -56,90 +75,104 @@ impl From<Vec<u128>> for WaveletMatrix {
             whole.append(&mut one);
         }
         buf.reverse();
-        Self { len, bitlen, buf, zeros }
+        Self { len, bitlen, buf, zeros, orig }
     }
 }
 
-impl<R: RangeBounds<u128>> Count<R> for WaveletMatrix {
-    fn count(&self, range: impl RangeBounds<usize>, value: R) -> usize {
+impl<I: WmInt> Count<I> for WaveletMatrix<I> {
+    fn count(&self, range: impl RangeBounds<usize>, value: I) -> usize {
         self.count_3way(range, value).eq()
     }
 }
 
-impl<R: RangeBounds<u128>> Count3way<R> for WaveletMatrix {
+impl<I: WmInt> Count<RangeInclusive<I>> for WaveletMatrix<I> {
+    fn count(
+        &self,
+        range: impl RangeBounds<usize>,
+        value: RangeInclusive<I>,
+    ) -> usize {
+        self.count_3way(range, value).eq()
+    }
+}
+
+impl<I: WmInt> Count3way<I> for WaveletMatrix<I> {
     fn count_3way(
         &self,
         range: impl RangeBounds<usize>,
-        value: R,
+        value: I,
     ) -> Count3wayResult {
         let Range { start, end } = bounds_within(range, self.len);
-        let len = end - start;
-        let lt = match value.start_bound() {
-            Included(&x) => self.count_3way_internal(start..end, x).0,
-            Excluded(&std::u128::MAX) => len,
-            Excluded(&x) => self.count_3way_internal(start..end, x + 1).0,
-            Unbounded => 0,
-        };
-        let gt = match value.end_bound() {
-            Included(&x) => self.count_3way_internal(start..end, x).1,
-            Excluded(&0) => len,
-            Excluded(&x) => self.count_3way_internal(start..end, x - 1).1,
-            Unbounded => 0,
-        };
-        let eq = len - (lt + gt);
+        let (lt, gt) = self.count_3way_internal(start..end, value);
+        let eq = (end - start) - (lt + gt);
         Count3wayResult::new(lt, eq, gt)
     }
 }
 
-impl WaveletMatrix {
+impl<I: WmInt> Count3way<RangeInclusive<I>> for WaveletMatrix<I> {
+    fn count_3way(
+        &self,
+        range: impl RangeBounds<usize>,
+        value: RangeInclusive<I>,
+    ) -> Count3wayResult {
+        let Range { start: il, end: ir } = bounds_within(range, self.len);
+        let vl = *value.start();
+        let vr = *value.end();
+        let lt = self.count_3way_internal(il..ir, vl).0;
+        let gt = self.count_3way_internal(il..ir, vr).1;
+        let eq = (ir - il) - (lt + gt);
+        Count3wayResult::new(lt, eq, gt)
+    }
+}
+
+impl<I: WmInt> WaveletMatrix<I> {
     fn count_3way_internal(
         &self,
         Range { mut start, mut end }: Range<usize>,
-        value: u128,
+        value: I,
     ) -> (usize, usize) {
         if start == end {
             return (0, 0);
         }
-        if (value >> self.bitlen) > 0 {
+        if value.bitlen() > self.bitlen {
             return (end - start, 0);
         }
         let mut lt = 0;
         let mut gt = 0;
         for i in (0..self.bitlen).rev() {
             let tmp = end - start;
-            if value >> i & 1 == 0 {
+            if !value.test(i) {
                 start = self.buf[i].rank(start, 0);
                 end = self.buf[i].rank(end, 0);
             } else {
                 start = self.zeros[i] + self.buf[i].rank(start, 1);
                 end = self.zeros[i] + self.buf[i].rank(end, 1);
             }
-            *(if value >> i & 1 == 0 { &mut gt } else { &mut lt }) +=
+            *(if value.test(i) { &mut lt } else { &mut gt }) +=
                 tmp - (end - start);
         }
         (lt, gt)
     }
 }
 
-impl Quantile for WaveletMatrix {
-    type Output = u128;
+impl<I: WmInt> Quantile for WaveletMatrix<I> {
+    type Output = I;
     fn quantile(
         &self,
         range: impl RangeBounds<usize>,
         mut n: usize,
-    ) -> Option<u128> {
+    ) -> Option<I> {
         let Range { mut start, mut end } = bounds_within(range, self.len);
         if end - start <= n {
             return None;
         }
-        let mut res = 0;
+        let mut res = I::zero();
         for i in (0..self.bitlen).rev() {
             let z = self.buf[i].count(start..end, 0);
             if n < z {
                 start = self.buf[i].rank(start, 0);
                 end = self.buf[i].rank(end, 0);
             } else {
-                res |= 1_u128 << i;
+                res.set(i);
                 start = self.zeros[i] + self.buf[i].rank(start, 1);
                 end = self.zeros[i] + self.buf[i].rank(end, 1);
                 n -= z;
@@ -149,26 +182,26 @@ impl Quantile for WaveletMatrix {
     }
 }
 
-impl WaveletMatrix {
+impl<I: WmInt> WaveletMatrix<I> {
     pub fn xored_quantile(
         &self,
         range: impl RangeBounds<usize>,
         mut n: usize,
-        x: u128,
-    ) -> Option<u128> {
+        x: I,
+    ) -> Option<I> {
         let Range { mut start, mut end } = bounds_within(range, self.len);
         if end - start <= n {
             return None;
         }
-        let mut res = 0;
+        let mut res = I::zero();
         for i in (0..self.bitlen).rev() {
             let z = self.buf[i].count(start..end, 0);
-            if x >> i & 1 == 0 {
+            if !x.test(i) {
                 if n < z {
                     start = self.buf[i].rank(start, 0);
                     end = self.buf[i].rank(end, 0);
                 } else {
-                    res |= 1_u128 << i;
+                    res.set(i);
                     start = self.zeros[i] + self.buf[i].rank(start, 1);
                     end = self.zeros[i] + self.buf[i].rank(end, 1);
                     n -= z;
@@ -179,7 +212,7 @@ impl WaveletMatrix {
                     start = self.zeros[i] + self.buf[i].rank(start, 1);
                     end = self.zeros[i] + self.buf[i].rank(end, 1);
                 } else {
-                    res |= 1_u128 << i;
+                    res.set(i);
                     start = self.buf[i].rank(start, 0);
                     end = self.buf[i].rank(end, 0);
                     n -= z;
@@ -190,11 +223,11 @@ impl WaveletMatrix {
     }
 }
 
-impl FindNth<u128> for WaveletMatrix {
+impl<I: WmInt> FindNth<I> for WaveletMatrix<I> {
     fn find_nth(
         &self,
         range: impl RangeBounds<usize>,
-        value: u128,
+        value: I,
         n: usize,
     ) -> Option<usize> {
         let start = bounds_within(range, self.len).start;
@@ -204,14 +237,14 @@ impl FindNth<u128> for WaveletMatrix {
     }
 }
 
-impl WaveletMatrix {
+impl<I: WmInt> WaveletMatrix<I> {
     pub fn len(&self) -> usize { self.len }
     pub fn is_empty(&self) -> bool { self.len == 0 }
 
-    pub fn rank(&self, end: usize, value: u128) -> usize {
-        self.count(0..end, value..=value)
+    pub fn rank(&self, end: usize, value: I) -> usize {
+        self.count(0..end, value)
     }
-    pub fn select(&self, value: u128, mut n: usize) -> Option<usize> {
+    pub fn select(&self, value: I, mut n: usize) -> Option<usize> {
         if n == 0 {
             return Some(0);
         }
@@ -221,12 +254,12 @@ impl WaveletMatrix {
             return None;
         }
         let si = self.start_pos(value);
-        let value0 = (value & 1) as u64;
+        let value0 = value.test(0) as u64;
         n += self.buf[0].rank(si, value0);
         n = self.buf[0].select(value0, n).unwrap();
 
         for i in 1..self.bitlen {
-            if value >> i & 1 == 0 {
+            if !value.test(i) {
                 n = self.buf[i].select(0, n).unwrap();
             } else {
                 n -= self.zeros[i];
@@ -235,11 +268,11 @@ impl WaveletMatrix {
         }
         Some(n)
     }
-    fn start_pos(&self, value: u128) -> usize {
+    fn start_pos(&self, value: I) -> usize {
         let mut start = 0;
         let mut end = 0;
         for i in (1..self.bitlen).rev() {
-            if value >> i & 1 == 0 {
+            if !value.test(i) {
                 start = self.buf[i].rank(start, 0);
                 end = self.buf[i].rank(end, 0);
             } else {
@@ -251,32 +284,77 @@ impl WaveletMatrix {
     }
 }
 
+impl<I: WmInt> Index<usize> for WaveletMatrix<I> {
+    type Output = I;
+    fn index(&self, i: usize) -> &I { &self.orig[i] }
+}
+
+pub trait WmInt: Copy {
+    fn test(self, i: usize) -> bool;
+    fn set(&mut self, i: usize);
+    fn bitlen(self) -> usize;
+    fn zero() -> Self;
+}
+
+macro_rules! impl_wm_int {
+    ( $( $ty:ty )* ) => { $(
+        impl WmInt for $ty {
+            fn test(self, i: usize) -> bool { self >> i & 1 != 0 }
+            fn set(&mut self, i: usize) { *self |= 1 << i; }
+            fn bitlen(self) -> usize {
+                let w = (0 as $ty).count_zeros() as usize;
+                if self.test(w - 1) {
+                    w
+                } else {
+                    (self + 1).next_power_of_two().trailing_zeros() as usize
+                }
+            }
+            fn zero() -> $ty { 0 }
+        }
+    )* };
+}
+
+impl_wm_int! { u8 u16 u32 u64 u128 usize }
+
 #[test]
 fn test_simple() {
-    let n = 512;
+    let n = 300;
     let f = std::iter::successors(Some(296), |&x| Some((x * 258 + 185) % 397))
         .map(|x| x & 7);
     let buf: Vec<_> = f.take(n).collect();
-    let wm: WaveletMatrix = buf.clone().into();
+    let wm: WaveletMatrix<u32> = buf.clone().into();
     for start in 0..n {
         let mut count = vec![0; 8];
-        for end in start..n {
-            let x = buf[end];
-            let lt: usize = count[..x as usize].iter().sum();
-            let eq = count[x as usize];
-            let gt: usize = count[x as usize + 1..].iter().sum();
-            let c3 = Count3wayResult::new(lt, eq, gt);
-            assert_eq!(wm.count_3way(start..end, x..=x), c3);
-            count[x as usize] += 1;
+        for end in start..=n {
+            for xl in 0..=7 {
+                for xr in xl..=7 {
+                    let lt: usize = count[..xl as usize].iter().sum();
+                    let gt: usize = count[xr as usize + 1..].iter().sum();
+                    let eq = (end - start) - (lt + gt);
+                    let c3 = Count3wayResult::new(lt, eq, gt);
+                    assert_eq!(wm.count_3way(start..end, xl..=xr), c3);
+                }
+
+                let lt: usize = count[..xl as usize].iter().sum();
+                let gt: usize = count[xl as usize + 1..].iter().sum();
+                let eq = (end - start) - (lt + gt);
+                let c3 = Count3wayResult::new(lt, eq, gt);
+                assert_eq!(wm.count(start..end, xl), eq);
+                assert_eq!(wm.count(start..end, xl..=xl), eq);
+                assert_eq!(wm.count_3way(start..end, xl), c3);
+                assert_eq!(wm.count_3way(start..end, xl..=xl), c3);
+            }
+
+            if end < n {
+                count[buf[end] as usize] += 1;
+            }
         }
     }
 
-    eprintln!("{:?}", buf);
     for start in 0..n {
         let mut count = vec![0; 8];
         for end in start..n {
             let x = buf[end];
-            eprintln!("{:?}, {} ({})", start..=end, x, count[x as usize]);
             assert_eq!(wm.find_nth(start.., x, count[x as usize]), Some(end));
             count[x as usize] += 1;
         }
@@ -312,4 +390,30 @@ fn test_simple() {
             }
         }
     }
+}
+
+#[test]
+fn test_count() {
+    let n = 8;
+    let c3 = |lt, eq, gt| Count3wayResult::new(lt, eq, gt);
+
+    let zero: WaveletMatrix<u8> = vec![0; n].into();
+    assert_eq!(zero.count_3way(.., 0), c3(0, n, 0));
+    assert_eq!(zero.count_3way(.., 0..=0), c3(0, n, 0));
+    assert_eq!(zero.count_3way(.., 1), c3(n, 0, 0));
+    assert_eq!(zero.count_3way(.., 1..=1), c3(n, 0, 0));
+    assert_eq!(zero.count_3way(.., 254), c3(n, 0, 0));
+    assert_eq!(zero.count_3way(.., 254..=254), c3(n, 0, 0));
+    assert_eq!(zero.count_3way(.., 255), c3(n, 0, 0));
+    assert_eq!(zero.count_3way(.., 255..=255), c3(n, 0, 0));
+
+    let full: WaveletMatrix<u8> = vec![!0; n].into();
+    assert_eq!(full.count_3way(.., 0), c3(0, 0, n));
+    assert_eq!(full.count_3way(.., 0..=0), c3(0, 0, n));
+    assert_eq!(full.count_3way(.., 1), c3(0, 0, n));
+    assert_eq!(full.count_3way(.., 1..=1), c3(0, 0, n));
+    assert_eq!(full.count_3way(.., 254), c3(0, 0, n));
+    assert_eq!(full.count_3way(.., 254..=254), c3(0, 0, n));
+    assert_eq!(full.count_3way(.., 255), c3(0, n, 0));
+    assert_eq!(full.count_3way(.., 255..=255), c3(0, n, 0));
 }
