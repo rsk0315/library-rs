@@ -1,0 +1,31 @@
+name: pr doctest
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: doc
+          path: doc
+
+      - name: Install latest Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Generate doc
+        run: |
+          cd doc/gen/generated
+          cargo d
+          cd target/doc
+          ls
+          cd -
+          cargo t --doc
