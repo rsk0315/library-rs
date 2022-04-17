@@ -16,6 +16,7 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
+          ref: doc
           path: doc
 
       - name: Install latest Rust toolchain
@@ -34,6 +35,7 @@ jobs:
           mkdir -p doc/gen
           cp -R pr/static doc/gen/generated
           cd doc/gen
+          ls
           cargo run --release
 
       - name: Test documents
