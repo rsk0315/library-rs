@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - 'crates/'
+      - 'crates/**'
   workflow_dispatch:
 
 jobs:
