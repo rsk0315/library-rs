@@ -13,13 +13,14 @@ on:
           - failing
 
 jobs:
-  generate:
+  perform:
     runs-on: ubuntu-latest
 
     steps:
       - name: Fail
         run: |
-          if [[ ${{ github.event.inputs.status }} == passing ]]; then
+          status=${{ github.event.inputs.status }}
+          if [[ "${status:-failing}" == passing ]]; then
               true
           else
               false
