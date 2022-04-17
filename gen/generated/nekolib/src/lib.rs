@@ -1,8 +1,8 @@
 //! ねこちゃんライブラリ。
 //!
 //! [![verify](https://github.com/rsk0315/library-rs/workflows/verify/badge.svg)](https://github.com/rsk0315/library-rs/actions/workflows/verify.yml)
-//! [![doctest](https://github.com/rsk0315/library-rs/workflows/doctest/badge.svg)](https://github.com/rsk0315/library-rs/actions/workflows/doc_test.yml)
-//! [![unittest](https://github.com/rsk0315/library-rs/workflows/unittest/badge.svg)](https://github.com/rsk0315/library-rs/actions/workflows/unit_test.yml)
+//! [![doctest](https://github.com/rsk0315/library-rs/workflows/test%20--doc/badge.svg)](https://github.com/rsk0315/library-rs/actions/workflows/doc_test.yml)
+//! [![unittest](https://github.com/rsk0315/library-rs/workflows/test%20--lib/badge.svg)](https://github.com/rsk0315/library-rs/actions/workflows/unit_test.yml)
 //!
 //! [えびちゃん](https://twitter.com/rsk0315_h4x) の競プロライブラリですにゃ。
 //!
@@ -21,18 +21,18 @@
 //! にゃー。
 //! 
 //! ## Revision
-//! [`7e4f34edaef1ead345d58218fee7520a12e30577`](https://github.com/rsk0315/library-rs/tree/7e4f34edaef1ead345d58218fee7520a12e30577)
+//! [`ded2a06aa6cbfbaed7f684b38a4fe8733e281a5a`](https://github.com/rsk0315/library-rs/tree/ded2a06aa6cbfbaed7f684b38a4fe8733e281a5a)
 //! 
 //! ```text
 //! +----------------+
-//! |       . ooE.  o|
-//! |        +... . o|
-//! |       o o  . ..|
-//! |      .S+ .o .. |
-//! |      .o ...oo .|
-//! |       ....o*.. |
-//! |        . o++o  |
-//! |          .==o  |
+//! |                |
+//! |                |
+//! |                |
+//! |       S        |
+//! |  .   + +       |
+//! |..E..+ + o      |
+//! |==o*.o+ .       |
+//! |=O/B+...        |
 //! +----------------+
 //! ```
 pub mod algo;
