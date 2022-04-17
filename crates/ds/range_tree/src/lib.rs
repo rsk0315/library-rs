@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::collections::BTreeMap;
 
 pub struct RangeTree<T: Clone + Ord> {
