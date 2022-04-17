@@ -77,10 +77,11 @@ pub fn mod_recip_table_prime(n: u64, m: u64) -> Vec<u64> {
 
 #[test]
 fn test() {
-    use factors::Factors;
-    for m in (2..=100).filter(|m| m.factors().count() == 1) {
+    use factors_dup::FactorsDup;
+    use gcd::Gcd;
+    for m in (2_u64..=1000).filter(|m| m.factors_dup().count() == 1) {
         let n = m - 1;
-        let actual = mod_recip_table(n, m);
+        let actual = mod_recip_table_prime(n, m);
         for i in 0..=n {
             let recip = actual[i as usize];
             if recip == 0 {

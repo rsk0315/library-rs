@@ -8,4 +8,5 @@ edition = "2018"
 [dependencies]
 
 [dev-dependencies]
-factors = { path = "../factors" }
+factors_dup = { path = "../factors_dup" }
+gcd = { path = "../gcd" }
