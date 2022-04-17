@@ -146,18 +146,16 @@ impl<I: ChtInt> IncrementalLineSet<I> {
     }
 
     fn unused(&self, (a, b): (I, I)) -> bool {
+        let (&al, &bl) = match self.f.range(a..).next() {
+            Some((&al, &bl)) if a == al => return bl <= b,
+            Some(s) => s,
+            None => return false,
+        };
         let (&ar, &br) = match self.f.range(..a).next_back() {
             Some(s) => s,
             None => return false,
         };
-        if let Some((&al, &bl)) = self.f.range(a..).next() {
-            if al == a {
-                return bl <= b;
-            }
-            al.right(bl, (a, b)) >= a.right(b, (ar, br))
-        } else {
-            false
-        }
+        al.right(bl, (a, b)) >= a.right(b, (ar, br))
     }
     fn remove_unused(&mut self, (a, b): (I, I)) {
         self.f.remove(&a);
@@ -265,29 +263,29 @@ macro_rules! impl_cht_int {
 
 impl_cht_int! { i8 i16 i32 i64 i128 isize }
 
-//-
-
 #[test]
 fn test_simple() {
     let mut ls = IncrementalLineSet::new();
     eprintln!("{:?}", ls);
-    assert_eq!(ls.min_at_point(1), None);
+    assert_eq!(ls.min(1), None);
 
-    let mut f =
-        std::iter::successors(Some(185), |&x| Some((x * 291 + 748) % 93739))
-            .map(|x| x % 300 - 150);
+    let mut f = std::iter::successors(Some(185_i32), |&x| {
+        Some((x * 291 + 748) % 93739)
+    })
+    .map(|x| x % 300 - 150);
 
     let mut naive = vec![];
     for _ in 0..5000 {
         let a = f.next().unwrap();
         let b = f.next().unwrap();
         eprintln!("adding: y={}x{:+}", a, b);
-        ls.add_line(a, b);
+        ls.push((a, b));
         naive.push((a, b));
-        eprintln!("{:?}", (ls.line_interval.len(), ls.interval_line.len()));
+        // eprintln!("{:?}", (ls.f.len(), ls.range.len()));
+        eprintln!("{:?}", ls);
         for x in -100..=100 {
             let expected = naive.iter().map(|&(a, b)| a * x + b).min();
-            let got = ls.min_at_point(x);
+            let got = ls.min(x);
             if got != expected {
                 eprintln!("x: {}", x);
             }
@@ -299,17 +297,28 @@ fn test_simple() {
 #[test]
 fn test_cross() {
     // 一点でたくさんの直線が交差する場合のテストを書く
+    let mut ls = IncrementalLineSet::<i32>::new();
 }
 
 #[test]
 fn test_frac() {
     // ある直線が最小となる区間が格子点を含まない場合のテストを書く
     let mut ls = IncrementalLineSet::new();
-    ls.add_line(2, 1);
+    ls.push((2, 1));
     eprintln!("{:?}", ls);
-    // ls.add_line(-3, 4);
-    ls.add_line(-5, 6);
+    ls.push((-5, 6));
     eprintln!("{:?}", ls);
-    ls.add_line(0, 3);
+    ls.push((0, 3));
     eprintln!("{:?}", ls);
+}
+
+#[test]
+fn test_below() {
+    let mut ls = IncrementalLineSet::new();
+    ls.push((0, 2));
+    assert_eq!(ls.min(10), Some(2));
+    ls.push((0, 4));
+    assert_eq!(ls.min(10), Some(2));
+    ls.push((0, 1));
+    assert_eq!(ls.min(10), Some(1));
 }
