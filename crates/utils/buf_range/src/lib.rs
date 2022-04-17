@@ -89,7 +89,30 @@ pub fn check_bounds_range(i: usize, range: impl RangeBounds<usize> + Debug) {
 }
 
 #[test]
-fn test() {
-    let a = [0, 1, 2];
-    check_bounds_range(4, 0..=a.len());
+#[should_panic]
+fn test_panic_bound_large() { check_bounds_range(4, 0..=3); }
+
+#[test]
+#[should_panic]
+fn test_panic_bound_small() { check_bounds_range(0, 1..=3); }
+
+#[test]
+fn test_check() {
+    check_bounds_range(0, 0..=3);
+    check_bounds_range(3, 0..=3);
+    check_bounds_range(2, 0..3);
+}
+
+#[test]
+fn test_range() {
+    assert_eq!(bounds_within(0..3, 2), 0..3);
+    assert_eq!(bounds_within(0..3, 3), 0..3);
+    assert_eq!(bounds_within(0..3, 4), 0..3);
+
+    assert_eq!(bounds_within(0.., 2), 0..2);
+    assert_eq!(bounds_within(0.., 3), 0..3);
+    assert_eq!(bounds_within(0.., 4), 0..4);
+
+    assert_eq!(bounds_within((Excluded(2), Included(5)), 8), 3..6);
+    assert_eq!(bounds_within(.., 5), 0..5);
 }
