@@ -146,6 +146,7 @@ impl<I: ChtInt> IncrementalLineSet<I> {
         let b = self.f[&a];
         Some(x.on_line((a, b)))
     }
+    pub fn inner_len(&self) -> usize { self.f.len() }
 
     fn unused(&self, (a, b): (I, I)) -> bool {
         let (&al, &bl) = match self.f.range(a..).next() {
@@ -268,7 +269,6 @@ impl_cht_int! { i8 i16 i32 i64 i128 isize }
 #[test]
 fn test_simple() {
     let mut ls = IncrementalLineSet::new();
-    eprintln!("{:?}", ls);
     assert_eq!(ls.min(1), None);
 
     let mut f = std::iter::successors(Some(185_i32), |&x| {
@@ -280,17 +280,11 @@ fn test_simple() {
     for _ in 0..5000 {
         let a = f.next().unwrap();
         let b = f.next().unwrap();
-        eprintln!("adding: y={}x{:+}", a, b);
         ls.push((a, b));
         naive.push((a, b));
-        // eprintln!("{:?}", (ls.f.len(), ls.range.len()));
-        eprintln!("{:?}", ls);
         for x in -100..=100 {
             let expected = naive.iter().map(|&(a, b)| a * x + b).min();
             let got = ls.min(x);
-            if got != expected {
-                eprintln!("x: {}", x);
-            }
             assert_eq!(got, expected);
         }
     }
@@ -299,19 +293,51 @@ fn test_simple() {
 #[test]
 fn test_cross() {
     // 一点でたくさんの直線が交差する場合のテストを書く
-    let mut ls = IncrementalLineSet::<i32>::new();
+    let mut ls = IncrementalLineSet::new();
+    // (0, 0) でたくさん交わるようにする
+    ls.push((0, 0));
+    for a in 1..1000 {
+        ls.push((a, 0));
+        assert_eq!(ls.inner_len(), 2);
+    }
+    for a in 1..1000 {
+        ls.push((-a, 0));
+        assert_eq!(ls.inner_len(), 2);
+    }
+}
+
+#[test]
+fn test_many() {
+    // 傾きが 1 ずつ異なる直線がたくさん使われる場合のテストを書く
+    let mut ls = IncrementalLineSet::new();
+    // (0, 0), (1, -1), (2, -3), (3, -6), (4, -10), ...
+    let mut y = 0;
+    let x_max = 1000;
+    for x in 0..=x_max {
+        let a = -x;
+        y += a;
+        // (x, y) を通り、傾きが a
+        // Y - y = a (X - x)
+        // Y = a X - a x + y
+        ls.push((a, -a * x + y));
+        // (-x-1, y) を通り、傾きが -a
+        ls.push((-a, -a * x + y - a));
+        assert_eq!(ls.inner_len(), (2 * x + 1) as usize);
+    }
+    for x in -x_max..=x_max {
+        let y = -x * (x + 1) / 2;
+        assert_eq!(ls.min(x), Some(y));
+    }
 }
 
 #[test]
 fn test_frac() {
     // ある直線が最小となる区間が格子点を含まない場合のテストを書く
     let mut ls = IncrementalLineSet::new();
-    ls.push((2, 1));
-    eprintln!("{:?}", ls);
-    ls.push((-5, 6));
-    eprintln!("{:?}", ls);
-    ls.push((0, 3));
-    eprintln!("{:?}", ls);
+    ls.push((2, 1)); // [..., -1, 1, 3, ...]
+    ls.push((-5, 6)); // [..., 11, 6, 1, ...]
+    ls.push((0, 3)); // [..., 3, 3, 3, ...]
+    assert_eq!(ls.inner_len(), 2);
 }
 
 #[test]
@@ -323,4 +349,5 @@ fn test_below() {
     assert_eq!(ls.min(10), Some(2));
     ls.push((0, 1));
     assert_eq!(ls.min(10), Some(1));
+    assert_eq!(ls.inner_len(), 1);
 }
