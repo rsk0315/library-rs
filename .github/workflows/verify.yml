@@ -4,6 +4,7 @@ on:
     branches:
       - master
     paths:
+      - '.github/workflows/verify.yml'
       - '.cargo/config.toml'
       - 'Cargo.toml'
       - 'crates/**'

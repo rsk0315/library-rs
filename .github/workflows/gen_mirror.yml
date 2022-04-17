@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - '.github/workflows/gen_mirror.yml'
       - '.cargo/config.toml'
       - 'Cargo.toml'
       - 'static/**'

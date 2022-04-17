@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - '.github/workflows/unit_test.yml'
       - 'crates/**'
   pull_request:
     types: [opened, synchronize]
