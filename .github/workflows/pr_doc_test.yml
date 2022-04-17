@@ -31,6 +31,7 @@ jobs:
           cd pr/script
           cargo run --bin revision-art ${GITHUB_SHA} >> ../static/nekolib/src/lib.rs
           cd ../..
+          mkdir -p doc/gen
           cp -R pr/static doc/gen/generated
           cd doc/gen
           cargo run --release
