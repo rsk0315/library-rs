@@ -3,7 +3,7 @@
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::fmt::Debug;
-use std::ops::{Bound, RangeInclusive};
+use std::ops::{Add, AddAssign, Bound, RangeInclusive};
 
 /// 区分線形凸関数。
 ///
@@ -54,12 +54,12 @@ use std::ops::{Bound, RangeInclusive};
 /// use nekolib::math::SlopeFunction;
 ///
 /// #[derive(Clone, Default)]
-/// struct IncrementalMedian(SlopeFunction);
+/// struct IncrementalMedian(SlopeFunction<i32>);
 ///
 /// impl IncrementalMedian {
 ///     fn new() -> Self { Self::default() }
-///     fn insert(&mut self, a: i128) { self.0.add_abs(a); }
-///     fn median(&self) -> Option<i128> {
+///     fn insert(&mut self, a: i32) { self.0.add_abs(a); }
+///     fn median(&self) -> Option<i32> {
 ///         match self.0.argmin().0 {
 ///             Included(x) => Some(x),
 ///             Excluded(_) => unreachable!(),
@@ -69,29 +69,29 @@ use std::ops::{Bound, RangeInclusive};
 /// }
 ///
 /// let mut im = IncrementalMedian::new();
-/// assert_eq!(im.median(), None);
+/// assert_eq!(im.median(), None); // {{}}
 /// im.insert(2);
-/// assert_eq!(im.median(), Some(2));
+/// assert_eq!(im.median(), Some(2)); // {{2}}
 /// im.insert(3);
-/// assert_eq!(im.median(), Some(2));
+/// assert_eq!(im.median(), Some(2)); // {{2, 3}}
 /// im.insert(1);
-/// assert_eq!(im.median(), Some(2));
+/// assert_eq!(im.median(), Some(2)); // {{1, 2, 3}}
 /// im.insert(1);
-/// assert_eq!(im.median(), Some(1));
+/// assert_eq!(im.median(), Some(1)); // {{1, 1, 2, 3}}
 /// ```
 ///
 /// # References
 /// - <https://maspypy.com/slope-trick-1-%E8%A7%A3%E8%AA%AC%E7%B7%A8>
 #[derive(Clone, Debug, Default)]
-pub struct SlopeFunction {
-    left: BinaryHeap<i128>,
-    right: BinaryHeap<Reverse<i128>>,
-    min: i128,
-    shl: i128,
-    shr: i128,
+pub struct SlopeFunction<I: Ord> {
+    left: BinaryHeap<I>,
+    right: BinaryHeap<Reverse<I>>,
+    min: I,
+    shl: I,
+    shr: I,
 }
 
-impl SlopeFunction {
+impl<I: SlopeTrickInt> SlopeFunction<I> {
     /// $f(x) = 0$ で初期化する。
     ///
     /// # Examples
@@ -100,7 +100,7 @@ impl SlopeFunction {
     ///
     /// use nekolib::math::SlopeFunction;
     ///
-    /// let sf = SlopeFunction::new();
+    /// let sf = SlopeFunction::<i32>::new();
     /// assert_eq!(sf.min(), 0);
     /// assert_eq!(sf.argmin(), (Unbounded, Unbounded));
     /// ```
@@ -118,7 +118,7 @@ impl SlopeFunction {
     /// sf.add_const(-1);
     /// assert_eq!(sf.min(), 2);
     /// ```
-    pub fn add_const(&mut self, c: i128) { self.min += c; }
+    pub fn add_const(&mut self, c: I) { self.min += c; }
     /// $f(x) \\xleftarrow{+} (l-x)\_+$ で更新する。
     ///
     /// # Examples
@@ -131,12 +131,12 @@ impl SlopeFunction {
     /// sf.add_left(4);
     /// assert_eq!(sf.argmin(), (Included(4), Unbounded));
     /// ```
-    pub fn add_left(&mut self, l: i128) {
+    pub fn add_left(&mut self, l: I) {
         if self.right.is_empty() {
             self.left.push(l);
             return;
         }
-        self.min += 0.max(l - self.right.peek().unwrap().0);
+        self.min += l.doz(self.right.peek().unwrap().0);
         self.right.push(Reverse(l));
         let l = self.right.pop().unwrap().0;
         self.left.push(l);
@@ -153,12 +153,12 @@ impl SlopeFunction {
     /// sf.add_right(4);
     /// assert_eq!(sf.argmin(), (Unbounded, Included(4)));
     /// ```
-    pub fn add_right(&mut self, r: i128) {
+    pub fn add_right(&mut self, r: I) {
         if self.left.is_empty() {
             self.right.push(Reverse(r));
             return;
         }
-        self.min += 0.max(*self.left.peek().unwrap() - r);
+        self.min += self.left.peek().unwrap().doz(r);
         self.left.push(r);
         let r = self.left.pop().unwrap();
         self.right.push(Reverse(r));
@@ -175,7 +175,7 @@ impl SlopeFunction {
     /// sf.add_abs(4);
     /// assert_eq!(sf.argmin(), (Included(4), Included(4)));
     /// ```
-    pub fn add_abs(&mut self, a: i128) {
+    pub fn add_abs(&mut self, a: I) {
         self.add_left(a);
         self.add_right(a);
     }
@@ -223,7 +223,7 @@ impl SlopeFunction {
     /// sf.shift(2);
     /// assert_eq!(sf.argmin(), (Included(6), Included(6)));
     /// ```
-    pub fn shift(&mut self, s: i128) {
+    pub fn shift(&mut self, s: I) {
         self.shl += s;
         self.shr += s;
     }
@@ -241,7 +241,7 @@ impl SlopeFunction {
     /// sf.window(-1..=2);
     /// assert_eq!(sf.argmin(), (Included(3), Included(6)));
     /// ```
-    pub fn window(&mut self, window: RangeInclusive<i128>) {
+    pub fn window(&mut self, window: RangeInclusive<I>) {
         self.shl += *window.start();
         self.shr += *window.end();
     }
@@ -256,7 +256,7 @@ impl SlopeFunction {
     /// sf.add_const(1);
     /// assert_eq!(sf.min(), 1);
     /// ```
-    pub fn min(&self) -> i128 { self.min }
+    pub fn min(&self) -> I { self.min }
     /// $\\argmin\_{x\\in\\mathbb{R}} f(x)$ を返す。
     ///
     /// # Examples
@@ -269,7 +269,7 @@ impl SlopeFunction {
     /// sf.add_const(1);
     /// assert_eq!(sf.argmin(), (Included(4), Included(4)));
     /// ```
-    pub fn argmin(&self) -> (Bound<i128>, Bound<i128>) {
+    pub fn argmin(&self) -> (Bound<I>, Bound<I>) {
         let left = match self.left.peek() {
             Some(&x) => Bound::Included(x + self.shl),
             None => Bound::Unbounded,
@@ -281,3 +281,22 @@ impl SlopeFunction {
         (left, right)
     }
 }
+
+pub trait SlopeTrickInt:
+    Copy + Add<Output = Self> + AddAssign + Default + Ord
+{
+    // unsigned でいうところの saturating_sub
+    fn doz(self, rhs: Self) -> Self;
+}
+
+macro_rules! impl_slope_trick_int {
+    ( $($ty:tt)* ) => { $(
+        impl SlopeTrickInt for $ty {
+            fn doz(self, rhs: Self) -> Self {
+                0.max(self - rhs)
+            }
+        }
+    )* }
+}
+
+impl_slope_trick_int! { i8 i16 i32 i64 i128 isize }
