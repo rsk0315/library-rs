@@ -1,5 +1,3 @@
-use std::ops::Range;
-
 pub trait PatSearcher {
     type Item: Clone + Eq;
     type Output;
