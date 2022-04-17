@@ -12,7 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: doc
+          path: pr
+
+      - uses: actions/checkout@v2
+        with:
           path: doc
 
       - name: Install latest Rust toolchain
@@ -21,8 +24,20 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Generate doc
+      - name: Generate mirror
         run: |
+          pwd
+          [[ -d doc/gen/generated ]] && rm -Rf doc/gen/generated
+          cd pr/script
+          cargo run --bin revision-art ${GITHUB_SHA} >> ../static/nekolib/src/lib.rs
+          cd ../..
+          cp -R pr/static doc/gen/generated
+          cd doc/gen
+          cargo run --release
+
+      - name: Test documents
+        run: |
+          pwd
           cd doc/gen/generated
           cargo d
           cd target/doc
