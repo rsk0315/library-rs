@@ -1,4 +1,4 @@
-name: doctest
+name: test --doc
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: unittest
+name: test --lib
 
 on:
   push:
