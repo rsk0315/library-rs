@@ -12,7 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          path: pr
+          # スクリプトが master/ を読むことになっている...
+          path: master
 
       - uses: actions/checkout@v2
         with:
@@ -29,11 +30,11 @@ jobs:
         run: |
           pwd
           [[ -d doc/gen/generated ]] && rm -Rf doc/gen/generated
-          cd pr/script
+          cd master/script
           cargo run --bin revision-art ${GITHUB_SHA} >> ../static/nekolib/src/lib.rs
           cd ../..
           mkdir -p doc/gen
-          cp -R pr/static doc/gen/generated
+          cp -R master/static doc/gen/generated
           cd doc/gen
           ls
           cargo run --release
