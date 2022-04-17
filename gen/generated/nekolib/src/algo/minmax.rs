@@ -182,3 +182,8 @@ fn test() {
     let buf = vec![];
     assert_eq!(minmax_by(&buf, rev), None);
 }
+
+#[test]
+fn fail_test() {
+    panic!();
+}
