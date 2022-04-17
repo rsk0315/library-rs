@@ -84,7 +84,7 @@ impl HarmonicFloorSum {
         }
     }
     fn quot_internal(&self, n: usize) -> usize {
-        if n <= 0 {
+        if n == 0 {
             return 0;
         }
         let i = self.search(n);
@@ -126,7 +126,7 @@ impl HarmonicFloorSum {
         end - start
     }
     fn rem_internal(&self, n: usize) -> usize {
-        if n <= 0 {
+        if n == 0 {
             return 0;
         }
         let i = self.search(n);
