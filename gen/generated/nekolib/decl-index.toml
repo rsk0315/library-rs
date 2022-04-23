@@ -197,6 +197,11 @@ direct = [["traits", "binop"]]
 whole = [["traits", "binop"]]
 
 [[depends]]
+name = ["ds", "bit_set"]
+direct = [["utils", "buf_range"]]
+whole = [["utils", "buf_range"]]
+
+[[depends]]
 name = ["ds", "cuckoo_hash_set"]
 direct = [["ds", "cuckoo_hash_map"]]
 whole = [["ds", "cuckoo_hash_map"]]
