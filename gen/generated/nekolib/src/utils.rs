@@ -3,6 +3,7 @@
 //! ここに何かを書く。
 pub mod buf_range;
 pub mod e_macro;
+pub mod make_minmax;
 pub mod op_add;
 pub mod op_add_count;
 pub mod op_add_on_op_add_count;
@@ -21,6 +22,8 @@ pub mod scanner;
 
 #[doc(inline)]
 pub use buf_range::{bounds_within, check_bounds, check_bounds_range};
+#[doc(inline)]
+pub use make_minmax::{MakeMax, MakeMin};
 #[doc(inline)]
 pub use op_add::OpAdd;
 #[doc(inline)]
