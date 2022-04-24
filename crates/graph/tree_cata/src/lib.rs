@@ -18,20 +18,18 @@ impl<T> From<Vec<Vec<(usize, T)>>> for TreeCata<T> {
             r.push(v);
             let gv = std::mem::take(&mut g[v]);
             for (nv, w) in gv {
-                if nv != 0 && p[nv].is_none() {
-                    p[nv] = Some((v, w));
-                    q.push_back(nv);
+                if nv == 0 || p[nv].is_some() {
+                    p[v] = Some((nv, w));
                 } else {
-                    x[nv].push((v, w));
+                    x[v].push((nv, w));
+                    q.push_back(nv);
                 }
             }
         }
-        // なんか辺をうまく逆向きにする必要があると思うんだよね
+
         Self { p, r, x }
     }
 }
-
-use std::fmt::Debug;
 
 impl<T> TreeCata<T> {
     pub fn each_root<U: Clone>(
@@ -58,7 +56,7 @@ impl<T> TreeCata<T> {
         let mut td: Vec<_> = vec![empty.clone(); n];
         for &i in &self.r {
             let mut ac = td[i].clone();
-            for &(j, ref x) in &self.x[i] {
+            for &(j, _) in &self.x[i] {
                 let x = &self.p[j].as_ref().unwrap().1;
                 td[j] = ac.clone();
                 ac = fold(&ac, &map(&xx[j], x));
@@ -67,8 +65,8 @@ impl<T> TreeCata<T> {
             for &(j, ref x) in self.x[i].iter().rev() {
                 td[j] = map(&fold(&td[j], &ac), x);
                 let x = &self.p[j].as_ref().unwrap().1;
-                ac = fold(&ac, &map(&xx[j], x));
-                xx[j] = fold(&me[j], &td[j]);
+                ac = fold(&map(&xx[j], x), &ac);
+                xx[j] = fold(&td[j], &me[j]);
             }
         }
         xx
@@ -111,16 +109,23 @@ fn test() {
     let g = {
         let mut g = vec![vec![]; n];
         for &(u, v) in &es {
-            g[u].push((v, v));
-            g[v].push((u, u));
+            g[u].push((v, u));
+            g[v].push((u, v));
         }
         g
     };
     let tree: TreeCata<_> = g.into();
 
-    // string
+    // string representation
     let empty = "".to_owned();
     let map = |x: &String, c: &usize| format!("({} {} )", x, c);
     let fold = |x: &String, y: &String| format!("{}{}", x, y);
-    eprintln!("{:#?}", tree.each_root(empty, map, fold));
+    assert_eq!(tree.each_root(empty, map, fold), [
+        "(( 3 )( 4 )( 5 ) 1 )( 2 )",
+        "(( 2 ) 0 )( 3 )( 4 )( 5 )",
+        "((( 3 )( 4 )( 5 ) 1 ) 0 )",
+        "((( 2 ) 0 )( 4 )( 5 ) 1 )",
+        "((( 2 ) 0 )( 3 )( 5 ) 1 )",
+        "((( 2 ) 0 )( 3 )( 4 ) 1 )",
+    ]);
 }
