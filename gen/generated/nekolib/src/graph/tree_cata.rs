@@ -26,6 +26,7 @@ impl<T> From<Vec<Vec<(usize, T)>>> for TreeCata<T> {
                 }
             }
         }
+        // なんか辺をうまく逆向きにする必要があると思うんだよね
         Self { p, r, x }
     }
 }
@@ -38,16 +39,11 @@ impl<T> TreeCata<T> {
         empty: U,
         mut map: impl FnMut(&U, &T) -> U,
         mut fold: impl FnMut(&U, &U) -> U,
-    ) -> Vec<U>
-    where
-        T: Debug,
-        U: Debug,
-    {
+    ) -> Vec<U> {
         let n = self.x.len();
         if n == 0 {
             return vec![empty];
         }
-        eprintln!("{:?}", self.x);
 
         let mut me: Vec<_> = vec![empty.clone(); n];
         let mut xx: Vec<_> = vec![empty.clone(); n];
@@ -58,8 +54,6 @@ impl<T> TreeCata<T> {
         }
         let r0 = self.r[0];
         xx[r0] = me[r0].clone();
-        eprintln!("{:?}", xx);
-        eprintln!("{:?}", me);
 
         let mut td: Vec<_> = vec![empty.clone(); n];
         for &i in &self.r {
@@ -68,29 +62,13 @@ impl<T> TreeCata<T> {
                 let x = &self.p[j].as_ref().unwrap().1;
                 td[j] = ac.clone();
                 ac = fold(&ac, &map(&xx[j], x));
-                // ac = fold(&ac, &xx[j]);
             }
             let mut ac = empty.clone();
             for &(j, ref x) in self.x[i].iter().rev() {
-                eprintln!("{} => {:?}", i, &(j, x));
-                eprintln!(
-                    "td[{}] = fold({:?}, map({:?}, {:?}))",
-                    j, td[j], ac, x
-                );
                 td[j] = map(&fold(&td[j], &ac), x);
-                // td[j] = fold(&td[j], &map(&ac, x));
-                // td[j] = fold(&td[j], &ac);
-                eprintln!("      = {:?}", td[j]);
                 let x = &self.p[j].as_ref().unwrap().1;
                 ac = fold(&ac, &map(&xx[j], x));
-                // ac = fold(&ac, &xx[j]);
-                eprintln!(
-                    "xx[{}] = map(fold({:?}, {:?}), {:?})",
-                    j, me[j], td[j], x
-                );
-                // xx[j] = map(&fold(&me[j], &td[j]), x);
                 xx[j] = fold(&me[j], &td[j]);
-                eprintln!("      = {:?}", xx[j]);
             }
         }
         xx
