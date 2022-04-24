@@ -85,13 +85,13 @@ fn test() {
         }
         g
     };
-    let tree: TreeCata<_> = g.into();
+    let tree_cata: TreeCata<_> = g.into();
 
     // max distance
     let empty = 0;
     let map = |&x: &usize, _: &()| x + 1;
     let fold = |&x: &usize, &y: &usize| x.max(y);
-    assert_eq!(tree.each_root(empty, map, fold), [2, 2, 3, 3, 3, 3]);
+    assert_eq!(tree_cata.each_root(empty, map, fold), [2, 2, 3, 3, 3, 3]);
 
     // sum of distance
     let empty = (0, 0);
@@ -99,7 +99,8 @@ fn test() {
     let fold =
         |&x: &(usize, usize), &y: &(usize, usize)| (x.0 + y.0, x.1 + y.1);
     assert_eq!(
-        tree.each_root(empty, map, fold)
+        tree_cata
+            .each_root(empty, map, fold)
             .into_iter()
             .map(|x| x.0)
             .collect::<Vec<_>>(),
@@ -114,13 +115,13 @@ fn test() {
         }
         g
     };
-    let tree: TreeCata<_> = g.into();
+    let tree_cata: TreeCata<_> = g.into();
 
     // string representation
     let empty = "".to_owned();
     let map = |x: &String, c: &usize| format!("({} {} )", x, c);
     let fold = |x: &String, y: &String| format!("{}{}", x, y);
-    assert_eq!(tree.each_root(empty, map, fold), [
+    assert_eq!(tree_cata.each_root(empty, map, fold), [
         "(( 3 )( 4 )( 5 ) 1 )( 2 )",
         "(( 2 ) 0 )( 3 )( 4 )( 5 )",
         "((( 3 )( 4 )( 5 ) 1 ) 0 )",
