@@ -6,6 +6,7 @@ pub mod dinic_;
 pub mod functional_graph;
 pub mod scc_;
 pub mod tree;
+pub mod tree_cata;
 
 #[doc(inline)]
 pub use dijkstra_::dijkstra;
@@ -17,3 +18,5 @@ pub use functional_graph::FunctionalGraph;
 pub use scc_::scc;
 #[doc(inline)]
 pub use tree::Tree;
+#[doc(inline)]
+pub use tree_cata::TreeCata;
