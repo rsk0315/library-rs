@@ -3,6 +3,7 @@
 use std::collections::VecDeque;
 
 /// 木。
+#[deprecated(note = "use `TreeCata` instead")]
 pub struct Tree<T> {
     bfs: Vec<usize>,
     par: Vec<usize>,
