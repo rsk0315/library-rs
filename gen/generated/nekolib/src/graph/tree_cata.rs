@@ -12,6 +12,9 @@ use std::collections::VecDeque;
 ///
 /// 前処理パートは `map` `fold` に依らないので使い回しできる。
 ///
+/// # Complexity
+/// $O(n)$ time.
+///
 /// # Examples
 /// ```
 /// use nekolib::graph::TreeCata;
