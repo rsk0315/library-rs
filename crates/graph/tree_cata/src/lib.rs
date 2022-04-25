@@ -1,40 +1,40 @@
 use std::collections::VecDeque;
 
 pub struct TreeCata<T> {
-    p: Vec<Option<(usize, T)>>,
-    r: Vec<usize>,
-    x: Vec<Vec<(usize, T)>>,
-    b: Vec<usize>,
+    par: Vec<Option<(usize, T)>>,
+    order: Vec<usize>,
+    child: Vec<Vec<(usize, T)>>,
+    bound: Vec<usize>,
 }
 
 impl<T> From<Vec<Vec<(usize, T)>>> for TreeCata<T> {
     fn from(mut g: Vec<Vec<(usize, T)>>) -> Self {
         let n = g.len();
-        let mut p: Vec<_> = (0..n).map(|_| None).collect();
+        let mut par: Vec<_> = (0..n).map(|_| None).collect();
         let mut q: VecDeque<_> = vec![0].into();
-        let mut r = vec![];
-        let mut x: Vec<_> = (0..n).map(|_| vec![]).collect();
-        let mut b = vec![n; n];
+        let mut order = vec![];
+        let mut child: Vec<_> = (0..n).map(|_| vec![]).collect();
+        let mut bound = vec![n; n];
 
         while let Some(v) = q.pop_front() {
-            r.push(v);
+            order.push(v);
             let gv = std::mem::take(&mut g[v]);
             let mut left = true;
             for (nv, w) in gv {
-                if nv == 0 || p[nv].is_some() {
-                    p[v] = Some((nv, w));
+                if nv == 0 || par[nv].is_some() {
+                    par[v] = Some((nv, w));
                     left = false;
                 } else {
-                    if !left && b[v] == n {
-                        b[v] = nv;
+                    if !left && bound[v] == n {
+                        bound[v] = nv;
                     }
-                    x[v].push((nv, w));
+                    child[v].push((nv, w));
                     q.push_back(nv);
                 }
             }
         }
 
-        Self { p, r, x, b }
+        Self { par, order, child, bound }
     }
 }
 
@@ -45,46 +45,45 @@ impl<T> TreeCata<T> {
         mut map: impl FnMut(&U, &T) -> U,
         mut fold: impl FnMut(&U, &U) -> U,
     ) -> Vec<U> {
-        let n = self.x.len();
+        let n = self.child.len();
         if n == 0 {
             return vec![];
         }
 
-        let mut mel: Vec<_> = vec![empty.clone(); n];
-        let mut mer: Vec<_> = vec![empty.clone(); n];
-        let mut xx: Vec<_> = vec![empty.clone(); n];
-        let mut right: Vec<_> = self.b.iter().map(|&bi| bi < n).collect();
-        for &i in self.r[1..].iter().rev() {
-            xx[i] = fold(&mel[i], &mer[i]);
-            let &(p, ref x) = self.p[i].as_ref().unwrap();
+        let mut ascl: Vec<_> = vec![empty.clone(); n];
+        let mut ascr: Vec<_> = vec![empty.clone(); n];
+        let mut dp: Vec<_> = vec![empty.clone(); n];
+        let mut right: Vec<_> = self.bound.iter().map(|&bi| bi < n).collect();
+        for &i in self.order[1..].iter().rev() {
+            dp[i] = fold(&ascl[i], &ascr[i]);
+            let &(p, ref x) = self.par[i].as_ref().unwrap();
             if right[p] {
-                mer[p] = fold(&map(&xx[i], x), &mer[p]);
-                right[p] = self.b[p] != i;
+                ascr[p] = fold(&map(&dp[i], x), &ascr[p]);
+                right[p] = self.bound[p] != i;
             } else {
-                mel[p] = fold(&map(&xx[i], x), &mel[p]);
+                ascl[p] = fold(&map(&dp[i], x), &ascl[p]);
             }
         }
-        let r0 = self.r[0];
-        xx[r0] = fold(&mel[r0], &mer[r0]);
+        dp[0] = fold(&ascl[0], &ascr[0]);
 
-        let mut td: Vec<_> = vec![empty.clone(); n];
-        for &i in &self.r {
-            let mut ac = td[i].clone();
-            for &(j, _) in &self.x[i] {
-                let x = &self.p[j].as_ref().unwrap().1;
-                td[j] = ac.clone();
-                ac = fold(&ac, &map(&xx[j], x));
+        let mut desc: Vec<_> = vec![empty.clone(); n];
+        for &i in &self.order {
+            let mut ac = desc[i].clone();
+            for &(j, _) in &self.child[i] {
+                let x = &self.par[j].as_ref().unwrap().1;
+                desc[j] = ac.clone();
+                ac = fold(&ac, &map(&dp[j], x));
             }
             let mut ac = empty.clone();
-            for &(j, ref x) in self.x[i].iter().rev() {
-                td[j] = map(&fold(&td[j], &ac), x);
-                let x = &self.p[j].as_ref().unwrap().1;
-                ac = fold(&map(&xx[j], x), &ac);
-                let tmp = fold(&td[j], &mer[j]);
-                xx[j] = fold(&mel[j], &tmp);
+            for &(j, ref x) in self.child[i].iter().rev() {
+                desc[j] = map(&fold(&desc[j], &ac), x);
+                let x = &self.par[j].as_ref().unwrap().1;
+                ac = fold(&map(&dp[j], x), &ac);
+                let tmp = fold(&desc[j], &ascr[j]);
+                dp[j] = fold(&ascl[j], &tmp);
             }
         }
-        xx
+        dp
     }
 }
 
@@ -121,10 +120,56 @@ fn test_value() {
             .collect::<Vec<_>>(),
         [8, 6, 12, 10, 10, 10]
     );
+
+    let g = vec![
+        vec![(1, 0), (2, 0)],
+        vec![(0, 1), (3, 1), (4, 1), (5, 1)],
+        vec![(0, 2)],
+        vec![(1, 3)],
+        vec![(1, 4)],
+        vec![(1, 5)],
+    ];
+    let tree_cata: TreeCata<_> = g.into();
+
+    // string representation
+    let empty = "".to_owned();
+    let map = |x: &String, c: &usize| {
+        if x == "" { format!("{}: []", c) } else { format!("{}: [{}]", c, x) }
+    };
+    let fold = |x: &String, y: &String| {
+        if x == "" && y == "" {
+            "".to_owned()
+        } else if x != "" && y != "" {
+            format!("{}, {}", x, y)
+        } else {
+            format!("{}{}", x, y)
+        }
+    };
+
+    let actual = tree_cata
+        .each_root(empty, map, fold)
+        .into_iter()
+        .enumerate()
+        .map(|(i, x)| format!("{}: [{}]", i, x))
+        .collect::<Vec<_>>();
+
+    let expected = [
+        "0: [1: [3: [], 4: [], 5: []], 2: []]",
+        "1: [0: [2: []], 3: [], 4: [], 5: []]",
+        "2: [0: [1: [3: [], 4: [], 5: []]]]",
+        "3: [1: [0: [2: []], 4: [], 5: []]]",
+        "4: [1: [0: [2: []], 3: [], 5: []]]",
+        "5: [1: [0: [2: []], 3: [], 4: []]]",
+    ];
+    assert_eq!(actual, expected);
 }
 
 #[test]
 fn test_order() {
+    let empty = || "".to_owned();
+    let map = |x: &String, c: &usize| format!("({} {} )", x, c);
+    let fold = |x: &String, y: &String| format!("{}{}", x, y);
+
     // leftmost
     let g = vec![
         vec![(1, 0), (2, 0)],
@@ -136,11 +181,7 @@ fn test_order() {
     ];
 
     let tree_cata: TreeCata<_> = g.into();
-
-    let empty = "".to_owned();
-    let map = |x: &String, c: &usize| format!("({} {} )", x, c);
-    let fold = |x: &String, y: &String| format!("{}{}", x, y);
-    assert_eq!(tree_cata.each_root(empty, map, fold), [
+    assert_eq!(tree_cata.each_root(empty(), map, fold), [
         "(( 3 )( 4 )( 5 ) 1 )( 2 )",
         "(( 2 ) 0 )( 3 )( 4 )( 5 )",
         "((( 3 )( 4 )( 5 ) 1 ) 0 )",
@@ -160,11 +201,7 @@ fn test_order() {
     ];
 
     let tree_cata: TreeCata<_> = g.into();
-
-    let empty = "".to_owned();
-    let map = |x: &String, c: &usize| format!("({} {} )", x, c);
-    let fold = |x: &String, y: &String| format!("{}{}", x, y);
-    assert_eq!(tree_cata.each_root(empty, map, fold), [
+    assert_eq!(tree_cata.each_root(empty(), map, fold), [
         "(( 3 )( 4 )( 5 ) 1 )( 2 )",
         "( 3 )(( 2 ) 0 )( 4 )( 5 )",
         "((( 3 )( 4 )( 5 ) 1 ) 0 )",
@@ -184,11 +221,7 @@ fn test_order() {
     ];
 
     let tree_cata: TreeCata<_> = g.into();
-
-    let empty = "".to_owned();
-    let map = |x: &String, c: &usize| format!("({} {} )", x, c);
-    let fold = |x: &String, y: &String| format!("{}{}", x, y);
-    assert_eq!(tree_cata.each_root(empty, map, fold), [
+    assert_eq!(tree_cata.each_root(empty(), map, fold), [
         "(( 3 )( 4 )( 5 ) 1 )( 2 )",
         "( 3 )( 4 )(( 2 ) 0 )( 5 )",
         "((( 3 )( 4 )( 5 ) 1 ) 0 )",
@@ -208,11 +241,7 @@ fn test_order() {
     ];
 
     let tree_cata: TreeCata<_> = g.into();
-
-    let empty = "".to_owned();
-    let map = |x: &String, c: &usize| format!("({} {} )", x, c);
-    let fold = |x: &String, y: &String| format!("{}{}", x, y);
-    assert_eq!(tree_cata.each_root(empty, map, fold), [
+    assert_eq!(tree_cata.each_root(empty(), map, fold), [
         "(( 3 )( 4 )( 5 ) 1 )( 2 )",
         "( 3 )( 4 )( 5 )(( 2 ) 0 )",
         "((( 3 )( 4 )( 5 ) 1 ) 0 )",
