@@ -115,6 +115,53 @@ use std::collections::VecDeque;
 /// ]);
 /// ```
 ///
+/// ## Applications
+/// ```ignore
+/// // typical90_am
+/// let empty = (0, 0);
+/// let map = |&x: &(usize, usize), _: &()| (x.0 + x.1 + 1, x.1 + 1);
+/// let fold =
+///     |&x: &(usize, usize), &y: &(usize, usize)| (x.0 + y.0, x.1 + y.1);
+/// let res: usize =
+///     tc.each_root(empty, map, fold).into_iter().map(|x| x.0).sum();
+/// ```
+/// ```ignore
+/// // abc220_f
+/// let empty = (0, 0);
+/// let map = |&(x1, x0): &(usize, usize), _: &()| (x1 + x0 + 1, x0 + 1);
+/// let fold = |&(x1, x0): &(usize, usize), &(y1, y0): &(usize, usize)| {
+///     (x1 + y1, x0 + y0)
+/// };
+/// let res: Vec<_> =
+///     tc.each_root(empty, map, fold).into_iter().map(|(x1, _)| x1).collect();
+/// ```
+/// ```ignore
+/// // abc222_f
+/// let empty = 0;
+/// let map = |&x: &i64, &(d, w): &(i64, i64)| x.max(d) + w;
+/// let fold = |&x: &i64, &y: &i64| x.max(y);
+/// let res = tc.each_root(empty, map, fold);
+/// ```
+/// ```ignore
+/// // abc223_g
+/// let empty = false;
+/// let map = |&x: &bool, _: &()| !x;
+/// let fold = |&x: &bool, &y: &bool| x | y;
+/// let res =
+///     tc.each_root(empty, map, fold).into_iter().filter(|&x| !x).count();
+/// ```
+/// ```ignore
+/// // s8pc_4_d
+/// let empty = (0.0, 0);
+/// let map = |&x: &(f64, usize), _: &()| (x.0 + 1.0, 1);
+/// let fold = |&x: &(f64, usize), &y: &(f64, usize)| {
+///     let v = x.0 * x.1 as f64 + y.0 * y.1 as f64;
+///     let d = x.1 + y.1;
+///     (v / 1.0_f64.max(d as f64), d)
+/// };
+/// let res = tc.each_root(empty, map, fold);
+/// ```
+///
 /// # References
 /// - <https://qiita.com/Kiri8128/items/a011c90d25911bdb3ed3>
 ///     - Efficient and easy 全方位木 DP。
