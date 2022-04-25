@@ -1,5 +1,125 @@
+//! 全方位木 DP。
+
 use std::collections::VecDeque;
 
+/// 全方位木 DP。
+///
+/// 木の catamorphism。
+/// 各頂点を根としたときのものをまとめて求める。
+///
+/// 子での値を辺の値を使って `map` したものたちを、`fold` するのを繰り返す。
+/// 式とかを書く。`todo!()`
+///
+/// 前処理パートは `map` `fold` に依らないので使い回しできる。
+///
+/// # Examples
+/// ```
+/// use nekolib::graph::TreeCata;
+///
+/// let g = vec![
+///     vec![(1, ()), (2, ())],
+///     vec![(0, ()), (3, ()), (4, ()), (5, ())],
+///     vec![(0, ())],
+///     vec![(1, ())],
+///     vec![(1, ())],
+///     vec![(1, ())],
+/// ];
+///
+/// //      0 -- 2
+/// //      |
+/// // 4 -- 1 -- 3
+/// //      |
+/// //      5
+///
+/// let tc: TreeCata<_> = g.into();
+///
+/// // max distance
+/// let empty = 0;
+/// let map = |&x: &usize, _: &()| x + 1;
+/// let fold = |&x: &usize, &y: &usize| x.max(y);
+/// assert_eq!(tc.each_root(empty, map, fold), [2, 2, 3, 3, 3, 3]);
+///
+/// // sum of distance
+/// let empty = (0, 0);
+/// let map = |&(d, c): &(usize, usize), _: &()| (d + c + 1, c + 1);
+/// let fold =
+///     |&x: &(usize, usize), &y: &(usize, usize)| (x.0 + y.0, x.1 + y.1);
+/// assert_eq!(
+///     tc.each_root(empty, map, fold)
+///         .into_iter()
+///         .map(|x| x.0)
+///         .collect::<Vec<_>>(),
+///     [8, 6, 12, 10, 10, 10]
+/// );
+///
+/// ```
+///
+/// ```
+/// use nekolib::graph::TreeCata;
+///
+/// let g = vec![
+///     vec![(1, 0), (2, 0)],
+///     vec![(0, 1), (3, 1), (4, 1), (5, 1)],
+///     vec![(0, 2)],
+///     vec![(1, 3)],
+///     vec![(1, 4)],
+///     vec![(1, 5)],
+/// ];
+///
+/// let tc: TreeCata<_> = g.into();
+///
+/// let empty = "".to_owned();
+/// let map = |x: &String, c: &usize| {
+///     if x == "" { format!("{}: []", c) } else { format!("{}: [{}]", c, x) }
+/// };
+/// let fold = |x: &String, y: &String| {
+///     if x == "" && y == "" {
+///         "".to_owned()
+///     } else if x != "" && y != "" {
+///         format!("{}, {}", x, y)
+///     } else {
+///         format!("{}{}", x, y)
+///     }
+/// };
+///
+/// let actual = tc
+///     .each_root(empty, map, fold)
+///     .into_iter()
+///     .enumerate()
+///     .map(|(i, x)| format!("{}: [{}]", i, x))
+///     .collect::<Vec<_>>();
+///
+/// assert_eq!(
+///     actual,
+///     [
+///         "0: [1: [3: [], 4: [], 5: []], 2: []]",
+///         "1: [0: [2: []], 3: [], 4: [], 5: []]",
+///         "2: [0: [1: [3: [], 4: [], 5: []]]]",
+///         "3: [1: [0: [2: []], 4: [], 5: []]]",
+///         "4: [1: [0: [2: []], 3: [], 5: []]]",
+///         "5: [1: [0: [2: []], 3: [], 4: []]]",
+///     ]
+/// );
+///
+/// let empty = "".to_owned();
+/// let map = |x: &String, c: &usize| format!("({} {} )", x, c);
+/// let fold = |x: &String, y: &String| format!("{}{}", x, y);
+///
+/// assert_eq!(tc.each_root(empty, map, fold), [
+///     "(( 3 )( 4 )( 5 ) 1 )( 2 )",
+///     "(( 2 ) 0 )( 3 )( 4 )( 5 )",
+///     "((( 3 )( 4 )( 5 ) 1 ) 0 )",
+///     "((( 2 ) 0 )( 4 )( 5 ) 1 )",
+///     "((( 2 ) 0 )( 3 )( 5 ) 1 )",
+///     "((( 2 ) 0 )( 3 )( 4 ) 1 )",
+/// ]);
+/// ```
+///
+/// # References
+/// - <https://qiita.com/Kiri8128/items/a011c90d25911bdb3ed3>
+///     - Efficient and easy 全方位木 DP。
+/// - <https://fsharpforfunandprofit.com/posts/recursive-types-and-folds-1b/>
+///     - catamorphism の話が載っている。
 pub struct TreeCata<T> {
     par: Vec<Option<(usize, T)>>,
     order: Vec<usize>,
