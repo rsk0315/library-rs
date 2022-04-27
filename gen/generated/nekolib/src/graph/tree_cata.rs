@@ -12,6 +12,11 @@ use std::collections::VecDeque;
 ///
 /// 前処理パートは `map` `fold` に依らないので使い回しできる。
 ///
+/// `empty` は葉での値（頂点数 1 の木での値）と `fold` の単位元に対応している。
+/// 葉の値を特別扱いしたいときは、セグ木に半群を乗せるときのように、
+/// フラグを持たせれば対応できる（下記 Examples 参照）。
+/// 全体の頂点数が 1 だったときの処理を最後に分ける必要があるので注意。
+///
 /// # Complexity
 /// $O(n)$ time.
 ///
@@ -55,6 +60,24 @@ use std::collections::VecDeque;
 ///     [8, 6, 12, 10, 10, 10]
 /// );
 ///
+/// // (sum of root-leaf distance, # of leaves)
+/// let empty = ((0, 0), false);
+/// let map = |&(x, inner): &((usize, usize), bool), _: &()| {
+///     let (x1, x0) = if inner { x } else { (0, 1) };
+///     ((x1 + 1 * x0, x0), true)
+/// };
+/// let fold = |&x: &((usize, usize), bool), &y: &((usize, usize), bool)| {
+///     let (x1, x0) = x.0;
+///     let (y1, y0) = y.0;
+///     ((x1 + y1, x0 + y0), x.1 | y.1)
+/// };
+/// assert_eq!(
+///     tc.each_root(empty, map, fold)
+///         .into_iter()
+///         .map(|x| if x.1 { x.0 } else { (0, 1) })
+///         .collect::<Vec<_>>(),
+///     [(7, 4), (5, 4), (9, 3), (7, 3), (7, 3), (7, 3)]
+/// );
 /// ```
 ///
 /// ```
@@ -162,6 +185,13 @@ use std::collections::VecDeque;
 ///     let d = x.1 + y.1;
 ///     (v / 1.0_f64.max(d as f64), d)
 /// };
+/// let res = tc.each_root(empty, map, fold);
+/// ```
+/// ```ignore
+/// // dp_v
+/// let empty = 1;
+/// let map = |&x: &u64, _: &()| (x + 1) % m;
+/// let fold = |&x: &u64, &y: &u64| x * y % m;
 /// let res = tc.each_root(empty, map, fold);
 /// ```
 /// ```ignore
