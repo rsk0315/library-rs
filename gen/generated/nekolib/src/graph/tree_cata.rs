@@ -164,6 +164,29 @@ use std::collections::VecDeque;
 /// };
 /// let res = tc.each_root(empty, map, fold);
 /// ```
+/// ```ignore
+/// // abc160_f
+/// let mfb = ModFactorialBinom::new(n, MOD);
+/// let f = |i| mfb.factorial(i);
+/// let fr = |i| mfb.factorial_recip(i);
+///
+/// let empty = (0, 1, 1);
+/// let map = |&x: &(usize, u64, u64), _: &()| {
+///     (x.0 + 1, fr(x.0 + 1), x.1 * x.2 % MOD * f(x.0) % MOD)
+/// };
+/// let fold = |&x: &(usize, u64, u64), &y: &(usize, u64, u64)| {
+///     (x.0 + y.0, (x.1 * y.1) % MOD, (x.2 * y.2) % MOD)
+/// };
+/// let res: Vec<_> = tc
+///     .each_root(empty, map, fold)
+///     .into_iter()
+///     .map(|x| map(&x, &()).2)
+///     .collect();
+///     
+/// // tdpc_tree
+/// let res =
+///     res.into_iter().fold(0_u64, |x, y| (x + y) % MOD) * mfb.recip(2) % MOD;
+/// ```
 ///
 /// # References
 /// - <https://qiita.com/Kiri8128/items/a011c90d25911bdb3ed3>
