@@ -195,6 +195,19 @@ use std::collections::VecDeque;
 /// let res = tc.each_root(empty, map, fold);
 /// ```
 /// ```ignore
+/// // dp_p
+/// let empty = (1, 1);
+/// let map = |&x: &(u64, u64), _: &()| ((x.0 + x.1) % MOD, x.0);
+/// let fold =
+///     |&x: &(u64, u64), &y: &(u64, u64)| (x.0 * y.0 % MOD, x.1 * y.1 % MOD);
+/// let res: Vec<_> = tc
+///     .each_root(empty, map, fold)
+///     .into_iter()
+///     .map(|x| (x.0 + x.1) % MOD)
+///     .collect();
+/// assert!(res.iter().all(|&x| x == res[0]));
+/// ```
+/// ```ignore
 /// // abc160_f
 /// let mfb = ModFactorialBinom::new(n, MOD);
 /// let f = |i| mfb.factorial(i);
