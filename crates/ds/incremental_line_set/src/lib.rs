@@ -119,7 +119,7 @@ use btree_bimap::BTreeBimap;
 /// # References
 /// - <https://noshi91.hatenablog.com/entry/2021/03/23/200810>
 #[derive(Clone, Default)]
-pub struct IncrementalLineSet<I> {
+pub struct IncrementalLineSet<I: Ord> {
     f: BTreeMap<I, I>,
     range: BTreeBimap<I, I>,
 }

@@ -28,7 +28,7 @@ use std::ops::RangeBounds;
 /// assert!(bimap.is_empty());
 /// ```
 #[derive(Clone, Debug, Default)]
-pub struct BTreeBimap<L, R> {
+pub struct BTreeBimap<L: Ord, R: Ord> {
     left: BTreeMap<L, R>,
     right: BTreeMap<R, L>,
 }
