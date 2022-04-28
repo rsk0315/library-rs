@@ -195,7 +195,7 @@ use std::collections::VecDeque;
 /// let res = tc.each_root(empty, map, fold);
 /// ```
 /// ```ignore
-/// // dp_p
+/// // dp_p, abc036_d
 /// let empty = (1, 1);
 /// let map = |&x: &(u64, u64), _: &()| ((x.0 + x.1) % MOD, x.0);
 /// let fold =
