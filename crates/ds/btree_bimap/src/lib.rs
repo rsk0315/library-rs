@@ -78,3 +78,11 @@ impl<L: Clone + Ord, R: Clone + Ord> BTreeBimap<L, R> {
         self.right.range(range)
     }
 }
+
+#[test]
+fn test_eq() {
+    let mut b = BTreeBimap::new();
+    b.insert(2, 20);
+    b.insert(2, 20);
+    assert_eq!(b.len(), 1);
+}
