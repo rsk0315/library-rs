@@ -114,7 +114,7 @@ use btree_bimap::BTreeBimap;
 ///
 /// assert_eq!(
 ///     format!("{:?}", ls),
-///     r"{\x. 2x+2: ..1, \x. x+3: ..3, \x. -x+10: ..2147483647}"
+///     r"{\x. 2x+2: ..=1, \x. x+3: ..=3, \x. -x+10: ..=2147483647}"
 /// );
 /// ```
 ///
@@ -225,7 +225,7 @@ impl<I: ChtInt> Debug for IncrementalLineSet<I> {
                     .iter()
                     .rev()
                     .zip(self.range.range_left(..).rev())
-                    .map(|((&a, &b), (&_, &r))| (LineDebugHelper(a, b), ..r)),
+                    .map(|((&a, &b), (&_, &r))| (LineDebugHelper(a, b), ..=r)),
             )
             .finish()
     }
