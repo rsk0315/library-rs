@@ -76,19 +76,20 @@ use btree_bimap::BTreeBimap;
 /// >           [ ------ ] => 1 * 1 + (-3) * 2 + 7 * 3 = 16
 /// > ```
 ///
-/// $\\sigma(r) = \\sum\_{i=0}^{r-1} a(i)$、$\\tau(r) = \\sum\_{i=0}^{r-1} i\\cdot a(i)$
+/// $\\sigma(r) = \\sum\_{i=0}^{r-1} a\_i$、$\\tau(r) = \\sum\_{i=0}^{r-1} (i+1)\\cdot a\_i$
 /// とおくと、次のように変形できる。
 /// $$ \\begin{aligned} \\sum\_{i=l}^{r-1} (i-l+1)\\cdot a\_i &=
-/// \\sum\_{i=l}^{r-1} i\\cdot a\_i - \\sum\_{i=l}^{r-1} (l-1)\\cdot a\_i \\\\
-/// &= (\\tau(r)-\\tau(l)) - (l-1)\\cdot (\\sigma(r) - \\sigma(l))
+/// \\sum\_{i=l}^{r-1} (i+1)\\cdot a\_i - \\sum\_{i=l}^{r-1} l\\cdot a\_i \\\\
+/// &= (\\tau(r)-\\tau(l)) - l\\cdot (\\sigma(r) - \\sigma(l))
 /// . \\end{aligned} $$
 ///
-/// 右端 $r$ を固定したときの最小値を $\\mathrm{dp}\[r\]$ とおくと、
+/// 右端 $r$ を固定したときの最大値を $\\mathrm{dp}\[r\]$ とおくと、
 /// $$ \\begin{aligned} \\mathrm{dp}\[r\] &=
-/// \\min\_{0\\le l\\lt r} (\\tau(r)-\\tau(l)) - (l-1)\\cdot(\\sigma(r)-\\sigma(l)) \\\\
-/// &= \\min\_{0\\le l\\lt r} ((l-1)\\cdot\\sigma(l)-\\tau(l) - (l-1)\\cdot\\sigma(r))+\\tau(r)
+/// \\max\_{0\\le l\\lt r} (\\tau(r)-\\tau(l)) - l\\cdot(\\sigma(r)-\\sigma(l)) \\\\
+/// &= \\max\_{0\\le l\\lt r} (l\\cdot\\sigma(l)-\\tau(l) - l\\cdot\\sigma(r))+\\tau(r) \\\\
+/// &= -\\min\_{0\\le l\\lt r}(\\tau(l)-l\\cdot\\sigma(l) + l\\cdot\\sigma(r))+\\tau(r)
 /// \\end{aligned} $$
-/// とできる。よって、上記の枠組みで $p(j) = (j-1)\\cdot\\sigma(j)-\\tau(j)$、$q(j)=-(j-1)$、
+/// とできる。よって、上記の枠組みで $p(j) = \\tau(j)-j\\cdot\\sigma(j)$、$q(j)=j$、
 /// $r(i)=\\sigma(i)$、$s(i)=\\tau(i)$ としたものと見なせ、$\\sigma(\\bullet)$ や $\\tau(\\bullet)$
 /// の計算を適切に高速化すれば、$O(n\\log(n))$ 時間で解ける。
 ///
@@ -116,6 +117,42 @@ use btree_bimap::BTreeBimap;
 ///     format!("{:?}", ls),
 ///     r"{\x. 2x+2: ..=1, \x. x+3: ..=3, \x. -x+10: ..=2147483647}"
 /// );
+/// ```
+///
+/// ```
+/// use nekolib::ds::IncrementalLineSet;
+///
+/// let a = vec![5, -1000, 1, -3, 7, -8];
+/// let n = a.len();
+///
+/// let sigma = {
+///     let mut sigma = vec![0; n + 1];
+///     for i in 0..n {
+///         sigma[i + 1] = sigma[i] + a[i];
+///     }
+///     sigma
+/// };
+/// let tau = {
+///     let mut tau = vec![0; n + 1];
+///     for i in 0..n {
+///         tau[i + 1] = tau[i] + a[i] * (i + 1) as i64;
+///     }
+///     tau
+/// };
+/// let p = |j: usize| tau[j] - j as i64 * sigma[j];
+/// let q = |j: usize| j as i64;
+/// let r = |i: usize| sigma[i];
+/// let s = |i: usize| tau[i];
+///
+/// let mut ls = IncrementalLineSet::new();
+/// let mut dp = vec![0; n + 1];
+/// ls.push((q(0), p(0)));
+/// for i in 1..=n {
+///     dp[i] = -ls.min(r(i)).unwrap() + s(i);
+///     ls.push((q(i), p(i)));
+/// }
+/// let res = *dp.iter().max().unwrap();
+/// assert_eq!(res, 1 * 1 + (-3) * 2 + 7 * 3);
 /// ```
 ///
 /// # References
@@ -350,4 +387,75 @@ fn test_below() {
     ls.push((0, 1));
     assert_eq!(ls.min(10), Some(1));
     assert_eq!(ls.inner_len(), 1);
+}
+
+#[cfg(test)]
+fn test_cf660_f_internal(a: &[i64], expected: i64) {
+    let n = a.len();
+    let sigma = {
+        let mut sigma = vec![0; n + 1];
+        for i in 0..n {
+            sigma[i + 1] = sigma[i] + a[i];
+        }
+        sigma
+    };
+    let tau = {
+        let mut tau = vec![0; n + 1];
+        for i in 0..n {
+            tau[i + 1] = tau[i] + a[i] * (i + 1) as i64;
+        }
+        tau
+    };
+    let p = |j: usize| tau[j] - j as i64 * sigma[j];
+    let q = |j: usize| j as i64;
+    let r = |i: usize| sigma[i];
+    let s = |i: usize| tau[i];
+
+    let mut ls = IncrementalLineSet::new();
+    let mut dp = vec![0; n + 1];
+    ls.push((q(0), p(0)));
+    for i in 1..=n {
+        dp[i] = -ls.min(r(i)).unwrap() + s(i);
+        ls.push((q(i), p(i)));
+    }
+    let actual = *dp.iter().max().unwrap();
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn test_cf660_f() {
+    test_cf660_f_internal(&[5, -1000, 1, -3, 7, -8], 16);
+    test_cf660_f_internal(&[1000, 1000, 1001, 1000, 1000], 15003);
+    test_cf660_f_internal(&[-60, -70, -80], 0);
+    test_cf660_f_internal(&[-4], 0);
+    test_cf660_f_internal(&[-3, 6], 9);
+    test_cf660_f_internal(&[8, 1, -6], 10);
+    test_cf660_f_internal(&[9, 2, -5, 1], 13);
+    test_cf660_f_internal(&[10, -3, -3, 8, 2], 37);
+    test_cf660_f_internal(&[3, 1, -9, 1, 2, -10], 5);
+    test_cf660_f_internal(&[-3, -7, -7, -9, -3, 7, -9], 11);
+    test_cf660_f_internal(&[-2, 1, -5, -2, 1, -9, 0, 2], 4);
+    test_cf660_f_internal(&[-1, 10, -8, -9, -7, 8, 6, -6, 7], 38);
+    test_cf660_f_internal(&[-9, -10, -9, 4, 6, 8, 3, -8, 0, 10], 100);
+    test_cf660_f_internal(
+        &[
+            349, -152, -35, -353, -647, -702, 64, 299, -431, -11, -185, 437,
+            237, -103, 1, 448, 23, -308, -689, 329, -409, 309, 424, -93, -192,
+            0, 257, -90, -394, -512, -148, 376, -394, -528, 212, -215, -255,
+            -684, -321, 503, -72, -227, -583, -537, -65, 444, -332, 465, -547,
+            291, -663, -235, 542, -89, -450, -212, 438, 12, 139, -558, -87,
+            433, -462, 79, 35,
+        ],
+        6676,
+    );
+    test_cf660_f_internal(&[7, -5, 3, -9, 8], 10);
+    test_cf660_f_internal(&[-7, 0, 10, 1, -1, -5, 6], 34);
+    test_cf660_f_internal(&[3, -10, -2, 5, 2, -7, 7], 21);
+    test_cf660_f_internal(&[0, -7, 1, -9], 1);
+    test_cf660_f_internal(&[4, -6, 3, 3], 13);
+    test_cf660_f_internal(&[-9, 8, 0, -4, -4, -3, -5, 9, -6, -9], 14);
+    test_cf660_f_internal(&[3, -5, -5, 1, -6, -2], 3);
+    test_cf660_f_internal(&[8, -2, -8, 4, -8, 8, -3, -8, 0], 12);
+    test_cf660_f_internal(&[3, 3, 0, -7, 6, -6], 11);
+    test_cf660_f_internal(&[5, -6, -2, 6, -2, -4, -3], 11);
 }
