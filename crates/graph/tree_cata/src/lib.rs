@@ -8,7 +8,7 @@ use std::collections::VecDeque;
 /// 各頂点を根としたときのものをまとめて求める。
 ///
 /// 二項演算 $\circ: S\\times S\\to S$ と $\star: S\\times T\\to S$ を考える。
-/// $(S, \\circ)$ は単位元 $\\mathrm{id}\_{\\circ}$ を持つとする。
+/// $(S, \\circ)$ は単位元 $\\mathrm{id}\_{\\circ}$ を持つモノイドとする。
 /// 木の各辺は一つずつ $T$ の値を持っているとし、辺 $(v, u)$ の値を $e\_{v, u}$
 /// とする。
 ///
