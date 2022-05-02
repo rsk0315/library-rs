@@ -7,15 +7,54 @@ use std::collections::VecDeque;
 /// 木の catamorphism。
 /// 各頂点を根としたときのものをまとめて求める。
 ///
-/// 子での値を辺の値を使って `map` したものたちを、`fold` するのを繰り返す。
-/// 式とかを書く。`todo!()`
+/// 二項演算 $\circ: S\\times S\\to S$ と $\star: S\\times T\\to S$ を考える。
+/// $(S, \\circ)$ は単位元 $\\mathrm{id}\_{\\circ}$ を持つとする。
+/// 木の各辺は一つずつ $T$ の値を持っているとし、辺 $(v, u)$ の値を $e\_{v, u}$
+/// とする。
 ///
-/// 前処理パートは `map` `fold` に依らないので使い回しできる。
+/// 頂点 $v$ が葉のとき、$f(v) = \\mathrm{id}\_{\\circ}$ とする[^1]。
+/// そうでないとき、$v$ に隣接する頂点を順に
+/// $\\langle u\_1, u\_2, \\dots, u\_k\\rangle$ とする。$v$ が根のとき、
+/// $$ f(v) = (f\_v(u\_1)\\star e\_{u\_1, v})\\circ\\dots\\circ(f\_v(u\_k)\\star e\_{u\_k, v}) $$
+/// で定める。ただし、$f\_v(u)$ は、「$v$ を取り除いた森において $u$ を含む木で
+/// $u$ を根としたもの」における $f(u)$ とする。
+///
+/// [^1]: すなわち、頂点数 1 の木における $f$ の値が $\\mathrm{id}\_{\\circ}$ となる。
+///
+/// <img src="../../../../images/tree_cata.png" width="300" alt=""><img src="../../../../../images/tree_cata.png" width="300" alt="">
+///
+/// 上図グラフにおいて、頂点 $1$ に隣接する頂点のうち、$0$ が最後に来るものとすれば
+/// $$ \\begin{aligned}
+/// f(1) &= f\_0(1)\\circ(f\_1(0)\\star e\_{0, 1}) \\\\
+/// &= f\_0(1) \\circ ((f\_0(2)\\star e\_{2, 0})\\star e\_{0, 1})
+/// \\end{aligned} $$
+/// のようになる。
+///
+/// このように定められる $f$ に対し、$f(0), f(1), \\dots, f(n-1)$ を求める。
+///
+/// # Idea
+/// まず、根を $0$ として木をトポロジカルソートしておく。
+/// これにより、ボトムアップの DP を単にループで行うことができ、$f(0)$
+/// が求まる。次に、上で $f(1)$ を求めたときのように、トップダウンに DP
+/// をしながら（ボトムアップの DP での結果を利用して）残りの頂点について求める。
+///
+/// ## Implementation notes
+/// トポロジカルソートの前処理パートは、木が同じであれば $(\\circ, \\star)$
+/// に依らないので使い回しできる。
+///
+/// 実装においては、$\\circ: S\\times S\\to S$ を `fold`、$\\mathrm{id}\_{\\circ}$
+/// を `empty`、$\\star: S\\times T\\to S$ を `map` と呼んでいる。
 ///
 /// `empty` は葉での値（頂点数 1 の木での値）と `fold` の単位元に対応している。
 /// 葉の値を特別扱いしたいときは、セグ木に半群を乗せるときのように、
-/// フラグを持たせれば対応できる（下記 Examples 参照）。
+/// フラグを持たせれば対応できる（下記の root-leaf の距離の総和の例を参照）。
 /// 全体の頂点数が 1 だったときの処理を最後に分ける必要があるので注意。
+///
+/// 各頂点における頂点の順序を気にした実装になっているため、「各頂点を根として
+/// DFS したときの post-order で各頂点を並べ、その列に基数 $b$・法 $m$ の
+/// rolling hash を適用したときの値を求めよ」といった問題も処理できるはず。
+/// ハッシュ値 $h$ と、部分木サイズ $k$ に対して $(h, b^k\\bmod m)$
+/// とかを管理すればよさそう。
 ///
 /// # Complexity
 /// $O(n)$ time.
@@ -142,6 +181,10 @@ use std::collections::VecDeque;
 /// ```
 ///
 /// ## Applications
+/// AtCoder における利用例。$(S, \\circ, \\mathrm{id}\_{\\circ}, T, \\star)$
+/// の定義と、$\\langle f(0), f(1), \\dots, f(n-1)\\rangle$
+/// を用いて答えを得る部分のみ載せている。
+///
 /// ```ignore
 /// // typical90_am
 /// let empty = (0, 0);
@@ -233,7 +276,7 @@ use std::collections::VecDeque;
 ///
 /// # References
 /// - <https://qiita.com/Kiri8128/items/a011c90d25911bdb3ed3>
-///     - Efficient and easy 全方位木 DP。
+///     - トポロジカルソートで求める話が書かれている。
 /// - <https://fsharpforfunandprofit.com/posts/recursive-types-and-folds-1b/>
 ///     - catamorphism の話が載っている。
 pub struct TreeCata<T> {
