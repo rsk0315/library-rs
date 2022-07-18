@@ -20,6 +20,7 @@ pub mod n1_rmq;
 pub mod potentialized_union_find;
 pub mod removable_heap;
 pub mod rs_dict;
+pub mod skew_heap;
 pub mod union_find;
 pub mod vec_act_segtree;
 pub mod vec_segtree;
@@ -61,6 +62,8 @@ pub use potentialized_union_find::PotentializedUnionFind;
 pub use removable_heap::RemovableHeap;
 #[doc(inline)]
 pub use rs_dict::RsDict;
+#[doc(inline)]
+pub use skew_heap::SkewHeap;
 #[doc(inline)]
 pub use union_find::UnionFind;
 #[doc(inline)]
