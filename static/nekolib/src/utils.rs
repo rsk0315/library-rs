@@ -13,6 +13,7 @@ pub mod op_affine;
 pub mod op_affine_on_op_add_count;
 pub mod op_closure;
 pub mod op_closure_on_op_closure;
+pub mod op_gcd;
 pub mod op_max;
 pub mod op_min;
 pub mod op_mul;
@@ -42,6 +43,8 @@ pub use op_affine_on_op_add_count::OpAffineOnOpAddCount;
 pub use op_closure::OpClosure;
 #[doc(inline)]
 pub use op_closure_on_op_closure::OpClosureOnOpClosure;
+#[doc(inline)]
+pub use op_gcd::OpGcd;
 #[doc(inline)]
 pub use op_max::OpMax;
 #[doc(inline)]
