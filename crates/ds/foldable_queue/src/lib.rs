@@ -57,7 +57,7 @@ use push_pop::{Pop, PopFront, Push, PushBack};
 /// fq.pop();
 /// assert_eq!(fq.fold(..), 4);
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct FoldableQueue<M: Monoid> {
     buf_front: Vec<M::Set>,
     buf_folded_front: Vec<M::Set>,

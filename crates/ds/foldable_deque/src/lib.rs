@@ -53,7 +53,7 @@ use push_pop::{PopBack, PopFront, PushBack, PushFront};
 /// fq.pop_back();
 /// assert_eq!(fq.fold(..), std::i32::MAX);
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct FoldableDeque<M: Monoid> {
     buf_front: Vec<M::Set>,
     buf_folded_front: Vec<M::Set>,
