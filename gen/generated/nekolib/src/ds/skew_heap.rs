@@ -91,6 +91,7 @@ impl<T> SkewHeap<T> {
         }
     }
 
+    #[cfg(test)]
     fn in_order(&self) -> impl Iterator<Item = &T> {
         fn dfs<'a, T>(v: &'a Link<T>, vec: &mut Vec<&'a T>) {
             let v = match v {
@@ -107,7 +108,6 @@ impl<T> SkewHeap<T> {
         res.into_iter()
     }
 
-    #[cfg(test)]
     fn bfs_order(&self) -> impl Iterator<Item = (&T, Option<&T>, Option<&T>)> {
         use std::collections::VecDeque;
 
@@ -211,7 +211,7 @@ use std::fmt;
 
 impl<T: fmt::Debug> fmt::Debug for SkewHeap<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_list().entries(self.in_order()).finish()
+        f.debug_list().entries(self.bfs_order().map(|(x, ..)| x)).finish()
     }
 }
 
