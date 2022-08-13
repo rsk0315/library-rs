@@ -41,7 +41,8 @@
 /// - <https://judge.yosupo.jp/submission/7976>
 /// - <https://math314.hateblo.jp/entry/2016/06/05/004332>
 /// - <https://projecteuler.net/thread=10;page=5#111677>
-pub fn prime_pi(n: usize) -> usize {
+#[deprecated]
+fn prime_pi(n: usize) -> usize {
     if n <= 1 {
         return 0;
     }
