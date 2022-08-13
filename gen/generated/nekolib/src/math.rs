@@ -13,7 +13,7 @@ pub mod common_quot;
 pub mod compact_sieve;
 pub mod const_div;
 pub mod continued_fraction_;
-pub mod count_prime;
+// pub mod count_prime;
 pub mod digit_sum;
 pub mod divisors;
 pub mod dlog;
@@ -34,6 +34,7 @@ pub mod mod_ord;
 pub mod mod_pow;
 pub mod mod_recip_table_;
 pub mod mod_tetration;
+pub mod prime_pi_;
 pub mod sieve_n2_plus_1;
 pub mod sieve_n2_plus_n_plus_1;
 pub mod slope_function;
@@ -54,8 +55,8 @@ pub use compact_sieve::CompactSieve;
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
 pub use continued_fraction_::continued_fraction;
-#[doc(inline)]
-pub use count_prime::prime_pi;
+// #[doc(inline)]
+// pub use count_prime::prime_pi;
 #[doc(inline)]
 pub use digit_sum::DigitSum;
 #[doc(inline)]
@@ -98,6 +99,8 @@ pub use mod_recip_table_::mod_recip_table_prime;
 pub use mod_tetration::ModTetration;
 #[doc(inline)]
 pub use modint::ModInt;
+#[doc(inline)]
+pub use prime_pi_::prime_pi;
 #[doc(inline)]
 pub use sieve_n2_plus_1::SieveN2Plus1;
 #[doc(inline)]
