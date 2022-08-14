@@ -123,6 +123,13 @@ macro_rules! rand_gen_builder {
 /// assert_eq!(s, "X52dhjDk%i6)p1F9");
 /// assert_eq!(b, [[[75, 20, 23], [63, 21, 58]], [[12, 6, 57], [51, 95, 70]]]);
 /// ```
+///
+/// `oj` を用いて、hack をするのに使うとよい。
+/// 以下の例は、想定解が Rust で標的が Python のプログラムのもの。
+///
+/// ```sh
+/// % oj g/i --hack-expected target/release/x --hack-actual 'python3 x-to-be-hacked.py' target/release/x-gen
+/// ```
 #[macro_export]
 macro_rules! rand_gen {
     ( @seed $seed:ident { $a:ident in $($r:tt)* } @rest ) => {
