@@ -1,6 +1,8 @@
 //! 便利ちゃんたち。
 //!
 //! ここに何かを書く。
+pub mod ascii;
+pub mod bitop;
 pub mod buf_range;
 pub mod e_macro;
 pub mod make_minmax;
@@ -19,8 +21,17 @@ pub mod op_min;
 pub mod op_mul;
 pub mod op_roll_hash;
 pub mod output;
+pub mod rand_gen_macro;
 pub mod scanner;
 
+#[doc(inline)]
+pub use ascii::{
+    charset, ASCII, ASCII_ALPHABETIC, ASCII_ALPHANUMERIC, ASCII_CONTROL,
+    ASCII_DIGIT, ASCII_GRAPHIC, ASCII_HEXDIGIT, ASCII_LOWERCASE,
+    ASCII_PUNCTUATION, ASCII_UPPERCASE, ASCII_WHITESPACE,
+};
+#[doc(inline)]
+pub use bitop::{Pdep, Pext};
 #[doc(inline)]
 pub use buf_range::{bounds_within, check_bounds, check_bounds_range};
 #[doc(inline)]
@@ -55,5 +66,7 @@ pub use op_mul::OpMul;
 pub use op_roll_hash::OpRollHash;
 #[doc(inline)]
 pub use output::{PerLine, SpaceSep};
+#[doc(inline)]
+pub use rand_gen_macro::{RandomGenerator, VecMarker};
 #[doc(inline)]
 pub use scanner::Scanner;
