@@ -8,6 +8,7 @@ pub mod extremum_float;
 pub mod hilbert_mo_;
 pub mod index_order;
 pub mod karatsuba;
+pub mod larsch;
 pub mod majority_;
 pub mod minmax;
 pub mod mo;
@@ -31,6 +32,8 @@ pub use hilbert_mo_::hilbert_mo;
 pub use index_order::{index_order_by, index_order_by_key};
 #[doc(inline)]
 pub use karatsuba::convolve;
+#[doc(inline)]
+pub use larsch::Larsch;
 #[doc(inline)]
 pub use majority_::majority;
 #[doc(inline)]
