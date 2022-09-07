@@ -62,7 +62,7 @@ use btree_bimap::BTreeBimap;
 /// お気に入りの例として、[次のような問題](https://codeforces.com/contest/660/problem/F)
 /// も解ける：
 /// > 整数列 $a = (a\_0, a\_1, \\dots, a\_{n-1})$ が与えられる。
-/// > これの空でない区間 $(a\_l, a\_{l+1}, \\dots, a\_{r-1})$
+/// > これの空でもよい区間 $(a\_l, a\_{l+1}, \\dots, a\_{r-1})$
 /// > に対し、次の値を考える。
 /// > $$ \\sum\_{i=l}^{r-1} (i-l+1)\\cdot a\_i
 /// > = 1\\cdot a\_l+2\\cdot a\_{l+1} + \\dots + (r-l)\\cdot a\_{r-1}. $$
