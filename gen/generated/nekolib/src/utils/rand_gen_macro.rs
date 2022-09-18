@@ -117,11 +117,13 @@ macro_rules! rand_gen_builder {
 ///         ],
 ///     };
 ///     b in [[[1_u8..100; 3]; 2]; 2];
+///     p in Permutation(5);
 /// }
 ///
 /// assert_eq!(a, [32, 86, 41, 68, 66, 46, 56, 82, 40, 1]);
 /// assert_eq!(s, "X52dhjDk%i6)p1F9");
 /// assert_eq!(b, [[[75, 20, 23], [63, 21, 58]], [[12, 6, 57], [51, 95, 70]]]);
+/// assert_eq!(p, [3, 1, 0, 4, 2]);
 /// ```
 ///
 /// `oj` を用いて、hack をするのに使うとよい。
@@ -551,6 +553,22 @@ impl RandomGenerator<VecOptionsMarker<RangeInclusive<i64>>> for ChaCha20Rng {
         });
         for i in 0..len {
             res[i] -= i as i64;
+        }
+        res
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct Permutation(pub usize);
+
+impl RandomGenerator<Permutation> for ChaCha20Rng {
+    type Output = Vec<usize>;
+    fn generate(&mut self, subject: Permutation) -> Vec<usize> {
+        let n = subject.0;
+        let mut res: Vec<_> = (0..n).collect();
+        for i in (1..n).rev() {
+            let j = self.generate(0..=i);
+            res.swap(j, i);
         }
         res
     }
