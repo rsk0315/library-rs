@@ -118,12 +118,15 @@ macro_rules! rand_gen_builder {
 ///     };
 ///     b in [[[1_u8..100; 3]; 2]; 2];
 ///     p in Permutation(5);
+///     mut x in 1_i64..10;
 /// }
+/// x += 1;
 ///
 /// assert_eq!(a, [32, 86, 41, 68, 66, 46, 56, 82, 40, 1]);
 /// assert_eq!(s, "X52dhjDk%i6)p1F9");
 /// assert_eq!(b, [[[75, 20, 23], [63, 21, 58]], [[12, 6, 57], [51, 95, 70]]]);
 /// assert_eq!(p, [3, 1, 0, 4, 2]);
+/// assert_eq!(x, 5);
 /// ```
 ///
 /// `oj` を用いて、hack をするのに使うとよい。
@@ -134,11 +137,18 @@ macro_rules! rand_gen_builder {
 /// ```
 #[macro_export]
 macro_rules! rand_gen {
+    ( @seed $seed:ident { mut $a:ident in $($r:tt)* } @rest ) => {
+        let mut $a = $seed.generate($crate::rand_gen_builder!(@gen { $($r)* }));
+    };
     ( @seed $seed:ident { $a:ident in $($r:tt)* } @rest ) => {
         let $a = $seed.generate($crate::rand_gen_builder!(@gen { $($r)* }));
     };
     ( @seed $seed:ident { $a:ident in $($r:tt)* } @rest ; $($rest:tt)* ) => {
         rand_gen!(@seed $seed { $a in $($r)* } @rest);
+        rand_gen!(@seed $seed {} @rest $($rest)*);
+    };
+    ( @seed $seed:ident { mut $a:ident in $($r:tt)* } @rest ; $($rest:tt)* ) => {
+        rand_gen!(@seed $seed { mut $a in $($r)* } @rest);
         rand_gen!(@seed $seed {} @rest $($rest)*);
     };
     ( @seed $seed:ident { $($cur:tt)* } @rest $tt:tt $($rest:tt)* ) => {
