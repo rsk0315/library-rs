@@ -31,7 +31,10 @@ pub use ascii::{
     ASCII_PUNCTUATION, ASCII_UPPERCASE, ASCII_WHITESPACE,
 };
 #[doc(inline)]
-pub use bitop::{Pdep, Pext};
+pub use bitop::{
+    Pdep, PdepPextMaskU128, PdepPextMaskU16, PdepPextMaskU32, PdepPextMaskU64,
+    PdepPextMaskU8, Pext,
+};
 #[doc(inline)]
 pub use buf_range::{bounds_within, check_bounds, check_bounds_range};
 #[doc(inline)]
