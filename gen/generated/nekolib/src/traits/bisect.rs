@@ -15,6 +15,10 @@ use std::ops::{Range, RangeFrom, RangeTo};
 /// - `RangeFrom<u32>` などに関しては [指数探索](https://rsk0315.hatenablog.com/entry/2021/12/19/124017)。
 /// - `Range<f64>` などに関しては [ビット表現を整数と見て二分探索](https://rsk0315.hatenablog.com/entry/2022/04/07/004618)。
 ///
+/// # Notes
+/// 下端が条件を満たすかを判定するのが不都合なときは、下端を一つ大きく取って別で処理するとよいかも。
+/// cf. [提出 #34955711](https://atcoder.jp/contests/abc269/submissions/34955711)
+///
 /// # Examples
 /// ```
 /// use nekolib::traits::Bisect;
@@ -38,7 +42,7 @@ use std::ops::{Range, RangeFrom, RangeTo};
 pub trait Bisect {
     type Input;
     type Output;
-    fn bisect(&self, pred: impl Fn(&Self::Input) -> bool) -> Self::Output;
+    fn bisect(&self, pred: impl FnMut(&Self::Input) -> bool) -> Self::Output;
 }
 
 macro_rules! impl_bisect_int {
@@ -46,7 +50,7 @@ macro_rules! impl_bisect_int {
         impl Bisect for Range<$t> {
             type Input = $t;
             type Output = $t;
-            fn bisect(&self, pred: impl Fn(&$t) -> bool) -> $t {
+            fn bisect(&self, mut pred: impl FnMut(&$t) -> bool) -> $t {
                 let Range { start: mut ok, end: mut bad } = *self;
                 if !pred(&ok) {
                     return ok;
@@ -62,7 +66,7 @@ macro_rules! impl_bisect_int {
         impl Bisect for RangeFrom<$t> {
             type Input = $t;
             type Output = $t;
-            fn bisect(&self, pred: impl Fn(&$t) -> bool) -> $t {
+            fn bisect(&self, mut pred: impl FnMut(&$t) -> bool) -> $t {
                 let RangeFrom { start: ok } = *self;
                 if !pred(&ok) {
                     return ok;
@@ -78,7 +82,7 @@ macro_rules! impl_bisect_int {
         impl Bisect for RangeTo<$t> {
             type Input = $t;
             type Output = $t;
-            fn bisect(&self, pred: impl Fn(&$t) -> bool) -> $t {
+            fn bisect(&self, mut pred: impl FnMut(&$t) -> bool) -> $t {
                 let RangeTo { end: bad } = *self;
                 if pred(&bad) {
                     return bad;
@@ -109,7 +113,7 @@ macro_rules! impl_bisect_float {
         impl Bisect for Range<$fty> {
             type Input = $fty;
             type Output = $fty;
-            fn bisect(&self, pred: impl Fn(&$fty) -> bool) -> $fty {
+            fn bisect(&self, mut pred: impl FnMut(&$fty) -> bool) -> $fty {
                 let Range { start, end } = *self;
                 let start = $f2u(start);
                 let end = $f2u(end);
@@ -135,7 +139,7 @@ impl_bisect_float! {
 impl<T> Bisect for [T] {
     type Input = T;
     type Output = usize;
-    fn bisect(&self, pred: impl Fn(&T) -> bool) -> usize {
+    fn bisect(&self, mut pred: impl FnMut(&T) -> bool) -> usize {
         if self.is_empty() || !pred(&self[0]) {
             return 0;
         }
