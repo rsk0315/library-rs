@@ -68,7 +68,7 @@ pub use op_mul::OpMul;
 #[doc(inline)]
 pub use op_roll_hash::OpRollHash;
 #[doc(inline)]
-pub use output::{PerLine, SpaceSep};
+pub use output::{PerLine, SpaceSep, StrSep};
 #[doc(inline)]
 pub use rand_gen_macro::{RandomGenerator, VecMarker};
 #[doc(inline)]
