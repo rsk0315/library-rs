@@ -11,7 +11,7 @@ use cuckoo_hash_map::CuckooHashMap;
 #[derive(Clone, Debug)]
 pub struct CuckooHashSet<K>(CuckooHashMap<K, ()>);
 
-impl<K: Clone + Eq + Hash> CuckooHashSet<K> {
+impl<K: Eq + Hash> CuckooHashSet<K> {
     pub fn new() -> Self { Self(CuckooHashMap::new()) }
     pub fn contains(&self, key: &K) -> bool { self.0.contains_key(key) }
     pub fn insert(&mut self, key: K) -> bool {
@@ -22,7 +22,7 @@ impl<K: Clone + Eq + Hash> CuckooHashSet<K> {
     pub fn is_empty(&self) -> bool { self.0.is_empty() }
 }
 
-impl<K: Clone + Eq + Hash> FromIterator<K> for CuckooHashSet<K> {
+impl<K: Eq + Hash> FromIterator<K> for CuckooHashSet<K> {
     fn from_iter<I>(iter: I) -> Self
     where
         I: IntoIterator<Item = K>,
@@ -35,7 +35,7 @@ impl<K: Clone + Eq + Hash> FromIterator<K> for CuckooHashSet<K> {
     }
 }
 
-impl<K: Clone + Eq + Hash> Extend<K> for CuckooHashSet<K> {
+impl<K: Eq + Hash> Extend<K> for CuckooHashSet<K> {
     fn extend<I>(&mut self, iter: I)
     where
         I: IntoIterator<Item = K>,

@@ -22,7 +22,7 @@ pub struct CuckooHashMap<K, V> {
 const LOOP_THRESHOLD: usize = 8;
 const LEN_THRESHOLD: usize = 32;
 
-impl<K: Clone + Eq + Hash, V: Clone> CuckooHashMap<K, V> {
+impl<K: Eq + Hash, V> CuckooHashMap<K, V> {
     pub fn new() -> Self {
         let r0 = RandomState::new();
         let r1 = RandomState::new();
@@ -85,7 +85,7 @@ impl<K: Clone + Eq + Hash, V: Clone> CuckooHashMap<K, V> {
 
         'outer: loop {
             for i in 0..=1 {
-                self.buf[i] = vec![vec![]; len];
+                self.buf[i] = (0..len).map(|_| vec![]).collect();
                 self.rs[i] = RandomState::new();
             }
             while let Some((k, v)) = elts.pop() {
@@ -118,9 +118,7 @@ impl<K: Clone + Eq + Hash, V: Clone> CuckooHashMap<K, V> {
     }
 }
 
-impl<K: Clone + Eq + Hash, V: Clone> FromIterator<(K, V)>
-    for CuckooHashMap<K, V>
-{
+impl<K: Eq + Hash, V> FromIterator<(K, V)> for CuckooHashMap<K, V> {
     fn from_iter<I>(iter: I) -> Self
     where
         I: IntoIterator<Item = (K, V)>,
@@ -133,7 +131,7 @@ impl<K: Clone + Eq + Hash, V: Clone> FromIterator<(K, V)>
     }
 }
 
-impl<K: Clone + Eq + Hash, V: Clone> Extend<(K, V)> for CuckooHashMap<K, V> {
+impl<K: Eq + Hash, V> Extend<(K, V)> for CuckooHashMap<K, V> {
     fn extend<I>(&mut self, iter: I)
     where
         I: IntoIterator<Item = (K, V)>,
