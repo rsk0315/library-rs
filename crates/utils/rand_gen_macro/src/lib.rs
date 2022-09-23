@@ -396,37 +396,6 @@ macro_rules! impl_vec_range {
 
 impl_vec_range! { u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize }
 
-// macro_rules! impl_vec2_range {
-//     ( $($t:ty)* ) => { $(
-//         impl RandomGenerator<VecMarker<VecMarker<RangeInclusive<$t>>>>
-//             for ChaCha20Rng
-//         {
-//             type Output = Vec<Vec<$t>>;
-//             fn generate(
-//                 &mut self,
-//                 s: VecMarker<VecMarker<RangeInclusive<$t>>>
-//             ) -> Self::Output{
-//                 let VecMarker { inner, len } = s;
-//                 (0..len).map(|_| self.generate(inner.clone())).collect()
-//             }
-//         }
-//         impl RandomGenerator<VecMarker<VecMarker<Range<$t>>>>
-//             for ChaCha20Rng
-//         {
-//             type Output = Vec<Vec<$t>>;
-//             fn generate(
-//                 &mut self,
-//                 s: VecMarker<VecMarker<Range<$t>>>
-//             ) -> Self::Output {
-//                 let VecMarker { inner, len } = s;
-//                 (0..len).map(|_| self.generate(inner.clone())).collect()
-//             }
-//         }
-//     )* }
-// }
-
-// impl_vec2_range! { u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize }
-
 macro_rules! impl_vecvec_range {
     ( $( ($marker:ty, $vec:ty), )* ) => { $(
         impl RandomGenerator<$marker> for ChaCha20Rng {
@@ -464,6 +433,14 @@ macro_rules! impl_vecvec_range {
 }
 
 impl_vecvec_range! { u8 u16 u32 u64 u128 usize i8 i16 i32 i64 i128 isize }
+
+impl RandomGenerator<VecMarker<Permutation>> for ChaCha20Rng {
+    type Output = Vec<Vec<usize>>;
+    fn generate(&mut self, s: VecMarker<Permutation>) -> Self::Output {
+        let VecMarker { inner, len } = s;
+        (0..len).map(|_| self.generate(inner)).collect()
+    }
+}
 
 impl RandomGenerator<VecOptionsMarker<RangeInclusive<i64>>> for ChaCha20Rng {
     type Output = Vec<i64>;
