@@ -70,11 +70,23 @@ fn bundle(filename: &str, index_path: &Path) -> Result<(), Box<dyn Error>> {
     let mut includes = vec![];
     for mut crate_mod in extract_uses_file(&src)? {
         let mod_name = crate_mod.pop().unwrap();
-        let decl_in = decl[&mod_name].clone();
-        if let Some(mut v) = deps.remove(&decl_in) {
-            includes.append(&mut v);
+        // let decl_in = decl[&mod_name].clone();
+
+        if let Some(decl_in) = decl.get(&mod_name).cloned() {
+            if let Some(mut v) = deps.remove(&decl_in) {
+                includes.append(&mut v);
+            }
+            includes.push(decl_in);
+        } else {
+            // 一旦 macro は foo_macro のファイル名に入れる運用にしてみる。
+            // あと utils に入れるとする。本来は #[macro_export] を見るべき？
+            let macro_name = format!("{}_macro", mod_name);
+            let decl_in = ("utils".to_owned(), macro_name);
+            if let Some(mut v) = deps.remove(&decl_in) {
+                includes.append(&mut v);
+            }
+            includes.push(decl_in);
         }
-        includes.push(decl_in);
     }
 
     includes.sort_unstable();
