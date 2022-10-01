@@ -22,6 +22,7 @@ pub mod op_mul;
 pub mod op_roll_hash;
 pub mod output;
 pub mod rand_gen_macro;
+pub mod scan_macro;
 pub mod scanner;
 
 #[doc(inline)]
@@ -71,5 +72,7 @@ pub use op_roll_hash::OpRollHash;
 pub use output::{PerLine, SpaceSep, StrSep};
 #[doc(inline)]
 pub use rand_gen_macro::{RandomGenerator, VecMarker};
+#[doc(inline)]
+pub use scan_macro::{AutoSource, OnceSource, Readable};
 #[doc(inline)]
 pub use scanner::Scanner;
