@@ -1,4 +1,4 @@
-// #![feature(once_cell)]
+#![feature(once_cell)]
 
 use std::any::type_name;
 use std::fmt::Debug;
