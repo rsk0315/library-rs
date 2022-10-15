@@ -9,4 +9,5 @@ members = [
     'crates/utils/*/',
     'verifiers/download',
     'verifiers/verify',
+    'notes/',
 ]
