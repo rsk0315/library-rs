@@ -19,4 +19,4 @@
 //!
 //! # 🐱 Cat
 //! にゃー。
-#![feature(once_cell)]
+// #![feature(once_cell)]
