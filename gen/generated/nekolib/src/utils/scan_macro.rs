@@ -1,3 +1,4 @@
+#![cfg(ignore)]
 // #![feature(once_cell)]
 
 use std::any::type_name;
