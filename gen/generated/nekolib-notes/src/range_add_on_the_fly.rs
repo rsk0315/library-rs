@@ -138,3 +138,100 @@
 //! - よくある累積和とは添字の解釈が異なる？ 明確にしておく
 //! - クエリがオフラインで on-the-fly が不要の場合と比較してみる
 //! - 遅延セグ木で区間 $O(1)$ 次加算と何かしらの fold について考える
+
+#[test]
+fn linear() {
+    let a = vec![1, 3, 2, 5, 7];
+
+    let n = a.len();
+    let m = (0..n).map(|i| i + a[i]).max().unwrap();
+    let expected = {
+        let mut dp = vec![0; m + 1];
+        dp[0] = 1;
+        for i in 0..n {
+            for j in 1..=a[i] {
+                dp[i + j] += dp[i] * j as i32;
+            }
+        }
+        dp
+    };
+
+    let actual = {
+        let mut res = vec![0; m + 1];
+        let dp0 = vec![0; m + 1];
+        let mut dp1 = vec![0; m + 2];
+        let mut dp2 = vec![0; m + 2];
+        let mut acc0 = 1;
+        let mut acc1 = 0;
+
+        dp1[1] = -acc0;
+        for i in 0..n {
+            acc1 += dp2[i];
+            acc0 += dp1[i] + acc1;
+            res[i] = dp0[i] + acc0;
+
+            dp1[i + a[i] + 1] -= acc0 * a[i] as i32;
+            dp2[i + 1] += acc0;
+            dp2[i + a[i] + 1] -= acc0;
+        }
+        for i in n..=m {
+            acc1 += dp2[i];
+            acc0 += dp1[i] + acc1;
+            res[i] = dp0[i] + acc0;
+        }
+        res
+    };
+
+    assert_eq!(actual, expected);
+}
+
+#[test]
+fn quadratic() {
+    let a = vec![1, 3, 2, 5, 7];
+
+    let n = a.len();
+    let m = (0..n).map(|i| i + a[i]).max().unwrap();
+    let expected = {
+        let mut dp = vec![0; m + 1];
+        dp[0] = 1;
+        for i in 0..n {
+            for j in 1..=a[i] {
+                dp[i + j] += dp[i] * j.pow(2) as i32;
+            }
+        }
+        dp
+    };
+
+    let actual = {
+        let mut res = vec![0; m + 1];
+        let dp0 = vec![0; m + 1];
+        let mut dp1 = vec![0; m + 2];
+        let mut dp2 = vec![0; m + 2];
+        let mut dp3 = vec![0; m + 2];
+        let mut acc0 = 1;
+        let mut acc1 = 0;
+        let mut acc2 = 0;
+
+        dp1[1] = -acc0;
+        for i in 0..n {
+            acc2 += dp3[i];
+            acc1 += dp2[i] + acc2;
+            acc0 += dp1[i] + acc1;
+            res[i] = dp0[i] + acc0;
+
+            // この辺でちゃんとやる、差分計算
+            // dp2[i + a[i] + 1] -= acc0 * a[i] as i32;
+            // dp3[i + 1] += acc0;
+            // dp3[i + a[i] + 1] -= acc0;
+        }
+        for i in n..=m {
+            acc2 += dp3[i];
+            acc1 += dp2[i] + acc2;
+            acc0 += dp1[i] + acc1;
+            res[i] = dp0[i] + acc0;
+        }
+        res
+    };
+
+    assert_eq!(actual, expected);
+}
