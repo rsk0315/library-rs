@@ -188,6 +188,7 @@ fn linear() {
 #[test]
 fn quadratic() {
     let a = vec![1, 3, 2, 5, 7];
+    // let a = vec![5, 0, 0, 0, 0, 0, 0, 0, 0];
 
     let n = a.len();
     let m = (0..n).map(|i| i + a[i]).max().unwrap();
@@ -201,6 +202,13 @@ fn quadratic() {
         }
         dp
     };
+
+    // index:  0   1   2   3   4   5   6   7   8
+    // a:      1   0   0   0   0   0   0   0   0
+    // add:    0   1   4   9  16  25   0   0   0
+    // add':   0   1   3   5   7   9 -25   0   0
+    // add'':  0   1   2   2   2   2 -16  25   0
+    // add''': 0   1   1   0   0   0 -18  43 -25
 
     let actual = {
         let mut res = vec![0; m + 1];
@@ -219,10 +227,18 @@ fn quadratic() {
             acc0 += dp1[i] + acc1;
             res[i] = dp0[i] + acc0;
 
-            // この辺でちゃんとやる、差分計算
-            // dp2[i + a[i] + 1] -= acc0 * a[i] as i32;
-            // dp3[i + 1] += acc0;
-            // dp3[i + a[i] + 1] -= acc0;
+            // linear:
+            // dp1[i + a[i] + 1] -= acc0 * a[i] as i32;
+            // dp2[i + 1] += acc0;
+            // dp2[i + a[i] + 1] -= acc0;
+
+            dp2[i + a[i] + 1] -= 2 * acc0 * a[i] as i32;
+            dp3[i + 1] += 2 * acc0;
+            dp3[i + a[i] + 1] -= 2 * acc0;
+            dp1[i + a[i] + 1] -= acc0 * a[i].pow(2) as i32;
+
+            dp2[i + 1] += -acc0;
+            dp2[i + a[i] + 1] -= -acc0;
         }
         for i in n..=m {
             acc2 += dp3[i];
