@@ -72,21 +72,17 @@ fn next_permutation_with_count<T: Ord>(a: &mut [T], k: usize) -> bool {
     // postcondition: a[k..] is sorted
 
     let n = a.len();
-    if n == k {
-        return next_permutation(a);
-    }
-
     for i in (0..k).rev() {
-        let j = if a[i] < a[n - 1] {
+        let j = if k < n && a[i] < a[n - 1] {
             (k..).find(|&j| a[i] < a[j]).unwrap()
-        } else if a[i] < a[i + 1] {
+        } else if i + 1 < n && a[i] < a[i + 1] {
             (i..k).rev().find(|&j| a[i] < a[j]).unwrap()
         } else {
             continue;
         };
         a.swap(i, j);
         a[i + 1..k].reverse();
-        a[i + 1..].rotate_left(k - (i + 1));
+        a[i + 1..].rotate_right(n - k);
         return true;
     }
     false
@@ -97,21 +93,17 @@ fn prev_permutation_with_count<T: Ord>(a: &mut [T], k: usize) -> bool {
     // postcondition: a[k..] is reversely sorted
 
     let n = a.len();
-    if n == k {
-        return prev_permutation(a);
-    }
-
     for i in (0..k).rev() {
-        let j = if a[i] > a[n - 1] {
+        let j = if k < n && a[i] > a[n - 1] {
             (k..).find(|&j| a[i] > a[j]).unwrap()
-        } else if a[i] > a[i + 1] {
+        } else if i + 1 < n && a[i] > a[i + 1] {
             (i..k).rev().find(|&j| a[i] > a[j]).unwrap()
         } else {
             continue;
         };
         a.swap(i, j);
         a[i + 1..k].reverse();
-        a[i + 1..].rotate_left(k - (i + 1));
+        a[i + 1..].rotate_right(n - k);
         return true;
     }
     false
