@@ -45,7 +45,9 @@ pub use ordered_hash_::ordered_hash;
 #[doc(inline)]
 pub use parallel_bisect::parallel_bisect;
 #[doc(inline)]
-pub use permutation::next_permutation;
+pub use permutation::{
+    next_permutation, prev_permutation, Backward, Forward, Permutations,
+};
 #[doc(inline)]
 pub use tortoise_hare::{cycle_mu_lambda, cycle_nth};
 #[doc(inline)]
