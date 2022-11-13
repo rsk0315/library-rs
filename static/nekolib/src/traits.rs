@@ -4,7 +4,6 @@
 pub mod act;
 pub mod action;
 pub mod additive;
-pub mod assoc_val;
 pub mod binop;
 pub mod bisect;
 pub mod count;
@@ -32,8 +31,6 @@ pub use act::Act;
 pub use action::MonoidAction;
 #[doc(inline)]
 pub use additive::{AddAssoc, AddComm, Zero};
-#[doc(inline)]
-pub use assoc_val::AssocVal;
 #[doc(inline)]
 pub use binop::{
     Associative, Commutative, CommutativeGroup, CommutativeMonoid,

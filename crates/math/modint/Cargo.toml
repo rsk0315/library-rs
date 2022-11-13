@@ -7,6 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-assoc_val = { path = "../../traits/assoc_val" }
-additive = { path = "../../traits/additive" }
-multiplicative = { path = "../../traits/multiplicative" }
+# assoc_val = { path = "../../traits/assoc_val" }
+# additive = { path = "../../traits/additive" }
+# multiplicative = { path = "../../traits/multiplicative" }
+gcd_recip = { path = "../gcd_recip" }
+mod_pow = { path = "../mod_pow" }
