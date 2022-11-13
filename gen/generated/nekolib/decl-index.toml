@@ -357,8 +357,8 @@ whole = [["math", "gcd_recip"], ["math", "mod_pow"]]
 
 [[depends]]
 name = ["math", "polynomial"]
-direct = [["math", "modint"], ["traits", "assoc_val"]]
-whole = [["math", "gcd_recip"], ["math", "mod_pow"], ["math", "modint"], ["traits", "assoc_val"]]
+direct = [["math", "modint"]]
+whole = [["math", "gcd_recip"], ["math", "mod_pow"], ["math", "modint"]]
 
 [[depends]]
 name = ["math", "prime_pi_"]

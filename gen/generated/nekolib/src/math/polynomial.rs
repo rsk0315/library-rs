@@ -1,7 +1,6 @@
 //! 多項式。
 
 use super::modint;
-use super::super::traits::assoc_val;
 
 // use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
