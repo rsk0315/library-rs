@@ -1,208 +1,263 @@
-//! 法 $m$ での演算をする。
-
-use super::super::traits::additive;
-use super::super::traits::assoc_val;
-use super::super::traits::multiplicative;
-
-use std::convert::TryInto;
-use std::fmt::{Debug, Display};
+use super::gcd_recip;
+use super::mod_pow;
+use std::fmt::{self, Debug, Display};
+use std::hash::Hash;
+use std::iter::{Product, Sum};
 use std::marker::PhantomData;
 use std::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign,
 };
 
-use additive::{AddAssoc, AddComm, Zero};
-use assoc_val::AssocVal;
-use multiplicative::{MulAssoc, MulComm, MulRecip, One};
+use gcd_recip::GcdRecip;
+use mod_pow::ModPow;
 
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub struct ModInt<M: AssocVal<i64>>(i64, PhantomData<M>);
-
-impl<M: AssocVal<i64>> Display for ModInt<M> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
+#[derive(Copy, Clone, Eq, Hash, PartialEq)]
+pub struct StaticModInt<M> {
+    val: u32,
+    _phd: PhantomData<fn() -> M>,
 }
 
-impl<M: AssocVal<i64>> Debug for ModInt<M> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if f.alternate() {
-            write!(f, "[{} (mod {})]", self.0, M::get())
+pub trait Modulus: 'static + Copy + Eq {
+    const VALUE: u32;
+    const IS_PRIME: bool = is_prime_32(Self::VALUE);
+}
+
+pub trait ModIntBase:
+    Copy
+    + Eq
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
+    + AddAssign
+    + SubAssign
+    + MulAssign
+    + DivAssign
+{
+    fn modulus() -> u32;
+    fn get(self) -> u32;
+    fn new(n: u32) -> Self;
+    unsafe fn new_unchecked(n: u32) -> Self;
+    fn recip(self) -> Self { self.checked_recip().unwrap() }
+    fn checked_recip(self) -> Option<Self> {
+        let (g, r) = (self.get() as u64).gcd_recip(Self::modulus() as u64);
+        if g == 1 {
+            Some(unsafe { Self::new_unchecked(r as u32) })
         } else {
-            write!(f, "{}", self.0)
+            None
+        }
+    }
+    fn pow(self, iexp: u64) -> Self {
+        unsafe {
+            Self::new_unchecked(
+                (self.get() as u64).mod_pow(iexp, Self::modulus() as u64)
+                    as u32,
+            )
         }
     }
 }
 
-impl<M: AssocVal<i64>> ModInt<M> {
-    pub fn get(&self) -> &i64 { &self.0 }
+impl<M: Modulus> StaticModInt<M> {
+    fn modulus() -> u32 { M::VALUE }
 }
 
-macro_rules! impl_from {
-    ( $t:ty ) => {
-        impl<M: AssocVal<i64>> From<$t> for ModInt<M> {
-            fn from(n: $t) -> Self {
-                let n: i64 = n.into();
-                let n = n % M::get();
-                Self(n, PhantomData)
+impl<M: Modulus> ModIntBase for StaticModInt<M> {
+    fn modulus() -> u32 { Self::modulus() }
+    fn get(self) -> u32 { self.val }
+    fn new(n: u32) -> Self {
+        Self { val: (n % Self::modulus()), _phd: PhantomData }
+    }
+    unsafe fn new_unchecked(val: u32) -> Self {
+        Self { val, _phd: PhantomData }
+    }
+}
+
+macro_rules! impl_binop {
+    ( $( ($trait:ident, $op_assign:ident, $op:ident), )* ) => { $(
+        impl<M: Modulus> $trait for StaticModInt<M> {
+            type Output = StaticModInt<M>;
+            fn $op(self, rhs: StaticModInt<M>) -> StaticModInt<M> {
+                let mut tmp = self;
+                tmp.$op_assign(rhs);
+                tmp
             }
         }
+        impl<'a, M: Modulus> $trait<&'a StaticModInt<M>> for StaticModInt<M> {
+            type Output = StaticModInt<M>;
+            fn $op(self, rhs: &'a StaticModInt<M>) -> StaticModInt<M> {
+                let mut tmp = self;
+                tmp.$op_assign(*rhs);
+                tmp
+            }
+        }
+        impl<'a, M: Modulus> $trait<StaticModInt<M>> for &'a StaticModInt< M> {
+            type Output = StaticModInt<M>;
+            fn $op(self, rhs: StaticModInt<M>) -> StaticModInt<M> {
+                let mut tmp = self.to_owned();
+                tmp.$op_assign(rhs);
+                tmp
+            }
+        }
+        impl<'a, M: Modulus> $trait<&'a StaticModInt<M>> for &'a StaticModInt< M> {
+            type Output = StaticModInt<M>;
+            fn $op(self, rhs: &'a StaticModInt<M>) -> StaticModInt<M> {
+                let mut tmp = self.to_owned();
+                tmp.$op_assign(*rhs);
+                tmp
+            }
+        }
+    )* }
+}
+
+impl_binop! {
+    (Add, add_assign, add),
+    (Sub, sub_assign, sub),
+    (Mul, mul_assign, mul),
+    (Div, div_assign, div),
+}
+
+impl<M: Modulus> AddAssign for StaticModInt<M> {
+    fn add_assign(&mut self, rhs: Self) {
+        self.val += rhs.val;
+        if self.val >= Self::modulus() {
+            self.val -= Self::modulus();
+        }
+    }
+}
+
+impl<M: Modulus> SubAssign for StaticModInt<M> {
+    fn sub_assign(&mut self, rhs: Self) {
+        if self.val < rhs.val {
+            self.val += Self::modulus();
+        }
+        self.val -= rhs.val;
+    }
+}
+
+impl<M: Modulus> MulAssign for StaticModInt<M> {
+    fn mul_assign(&mut self, rhs: Self) {
+        let tmp = (self.val as u64 * rhs.val as u64) % Self::modulus() as u64;
+        self.val = tmp as u32;
+    }
+}
+
+impl<M: Modulus> DivAssign for StaticModInt<M> {
+    fn div_assign(&mut self, rhs: Self) { self.mul_assign(rhs.recip()) }
+}
+
+impl<M: Modulus> Display for StaticModInt<M> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.val)
+    }
+}
+
+impl<M: Modulus> Debug for StaticModInt<M> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} (mod {})", self.val, Self::modulus())
+    }
+}
+
+impl<M: Modulus> Sum<Self> for StaticModInt<M> {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Self::new(0), |x, y| x + y)
+    }
+}
+
+impl<'a, M: Modulus> Sum<&'a Self> for StaticModInt<M> {
+    fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+        iter.fold(Self::new(0), |x, y| x + y)
+    }
+}
+
+impl<M: Modulus> Product<Self> for StaticModInt<M> {
+    fn product<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Self::new(1), |x, y| x * y)
+    }
+}
+
+impl<'a, M: Modulus> Product<&'a Self> for StaticModInt<M> {
+    fn product<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+        iter.fold(Self::new(1), |x, y| x * y)
+    }
+}
+
+const fn is_sprp_32(n: u32, a: u32) -> bool {
+    let n = n as u64;
+    let s = (n - 1).trailing_zeros();
+    let d = n >> s;
+    let mut cur = {
+        let mut cur = 1;
+        let mut pow = d;
+        let mut a = a as u64;
+        while pow > 0 {
+            if pow & 1 != 0 {
+                cur = cur * a % n;
+            }
+            a = a * a % n;
+            pow >>= 1;
+        }
+        cur
     };
-    ( $( $t:ty ),* ) => { $( impl_from!($t); )* };
-}
-
-impl_from!(i8, i16, i32, i64, u8, u16, u32);
-
-impl<M: AssocVal<i64>> From<u64> for ModInt<M> {
-    fn from(n: u64) -> Self {
-        let m: u64 = M::get().try_into().unwrap();
-        let n: i64 = (n % m).try_into().unwrap();
-        Self(n, PhantomData)
+    if cur == 1 {
+        return true;
     }
-}
-
-impl<M: AssocVal<i64>> Add for ModInt<M> {
-    type Output = Self;
-    fn add(self, other: Self) -> Self {
-        let n = match self.0 + other.0 {
-            n if n >= M::get() => n - M::get(),
-            n => n,
-        };
-        Self(n, PhantomData)
-    }
-}
-
-impl<M: AssocVal<i64>> AddAssign for ModInt<M> {
-    fn add_assign(&mut self, other: Self) {
-        self.0 += other.0;
-        match self.0 {
-            n if n >= M::get() => self.0 -= M::get(),
-            _ => {}
-        };
-    }
-}
-
-impl<M: AssocVal<i64>> Sub for ModInt<M> {
-    type Output = Self;
-    fn sub(self, other: Self) -> Self {
-        let n = match self.0 - other.0 {
-            n if n < 0 => n + M::get(),
-            n => n,
-        };
-        Self(n, PhantomData)
-    }
-}
-
-impl<M: AssocVal<i64>> SubAssign for ModInt<M> {
-    fn sub_assign(&mut self, other: Self) {
-        self.0 -= other.0;
-        match self.0 {
-            n if n < 0 => self.0 += M::get(),
-            _ => {}
-        };
-    }
-}
-
-impl<M: AssocVal<i64>> Mul for ModInt<M> {
-    type Output = Self;
-    fn mul(self, other: Self) -> Self {
-        let n = (self.0 * other.0).rem_euclid(M::get());
-        Self(n, PhantomData)
-    }
-}
-
-impl<M: AssocVal<i64>> MulAssign for ModInt<M> {
-    fn mul_assign(&mut self, other: Self) {
-        self.0 = (self.0 * other.0).rem_euclid(M::get());
-    }
-}
-
-impl<M: AssocVal<i64>> Div for ModInt<M> {
-    type Output = Self;
-    fn div(self, other: Self) -> Self { self.mul(other.mul_recip()) }
-}
-
-impl<M: AssocVal<i64>> DivAssign for ModInt<M> {
-    fn div_assign(&mut self, other: Self) { self.mul_assign(other.mul_recip()) }
-}
-
-impl<M: AssocVal<i64>> Zero for ModInt<M> {
-    fn zero() -> Self { Self(0, PhantomData) }
-}
-
-impl<M: AssocVal<i64>> One for ModInt<M> {
-    fn one() -> Self {
-        Self::from(1_i64) // in case mod = 1
-    }
-}
-
-impl<M: AssocVal<i64>> Neg for ModInt<M> {
-    type Output = Self;
-    fn neg(self) -> Self {
-        let n = match self.0 {
-            0 => 0,
-            n => M::get() - n,
-        };
-        Self(n, PhantomData)
-    }
-}
-
-impl<M: AssocVal<i64>> MulRecip for ModInt<M> {
-    type Output = Self;
-    fn mul_recip(self) -> Self {
-        let mut x = 0_i64;
-        let mut y = 1_i64;
-        let mut a = self.0;
-        let mut b = M::get();
-        let mut u = y;
-        let mut v = x;
-        while a != 0 {
-            let q = b / a;
-            {
-                let tmp = x - q * u;
-                x = u;
-                u = tmp;
-            }
-            {
-                let tmp = y - q * v;
-                y = v;
-                v = tmp;
-            }
-            {
-                let tmp = b - q * a;
-                b = a;
-                a = tmp;
-            }
+    let mut i = 0;
+    while i < s {
+        if cur == n - 1 {
+            return true;
         }
-        assert_eq!(b, 1, "{} has no reciprocal modulo {}", self.0, M::get());
-        Self::from(x)
+        cur = cur * cur % n;
+        i += 1;
+    }
+    false
+}
+
+const fn is_prime_32(n: u32) -> bool {
+    if n == 2 || n == 3 || n == 5 || n == 7 {
+        true
+    } else if n % 2 == 0 || n % 3 == 0 || n % 5 == 0 || n % 7 == 0 {
+        false
+    } else if n < 121 {
+        n > 1
+    } else {
+        is_sprp_32(n, 2) && is_sprp_32(n, 7) && is_sprp_32(n, 61)
     }
 }
 
-impl<M: AssocVal<i64>> AddAssoc for ModInt<M> {}
-impl<M: AssocVal<i64>> AddComm for ModInt<M> {}
-impl<M: AssocVal<i64>> MulAssoc for ModInt<M> {}
-impl<M: AssocVal<i64>> MulComm for ModInt<M> {}
-
-#[macro_export]
-macro_rules! impl_mod_int {
-    ( $i:ident => $m:expr ) => {
-        #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-        struct $i {}
-        impl AssocVal<i64> for $i {
-            fn get() -> i64 { $m }
+macro_rules! impl_modint {
+    ( $( ($mod:ident, $val:literal, $modint:ident), )* ) => { $(
+        #[derive(Clone, Copy, Eq, PartialEq)]
+        pub struct $mod;
+        impl Modulus for $mod {
+            const VALUE: u32 = $val;
         }
-    };
-    ( $( $i:ident => $m:expr, )* ) => { $( impl_mod_int!($i => $m); )* };
-    ( $( $i:ident => $m:expr ),* ) => { $( impl_mod_int!($i => $m); )* };
+        pub type $modint = StaticModInt<$mod>;
+    )* }
+}
+
+impl_modint! {
+    (Mod998244353, 998244353, ModInt998244353),
+    (Mod1000000007, 1000000007, ModInt1000000007),
 }
 
 #[test]
-fn test() {
-    impl_mod_int!(Mod1e9p7 => 1_000_000_007);
-    type Mi = ModInt<Mod1e9p7>;
-    let x = Mi::from(1) / Mi::from(2);
-    assert_eq!(format!("{:?}", x), "500000004");
-    assert_eq!(format!("{:#?}", x), "[500000004 (mod 1000000007)]");
-    assert_eq!(x.0, 500_000_004);
+fn sanity_check() {
+    assert!(Mod998244353::IS_PRIME);
+    assert!(Mod1000000007::IS_PRIME);
+
+    type Mi = ModInt998244353;
+    assert_eq!(Mi::new(1) + Mi::new(998244352), Mi::new(0));
+    assert_eq!((Mi::new(1) / Mi::new(2)).get(), (Mi::modulus() + 1) / 2);
+
+    let sum10: Mi = (1..=10).map(Mi::new).sum();
+    assert_eq!(sum10, Mi::new(55));
+
+    let prod10: Mi = (1..=10).map(Mi::new).product();
+    assert_eq!(prod10, Mi::new(3628800));
 }
+
+// todo:
+// - static/dynamic
+//     - butterfly
+// - dynamic
+//     - barrett
