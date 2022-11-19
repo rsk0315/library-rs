@@ -1,15 +1,15 @@
 use std::fmt::{self, Debug, Display};
-use std::hash::Hash;
+use std::hash::{Hash, Hasher};
 use std::iter::{Product, Sum};
 use std::marker::PhantomData;
 use std::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign,
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
 };
 use std::sync::atomic::{self, AtomicU32, AtomicU64};
 
 use gcd_recip::GcdRecip;
 
-#[derive(Copy, Clone, Eq, Hash, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub struct StaticModInt<M> {
     val: u32,
     _phd: PhantomData<fn() -> M>,
@@ -29,10 +29,12 @@ pub trait Modulus: 'static + Copy + Eq {
 pub trait ModIntBase:
     Copy
     + Eq
+    + Hash
     + Add<Output = Self>
     + Sub<Output = Self>
     + Mul<Output = Self>
     + Div<Output = Self>
+    + Neg
     + AddAssign
     + SubAssign
     + MulAssign
@@ -65,8 +67,23 @@ pub trait ModIntBase:
     }
 }
 
+trait InternalImpls: ModIntBase {
+    fn hash_impl(&self, state: &mut impl Hasher) { self.get().hash(state) }
+    fn display_impl(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.get(), f)
+    }
+    fn debug_impl(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} (mod {})", self.get(), Self::modulus())
+    }
+    fn neg_impl(self) -> Self {
+        let v = if self.get() == 0 { 0 } else { Self::modulus() - self.get() };
+        unsafe { Self::new_unchecked(v) }
+    }
+}
+
 impl<M: Modulus> StaticModInt<M> {
     fn modulus() -> u32 { M::VALUE }
+    fn zero() -> Self { unsafe { Self::new_unchecked(0) } }
     fn add_impl(self, rhs: Self) -> Self {
         let mut tmp = self;
         tmp += rhs;
@@ -119,17 +136,7 @@ impl<M: Modulus> ModIntBase for StaticModInt<M> {
     }
 }
 
-impl<M: Modulus> Display for StaticModInt<M> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.val)
-    }
-}
-
-impl<M: Modulus> Debug for StaticModInt<M> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} (mod {})", self.val, Self::modulus())
-    }
-}
+impl<M: Modulus> InternalImpls for StaticModInt<M> {}
 
 const fn is_sprp_32(n: u32, a: u32) -> bool {
     let n = n as u64;
@@ -231,6 +238,7 @@ impl Default for Barrett {
 
 impl<I: DynamicModIntId> DynamicModInt<I> {
     pub fn modulus() -> u32 { I::barrett().modulus() }
+    fn zero() -> Self { unsafe { Self::new_unchecked(0) } }
     fn add_impl(self, rhs: Self) -> Self {
         let mut tmp = self;
         tmp += rhs;
@@ -281,17 +289,19 @@ impl<I: DynamicModIntId> ModIntBase for DynamicModInt<I> {
     }
 }
 
-impl<I: DynamicModIntId> Display for DynamicModInt<I> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.val)
-    }
-}
+impl<I: DynamicModIntId> InternalImpls for DynamicModInt<I> {}
 
-impl<I: DynamicModIntId> Debug for DynamicModInt<I> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} (mod {})", self.val, Self::modulus())
-    }
-}
+// impl<I: DynamicModIntId> Display for DynamicModInt<I> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "{}", self.val)
+//     }
+// }
+
+// impl<I: DynamicModIntId> Debug for DynamicModInt<I> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "{} (mod {})", self.val, Self::modulus())
+//     }
+// }
 
 macro_rules! impl_modint {
     ( $( ($mod:ident, $val:literal, $modint:ident), )* ) => { $(
@@ -397,6 +407,33 @@ macro_rules! impl_folding {
     };
 }
 
+macro_rules! impl_basic_traits {
+    () => {};
+    (impl<$generic_param:ident : $bound:tt> _ for $self:ty; $($rest:tt)*) => {
+        impl<$generic_param: $bound> Default for $self {
+            fn default() -> Self { Self::zero() }
+        }
+        impl<$generic_param: $bound> Hash for $self {
+            fn hash<H: Hasher>(&self, state: &mut H) { self.hash_impl(state) }
+        }
+        impl<$generic_param: $bound> Display for $self {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                self.display_impl(f)
+            }
+        }
+        impl<$generic_param: $bound> Debug for $self {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                self.debug_impl(f)
+            }
+        }
+        impl<$generic_param: $bound> Neg for $self {
+            type Output = $self;
+            fn neg(self) -> Self { self.neg_impl() }
+        }
+        impl_basic_traits!($($rest)*);
+    };
+}
+
 impl_bin_ops! {
     for<M: Modulus> <StaticModInt<M>> @ <StaticModInt<M>> -> StaticModInt<M> { self @ }
     for<M: Modulus> <StaticModInt<M>> @ <&'_ StaticModInt<M>> -> StaticModInt<M> { self @ * }
@@ -420,6 +457,11 @@ impl_folding! {
     impl<M: Modulus> Product<_> for StaticModInt<M> { fn product(_) -> _ { _(Self::new(1), Mul::mul)} }
     impl<I: DynamicModIntId> Sum<_> for DynamicModInt<I> { fn sum(_) -> _ { _(Self::new(0), Add::add)} }
     impl<I: DynamicModIntId> Product<_> for DynamicModInt<I> { fn product(_) -> _ { _(Self::new(1), Mul::mul)} }
+}
+
+impl_basic_traits! {
+    impl<M: Modulus> _ for StaticModInt<M>;
+    impl<I: DynamicModIntId> _ for DynamicModInt<I>;
 }
 
 #[test]
@@ -447,6 +489,15 @@ fn sanity_check() {
     let sum10: Md = (1..=10).map(Md::new).sum();
     assert_eq!(sum10, Md::new(55));
     assert_eq!(sum10.val, 55 % 4);
+}
+
+#[test]
+fn fmt() {
+    type Mi = ModInt998244353;
+
+    let x = Mi::new(123);
+    assert_eq!(format!("{}", x), "123");
+    assert_eq!(format!("{:?}", x), "123 (mod 998244353)");
 }
 
 // todo:
