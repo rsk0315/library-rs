@@ -352,13 +352,13 @@ whole = [["math", "euler_phi"], ["math", "factors"]]
 
 [[depends]]
 name = ["math", "modint"]
-direct = [["math", "gcd_recip"], ["math", "mod_pow"]]
-whole = [["math", "gcd_recip"], ["math", "mod_pow"]]
+direct = [["math", "gcd_recip"]]
+whole = [["math", "gcd_recip"]]
 
 [[depends]]
 name = ["math", "polynomial"]
 direct = [["math", "modint"]]
-whole = [["math", "gcd_recip"], ["math", "mod_pow"], ["math", "modint"]]
+whole = [["math", "gcd_recip"], ["math", "modint"]]
 
 [[depends]]
 name = ["math", "prime_pi_"]
