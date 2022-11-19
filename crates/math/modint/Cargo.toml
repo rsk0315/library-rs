@@ -11,4 +11,4 @@ edition = "2018"
 # additive = { path = "../../traits/additive" }
 # multiplicative = { path = "../../traits/multiplicative" }
 gcd_recip = { path = "../gcd_recip" }
-mod_pow = { path = "../mod_pow" }
+# mod_pow = { path = "../mod_pow" }

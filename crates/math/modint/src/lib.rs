@@ -8,7 +8,6 @@ use std::ops::{
 use std::sync::atomic::{self, AtomicU32, AtomicU64};
 
 use gcd_recip::GcdRecip;
-use mod_pow::ModPow;
 
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
 pub struct StaticModInt<M> {
@@ -52,13 +51,17 @@ pub trait ModIntBase:
             None
         }
     }
-    fn pow(self, iexp: u64) -> Self {
-        unsafe {
-            Self::new_unchecked(
-                (self.get() as u64).mod_pow(iexp, Self::modulus() as u64)
-                    as u32,
-            )
+    fn pow(self, mut iexp: u64) -> Self {
+        let mut res = Self::new(1);
+        let mut a = self;
+        while iexp > 0 {
+            if iexp & 1 != 0 {
+                res *= a;
+            }
+            a *= a;
+            iexp >>= 1;
         }
+        res
     }
 }
 
@@ -451,5 +454,3 @@ fn sanity_check() {
 //     - butterfly
 // - static
 //     - use IS_PRIME?
-// - dynamic
-//     - mod pow with Barrett reduction
