@@ -48,11 +48,8 @@ pub trait ModIntBase:
     fn recip(self) -> Self { self.checked_recip().unwrap() }
     fn checked_recip(self) -> Option<Self> {
         let (g, r) = (self.get() as u64).gcd_recip(Self::modulus() as u64);
-        if g == 1 {
-            Some(unsafe { Self::new_unchecked(r as u32) })
-        } else {
-            None
-        }
+        let r = r as u32;
+        if g == 1 { Some(unsafe { Self::new_unchecked(r) }) } else { None }
     }
     fn pow(self, mut iexp: u64) -> Self {
         let mut res = Self::new(1);
@@ -244,7 +241,8 @@ impl<I: DynamicModIntId> DynamicModInt<I> {
         tmp
     }
     fn mul_impl(self, rhs: Self) -> Self {
-        unsafe { Self::new_unchecked(I::barrett().mul(self.val, rhs.val)) }
+        let v = I::barrett().mul(self.val, rhs.val);
+        unsafe { Self::new_unchecked(v) }
     }
     fn div_impl(self, rhs: Self) -> Self { self.mul_impl(rhs.recip()) }
     fn add_assign_impl(&mut self, rhs: Self) {
