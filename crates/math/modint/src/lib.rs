@@ -43,7 +43,10 @@ pub trait ModIntBase:
 {
     fn modulus() -> u32;
     fn get(self) -> u32;
-    fn new(n: u32) -> Self;
+    fn new(n: impl RemEuclidU32) -> Self {
+        let n = n.rem_euclid_u32(Self::modulus());
+        unsafe { Self::new_unchecked(n) }
+    }
     unsafe fn new_unchecked(n: u32) -> Self;
     fn recip(self) -> Self { self.checked_recip().unwrap() }
     fn checked_recip(self) -> Option<Self> {
@@ -117,9 +120,6 @@ impl<M: Modulus> StaticModInt<M> {
 impl<M: Modulus> ModIntBase for StaticModInt<M> {
     fn modulus() -> u32 { Self::modulus() }
     fn get(self) -> u32 { self.val }
-    fn new(n: u32) -> Self {
-        Self { val: (n % Self::modulus()), _phd: PhantomData }
-    }
     unsafe fn new_unchecked(val: u32) -> Self {
         Self { val, _phd: PhantomData }
     }
@@ -273,9 +273,6 @@ impl<I: DynamicModIntId> DynamicModInt<I> {
 impl<I: DynamicModIntId> ModIntBase for DynamicModInt<I> {
     fn modulus() -> u32 { Self::modulus() }
     fn get(self) -> u32 { self.val }
-    fn new(n: u32) -> Self {
-        Self { val: (n % Self::modulus()), _phd: PhantomData }
-    }
     unsafe fn new_unchecked(val: u32) -> Self {
         Self { val, _phd: PhantomData }
     }
@@ -444,6 +441,24 @@ impl_basic_traits! {
     impl<I: DynamicModIntId> _ for DynamicModInt<I>;
 }
 
+pub trait RemEuclidU32 {
+    fn rem_euclid_u32(self, n: u32) -> u32;
+}
+
+macro_rules! impl_rem_euclid_u32 {
+    ( $($ty:ty)* ) => { $(
+        impl RemEuclidU32 for $ty {
+            fn rem_euclid_u32(self, n: u32) -> u32 {
+                self.rem_euclid(n as $ty) as u32
+            }
+        }
+    )* }
+}
+
+impl_rem_euclid_u32! {
+    i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize
+}
+
 #[test]
 fn sanity_check() {
     // assert!(Mod998244353::IS_PRIME);
@@ -472,6 +487,11 @@ fn sanity_check() {
 }
 
 #[test]
+fn negative() {
+    assert_eq!(ModInt998244353::new(-1).get(), 998244352);
+}
+
+#[test]
 fn fmt() {
     type Mi = ModInt998244353;
 
@@ -479,9 +499,3 @@ fn fmt() {
     assert_eq!(format!("{}", x), "123");
     assert_eq!(format!("{:?}", x), "123 (mod 998244353)");
 }
-
-// todo:
-// - static/dynamic
-//     - butterfly
-// - static
-//     - use IS_PRIME?
