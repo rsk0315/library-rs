@@ -291,6 +291,11 @@ direct = [["ds", "rs_dict"], ["traits", "count"], ["traits", "find_nth"], ["trai
 whole = [["ds", "rs_dict"], ["traits", "count"], ["traits", "find_nth"], ["traits", "quantile"], ["utils", "buf_range"]]
 
 [[depends]]
+name = ["graph", "dijkstra"]
+direct = [["graph", "sssp"]]
+whole = [["graph", "sssp"]]
+
+[[depends]]
 name = ["math", "carmichael_lambda"]
 direct = [["math", "factors"], ["math", "lcm"]]
 whole = [["math", "factors"], ["math", "gcd"], ["math", "lcm"]]
