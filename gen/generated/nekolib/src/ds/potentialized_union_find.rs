@@ -49,19 +49,24 @@ where
 
     fn len(&self) -> usize { self.n }
 
-    fn relate(&mut self, u: usize, v: usize, w: G::Set) -> Option<bool> {
+    fn relate(
+        &mut self,
+        u: usize,
+        v: usize,
+        w: G::Set,
+    ) -> Result<bool, G::Set> {
         let ru = self.repr(u);
         let rv = self.repr(v);
         let mut buf = self.buf.borrow_mut();
         let mut pot = self.pot.borrow_mut();
         // w += p[v] - p[u];
-        let w = self.cgroup.op(
-            w,
-            self.cgroup.op(pot[v].clone(), self.cgroup.recip(pot[u].clone())),
-        );
+        let diff =
+            self.cgroup.op(pot[v].clone(), self.cgroup.recip(pot[u].clone()));
         if ru == rv {
-            return if w == self.cgroup.id() { Some(false) } else { None };
+            let w_old = self.cgroup.recip(diff);
+            return if w == w_old { Ok(false) } else { Err(w_old) };
         }
+        let w = self.cgroup.op(w, diff);
 
         let (su, sv) = match (buf[ru], buf[rv]) {
             (Item::Size(su), Item::Size(sv)) => (su, sv),
@@ -73,7 +78,7 @@ where
         buf[par] = Item::Size(su + sv);
         buf[child] = Item::Parent(par);
         pot[child] = d;
-        Some(true)
+        Ok(true)
     }
 
     fn diff(&self, u: usize, v: usize) -> Option<G::Set> {
@@ -82,6 +87,11 @@ where
         }
         let pot = self.pot.borrow();
         Some(self.cgroup.op(pot[u].clone(), self.cgroup.recip(pot[v].clone())))
+    }
+
+    fn repr_diff(&self, u: usize) -> (usize, G::Set) {
+        let ru = self.repr(u);
+        (ru, self.pot.borrow()[u].clone())
     }
 }
 
@@ -116,4 +126,25 @@ where
         }
         res
     }
+}
+
+#[test]
+fn sanity_check() {
+    use binop::{
+        new_monoid, Associative, Commutative, Identity, Magma, PartialRecip,
+        Recip,
+    };
+
+    new_monoid! { OpXor = (u32, |x, y| x ^ y, 0, |x| x, +commutative) };
+
+    let mut uf = PotentializedUnionFind::<OpXor>::with_len(4);
+    assert_eq!(uf.relate(0, 1, 1), Ok(true));
+    assert_eq!(uf.relate(0, 2, 1), Ok(true));
+    assert_eq!(uf.relate(1, 2, 1), Err(0));
+    assert_eq!(uf.relate(1, 2, 0), Ok(false));
+
+    assert_ne!(uf.repr_diff(0).1, uf.repr_diff(1).1);
+    assert_ne!(uf.repr_diff(0).1, uf.repr_diff(2).1);
+    assert_eq!(uf.repr_diff(1).1, uf.repr_diff(2).1);
+    assert_eq!(uf.repr_diff(3), (3, 0));
 }
