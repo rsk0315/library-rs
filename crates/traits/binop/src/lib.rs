@@ -224,3 +224,91 @@ where
         }
     }
 }
+
+#[macro_export]
+macro_rules! new_monoid {
+    ( $ident:ident = ($ty:ty, $op:expr, $id:expr) ) => {
+        struct $ident;
+        impl Magma for $ident {
+            type Set = $ty;
+            fn op(&self, x: $ty, y: $ty) -> $ty { ($op)(x, y) }
+        }
+        impl Associative for $ident {}
+        impl Identity for $ident {
+            fn id(&self) -> $ty { $id }
+        }
+        impl Default for $ident {
+            fn default() -> Self { Self }
+        }
+    };
+    ( $ident:ident = ($ty:ty, $op:expr, $id:expr, +commutative) ) => {
+        struct $ident;
+        impl Magma for $ident {
+            type Set = $ty;
+            fn op(&self, x: $ty, y: $ty) -> $ty { ($op)(x, y) }
+        }
+        impl Associative for $ident {}
+        impl Identity for $ident {
+            fn id(&self) -> $ty { $id }
+        }
+        impl Commutative for $ident {}
+        impl Default for $ident {
+            fn default() -> Self { Self }
+        }
+    };
+    ( $ident:ident = ($ty:ty, $op:expr, $id:expr, $recip:expr) ) => {
+        struct $ident;
+        impl Magma for $ident {
+            type Set = $ty;
+            fn op(&self, x: $ty, y: $ty) -> $ty { ($op)(x, y) }
+        }
+        impl Associative for $ident {}
+        impl Identity for $ident {
+            fn id(&self) -> $ty { $id }
+        }
+        impl Recip for $ident {
+            fn recip(&self, x: $ty) -> $ty { ($recip)($x) }
+        }
+        impl PartialRecip for $ident {
+            fn partial_recip(&self, x: $ty) -> Option<$ty> {
+                Some(self.recip(x))
+            }
+        }
+        impl Default for $ident {
+            fn default() -> Self { Self }
+        }
+    };
+    ( $ident:ident = ($ty:ty, $op:expr, $id:expr, $recip:expr, +commutative) ) => {
+        struct $ident;
+        impl Magma for $ident {
+            type Set = $ty;
+            fn op(&self, x: $ty, y: $ty) -> $ty { ($op)(x, y) }
+        }
+        impl Associative for $ident {}
+        impl Identity for $ident {
+            fn id(&self) -> $ty { $id }
+        }
+        impl Recip for $ident {
+            fn recip(&self, x: $ty) -> $ty { ($recip)(x) }
+        }
+        impl PartialRecip for $ident {
+            fn partial_recip(&self, x: $ty) -> Option<$ty> {
+                Some(self.recip(x))
+            }
+        }
+        impl Commutative for $ident {}
+        impl Default for $ident {
+            fn default() -> Self { Self }
+        }
+    };
+}
+
+#[test]
+fn sanity_check() {
+    new_monoid! { OpXor1 = (u32, |x, y| x ^ y, 0, |x| x, +commutative) }
+
+    let monoid = OpXor1::default();
+    assert_eq!(monoid.id(), 0);
+    assert_eq!(monoid.op(2, 3), 1);
+    assert_eq!(monoid.recip(4), 4);
+}

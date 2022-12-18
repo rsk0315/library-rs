@@ -19,18 +19,22 @@ pub trait PotentialFunction {
     /// $\\phi(x\_u)-\\phi(x\_v) = w$ とする。
     ///
     /// 呼び出し前の定義と矛盾しない場合、呼び出し前に $\\phi(x\_u)-\\phi(x\_v)$ が未定義なら
-    /// `Some(true)` を、そうでなければ `Some(false)` を返す。
-    /// 矛盾する場合、定義は変化せずに `None` を返す。
+    /// `Ok(true)` を、そうでなければ `Ok(false)` を返す。
+    /// 矛盾する場合、定義は変化せずに `Err(e)` を返す。ただし、`e`
+    /// は呼び出し前の $\\phi(x\_u) - \\phi(x\_v)$ を表す。
     fn relate(
         &mut self,
         u: usize,
         v: usize,
         w: <Self::Item as Magma>::Set,
-    ) -> Option<bool>;
+    ) -> Result<bool, <Self::Item as Magma>::Set>;
 
     /// ポテンシャルの差を求める。
     ///
     /// $\\phi(x\_u)-\\phi(x\_v) = w$ であれば `Some(w)` を返す。
     /// 未定義ならば `None` を返す。
     fn diff(&self, u: usize, v: usize) -> Option<<Self::Item as Magma>::Set>;
+
+    /// 代表元とのポテンシャルの差を求める。
+    fn repr_diff(&self, u: usize) -> (usize, <Self::Item as Magma>::Set);
 }
