@@ -36,7 +36,7 @@ pub struct CommonQuotStruct<I> {
     n: I,
 }
 
-macro_rules! impl_common_quot_unit {
+macro_rules! impl_common_quot_uint {
     ( $($ty:ty)* ) => { $(
         impl CommonQuot for $ty {
             type Output = CommonQuotStruct<$ty>;
@@ -64,7 +64,7 @@ macro_rules! impl_common_quot_unit {
     )* };
 }
 
-impl_common_quot_unit! { u8 u16 u32 u64 u128 usize }
+impl_common_quot_uint! { u8 u16 u32 u64 u128 usize }
 
 #[test]
 fn test_small() {
