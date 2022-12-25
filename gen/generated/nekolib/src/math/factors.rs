@@ -29,7 +29,7 @@ pub struct FactorsStruct<I> {
     n: I,
 }
 
-macro_rules! impl_factors_unit {
+macro_rules! impl_factors_uint {
     ( $($ty:ty)* ) => { $(
         impl Factors for $ty {
             type Output = FactorsStruct<$ty>;
@@ -67,7 +67,7 @@ macro_rules! impl_factors_unit {
     )* };
 }
 
-impl_factors_unit! { u8 u16 u32 u64 u128 usize }
+impl_factors_uint! { u8 u16 u32 u64 u128 usize }
 
 #[test]
 fn test_small() {

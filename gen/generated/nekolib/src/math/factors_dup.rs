@@ -33,7 +33,7 @@ pub struct FactorsDupStruct<I> {
     n: I,
 }
 
-macro_rules! impl_factors_dup_unit {
+macro_rules! impl_factors_dup_uint {
     ( $($ty:ty)* ) => { $(
         impl FactorsDup for $ty {
             type Output = FactorsDupStruct<$ty>;
@@ -66,7 +66,7 @@ macro_rules! impl_factors_dup_unit {
     )* };
 }
 
-impl_factors_dup_unit! { u8 u16 u32 u64 u128 usize }
+impl_factors_dup_uint! { u8 u16 u32 u64 u128 usize }
 
 #[test]
 fn test_small() {
