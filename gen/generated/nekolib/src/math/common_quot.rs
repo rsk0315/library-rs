@@ -41,17 +41,21 @@ macro_rules! impl_common_quot_unit {
         impl CommonQuot for $ty {
             type Output = CommonQuotStruct<$ty>;
             fn common_quot(self) -> Self::Output {
-                Self::Output { i: 1, n: self }
+                Self::Output { i: 0, n: self }
             }
         }
         impl Iterator for CommonQuotStruct<$ty> {
             type Item = ($ty, $ty);
             fn next(&mut self) -> Option<($ty, $ty)> {
+                if self.i >= self.n {
+                    return None;
+                }
+                self.i += 1;
                 if self.i <= self.n {
                     let l = self.i;
                     let q = self.n / l;
                     let r = self.n / q;
-                    self.i = r + 1;
+                    self.i = r;
                     return Some((l, r));
                 }
                 None
@@ -144,6 +148,40 @@ fn test() {
         if n == 60 {
             eprintln!("{:?}", actual);
         }
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn overflow() {
+    for i in (1_u32..=1000)
+        .flat_map(|i| [i.wrapping_neg(), 2_u32.pow(16) * (2_u32.pow(16) - i)])
+    {
+        let actual: Vec<_> = i.common_quot().collect();
+        let expected: Vec<_> = (i as u64)
+            .common_quot()
+            .map(|(l, r)| (l as u32, r as u32))
+            .collect();
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn overflow_exhaustive() {
+    for i in u8::MIN..=u8::MAX {
+        eprintln!("{}_u8", i);
+        let actual: Vec<_> = i.common_quot().collect();
+        let expected: Vec<_> =
+            (i as u32).common_quot().map(|(l, r)| (l as u8, r as u8)).collect();
+        assert_eq!(actual, expected);
+    }
+    for i in u16::MIN..=u16::MAX {
+        eprintln!("{}_u16", i);
+        let actual: Vec<_> = i.common_quot().collect();
+        let expected: Vec<_> = (i as u32)
+            .common_quot()
+            .map(|(l, r)| (l as u16, r as u16))
+            .collect();
         assert_eq!(actual, expected);
     }
 }

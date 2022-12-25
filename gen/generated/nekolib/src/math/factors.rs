@@ -128,11 +128,12 @@ fn test() {
 
 #[test]
 fn overflow() {
-    for i in 1..=1000 {
-        let hack = 2_u32.pow(16) * (2_u32.pow(16) - i);
-        let actual: Vec<_> = hack.factors().collect();
+    for i in (1_u32..=1000)
+        .flat_map(|i| [i.wrapping_neg(), 2_u32.pow(16) * (2_u32.pow(16) - i)])
+    {
+        let actual: Vec<_> = i.factors().collect();
         let expected: Vec<_> =
-            (hack as u64).factors().map(|(p, e)| (p as u32, e)).collect();
+            (i as u64).factors().map(|(p, e)| (p as u32, e)).collect();
         assert_eq!(actual, expected);
     }
 }
