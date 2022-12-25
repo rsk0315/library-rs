@@ -71,6 +71,4 @@ fn test() {
 
     let s = "hello";
     println!("{:x}", Hexdump::<[u8]>(s.as_ref()));
-
-    panic!()
 }

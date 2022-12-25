@@ -23,7 +23,7 @@ pub struct DivisorsStruct<I> {
     n: I,
 }
 
-macro_rules! impl_divisors_unit {
+macro_rules! impl_divisors_uint {
     ( $($ty:ty)* ) => { $(
         impl Divisors for $ty {
             type Output = DivisorsStruct<$ty>;
@@ -31,21 +31,31 @@ macro_rules! impl_divisors_unit {
                 Self::Output { below: true, i: 0, n: self }
             }
         }
-        impl Iterator for DivisorsStruct<$ty> {
-            type Item = $ty;
-            fn next(&mut self) -> Option<$ty> {
-                if self.below {
+        impl DivisorsStruct<$ty> {
+            fn increment(&mut self) -> Option<$ty> {
+                if !self.below {
+                    return None;
+                }
+                loop {
                     self.i += 1;
-                    while self.i.pow(2) <= self.n && self.n % self.i != 0 {
-                        self.i += 1;
-                    }
-                    if self.i.pow(2) >= self.n {
+                    let ii = if let Some(ii) = self.i.checked_pow(2) {
+                        ii
+                    } else {
                         self.below = false;
+                        return None;
+                    };
+                    if ii >= self.n {
+                        self.below = false;
+                        if ii > self.n {
+                            return None;
+                        }
                     }
-                    if self.i.pow(2) <= self.n && self.n % self.i == 0 {
+                    if self.n % self.i == 0 {
                         return Some(self.i);
                     }
                 }
+            }
+            fn decrement(&mut self) -> Option<$ty> {
                 while self.i > 1 {
                     self.i -= 1;
                     if self.n % self.i == 0 {
@@ -55,10 +65,16 @@ macro_rules! impl_divisors_unit {
                 None
             }
         }
+        impl Iterator for DivisorsStruct<$ty> {
+            type Item = $ty;
+            fn next(&mut self) -> Option<$ty> {
+                self.increment().or_else(|| self.decrement())
+            }
+        }
     )* };
 }
 
-impl_divisors_unit! { u8 u16 u32 u64 u128 usize }
+impl_divisors_uint! { u8 u16 u32 u64 u128 usize }
 
 #[test]
 fn test() {
@@ -66,6 +82,27 @@ fn test() {
     for i in 0..=n {
         let actual: Vec<_> = i.divisors().collect();
         let expected: Vec<_> = (1..=i).filter(|&j| i % j == 0).collect();
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn overflow() {
+    for i in 1..=100 {
+        let hack = 2_u32.pow(16) * (2_u32.pow(16) - i);
+        let actual: Vec<_> = hack.divisors().collect();
+        let expected: Vec<_> =
+            (hack as u64).divisors().map(|d| d as u32).collect();
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn overflow_exhaustive() {
+    for i in u16::MIN..=u16::MAX {
+        let actual: Vec<_> = i.divisors().collect();
+        let expected: Vec<_> =
+            (i as u32).divisors().map(|d| d as u16).collect();
         assert_eq!(actual, expected);
     }
 }
