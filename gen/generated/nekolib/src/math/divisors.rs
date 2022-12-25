@@ -88,7 +88,7 @@ fn test() {
 
 #[test]
 fn overflow() {
-    for i in 1..=100 {
+    for i in 1..=1000 {
         let hack = 2_u32.pow(16) * (2_u32.pow(16) - i);
         let actual: Vec<_> = hack.divisors().collect();
         let expected: Vec<_> =
@@ -99,6 +99,11 @@ fn overflow() {
 
 #[test]
 fn overflow_exhaustive() {
+    for i in u8::MIN..=u8::MAX {
+        let actual: Vec<_> = i.divisors().collect();
+        let expected: Vec<_> = (i as u32).divisors().map(|d| d as u8).collect();
+        assert_eq!(actual, expected);
+    }
     for i in u16::MIN..=u16::MAX {
         let actual: Vec<_> = i.divisors().collect();
         let expected: Vec<_> =

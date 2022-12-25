@@ -47,18 +47,20 @@ macro_rules! impl_factors_dup_unit {
                 if self.n <= 1 || self.i == 0 {
                     return None;
                 }
-                while self.i * self.i <= self.n {
-                    if self.n % self.i == 0 {
-                        self.n /= self.i;
-                        return Some(self.i);
+                loop {
+                    match self.i.checked_pow(2) {
+                        Some(_) if self.n % self.i == 0 => {
+                            self.n /= self.i;
+                            return Some(self.i);
+                        }
+                        Some(ii) if ii <= self.n => {
+                            self.i += 1;
+                        }
+                        _ => {
+                            return Some(std::mem::take(&mut self.n));
+                        }
                     }
-                    self.i += 1;
                 }
-                if self.n > 1 {
-                    self.i = 0;
-                    return Some(self.n);
-                }
-                None
             }
         }
     )* };
@@ -115,6 +117,33 @@ fn test() {
             }
             res
         };
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn overflow() {
+    for i in 1..=1000 {
+        let hack = 2_u32.pow(16) * (2_u32.pow(16) - i);
+        let actual: Vec<_> = hack.factors_dup().collect();
+        let expected: Vec<_> =
+            (hack as u64).factors_dup().map(|d| d as u32).collect();
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn overflow_exhaustive() {
+    for i in u8::MIN..=u8::MAX {
+        let actual: Vec<_> = i.factors_dup().collect();
+        let expected: Vec<_> =
+            (i as u32).factors_dup().map(|d| d as u8).collect();
+        assert_eq!(actual, expected);
+    }
+    for i in u16::MIN..=u16::MAX {
+        let actual: Vec<_> = i.factors_dup().collect();
+        let expected: Vec<_> =
+            (i as u32).factors_dup().map(|d| d as u16).collect();
         assert_eq!(actual, expected);
     }
 }

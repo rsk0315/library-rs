@@ -43,23 +43,25 @@ macro_rules! impl_factors_unit {
                 if self.n <= 1 || self.i == 0 {
                     return None;
                 }
-                while self.i * self.i <= self.n {
-                    while self.n % self.i == 0 {
-                        let mut e = 1;
-                        self.n /= self.i;
-                        while self.n % self.i == 0 {
+                loop {
+                    match self.i.checked_pow(2) {
+                        Some(_) if self.n % self.i == 0 => {
+                            let mut e = 1;
                             self.n /= self.i;
-                            e += 1;
+                            while self.n % self.i == 0 {
+                                self.n /= self.i;
+                                e += 1;
+                            }
+                            return Some((self.i, e));
                         }
-                        return Some((self.i, e));
+                        Some(ii) if ii <= self.n => {
+                            self.i += 1;
+                        }
+                        _ => {
+                            return Some((std::mem::take(&mut self.n), 1));
+                        }
                     }
-                    self.i += 1;
                 }
-                if self.i > 0 {
-                    self.i = 0;
-                    return Some((self.n, 1));
-                }
-                None
             }
         }
     )* };
@@ -120,6 +122,33 @@ fn test() {
             }
             res
         };
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn overflow() {
+    for i in 1..=1000 {
+        let hack = 2_u32.pow(16) * (2_u32.pow(16) - i);
+        let actual: Vec<_> = hack.factors().collect();
+        let expected: Vec<_> =
+            (hack as u64).factors().map(|(p, e)| (p as u32, e)).collect();
+        assert_eq!(actual, expected);
+    }
+}
+
+#[test]
+fn overflow_exhaustive() {
+    for i in u8::MIN..=u8::MAX {
+        let actual: Vec<_> = i.factors().collect();
+        let expected: Vec<_> =
+            (i as u32).factors().map(|(p, e)| (p as u8, e)).collect();
+        assert_eq!(actual, expected);
+    }
+    for i in u16::MIN..=u16::MAX {
+        let actual: Vec<_> = i.factors().collect();
+        let expected: Vec<_> =
+            (i as u32).factors().map(|(p, e)| (p as u16, e)).collect();
         assert_eq!(actual, expected);
     }
 }
