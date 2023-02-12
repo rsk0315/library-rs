@@ -359,6 +359,36 @@ impl From<String> for SuffixArray<char> {
     }
 }
 
+impl SuffixArray<u8> {
+    pub fn from_bytes(buf: Vec<u8>) -> Self {
+        let buf_usize = hash_bytes(&buf);
+        let sa = sa_is(&buf_usize);
+        Self { buf, sa }
+    }
+}
+
+impl SuffixArray<usize> {
+    pub fn from_hashed(buf: Vec<usize>) -> Self {
+        assert!(Self::is_hashed(&buf));
+        let buf_usize: Vec<_> =
+            buf.iter().map(|&x| x + 1).chain(Some(0)).collect();
+
+        let sa = sa_is(&buf_usize);
+        Self { buf, sa }
+    }
+
+    fn is_hashed(buf: &[usize]) -> bool {
+        let mut count = vec![0; buf.len()];
+        for &x in buf {
+            count[x] += 1;
+        }
+        (0..buf.len())
+            .find(|&i| count[i] == 0)
+            .map(|i| (i..count.len()).all(|i| count[i] == 0))
+            .unwrap_or(true)
+    }
+}
+
 /// 座標圧縮をする。
 ///
 /// `buf` の末尾に辞書順最小の文字 `$` を付加した列を、座標圧縮して返す。
@@ -392,6 +422,26 @@ fn hash_chars(buf: &[char]) -> Vec<usize> {
         enc
     };
     buf.iter().map(|&x| enc[x as usize])
+        .chain(std::iter::once(0)) // for '$'
+        .collect()
+}
+
+/// 座標圧縮をする。
+///
+/// `buf` の末尾に辞書順最小の文字 `$` を付加した列を、座標圧縮して返す。`u8`
+/// の列を受け取り、バケットソートの要領で行う。
+fn hash_bytes(buf: &[u8]) -> Vec<usize> {
+    let enc = {
+        let mut enc = vec![0; 256];
+        for &b in buf {
+            enc[b as usize] = 1;
+        }
+        for i in 1..=255 {
+            enc[i] += enc[i - 1];
+        }
+        enc
+    };
+    buf.iter().map(|&x| enc[x as usize] )
         .chain(std::iter::once(0)) // for '$'
         .collect()
 }
