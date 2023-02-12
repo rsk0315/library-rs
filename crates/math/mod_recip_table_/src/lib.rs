@@ -62,7 +62,9 @@
 /// ```
 pub fn mod_recip_table_prime(n: u64, m: u64) -> Vec<u64> {
     let mut dp = vec![0; n as usize + 1];
-    dp[1] = 1;
+    if 1 <= n {
+        dp[1] = 1;
+    }
     for i in 2..=n.min(m - 1) {
         let (q, r) = (m / i, m % i);
         if dp[r as usize] > 0 {
