@@ -15,6 +15,7 @@ pub mod mo;
 pub mod ordered_hash_;
 pub mod parallel_bisect;
 pub mod permutation;
+pub mod rle;
 pub mod tortoise_hare;
 pub mod window_bisect;
 
@@ -48,6 +49,8 @@ pub use parallel_bisect::parallel_bisect;
 pub use permutation::{
     next_permutation, prev_permutation, Backward, Forward, Permutations,
 };
+#[doc(inline)]
+pub use rle::{Rle, RleBy, RleByKey};
 #[doc(inline)]
 pub use tortoise_hare::{cycle_mu_lambda, cycle_nth};
 #[doc(inline)]
