@@ -35,6 +35,7 @@ pub mod mod_pow;
 pub mod mod_recip_table_;
 pub mod mod_tetration;
 pub mod prime_pi_;
+pub mod segmented_factor_sieve;
 pub mod sieve_n2_plus_1;
 pub mod sieve_n2_plus_n_plus_1;
 pub mod slope_function;
@@ -55,6 +56,8 @@ pub use compact_sieve::CompactSieve;
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
 pub use continued_fraction_::continued_fraction;
+#[doc(inline)]
+pub use segmented_factor_sieve::SegmentedFactorSieve;
 // #[doc(inline)]
 // pub use count_prime::prime_pi;
 #[doc(inline)]
