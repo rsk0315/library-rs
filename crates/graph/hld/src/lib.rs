@@ -11,6 +11,34 @@ pub struct Hld {
     depth: Vec<usize>,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum HlEdge {
+    Heavy(usize, usize),
+    Light(usize, usize),
+}
+use HlEdge::{Heavy, Light};
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Direction {
+    Asc,
+    Desc,
+}
+use Direction::{Asc, Desc};
+
+impl HlEdge {
+    pub fn rev(self) -> Self {
+        match self {
+            Heavy(u, v) => Heavy(v, u),
+            Light(u, v) => Light(v, u),
+        }
+    }
+    pub fn inner(self) -> (usize, usize) {
+        match self {
+            Heavy(u, v) | Light(u, v) => (u, v),
+        }
+    }
+}
+
 impl Hld {
     // g[v] は、子方向への隣接頂点のみを持つとする。
     pub fn new(mut g: Vec<Vec<usize>>, r: usize) -> Self {
@@ -27,14 +55,34 @@ impl Hld {
         Self { perm, perm_inv, inout, heavy, par, depth }
     }
 
-    pub fn lca(&self, ou: usize, ov: usize) -> usize {
+    pub fn lca_decoded(&self, ou: usize, ov: usize) -> usize {
         let u = self.perm[ou];
         let v = self.perm[ov];
-        let w = self.lca_inner(u, v);
+        let w = self.lca(u, v);
         self.perm_inv[w]
     }
 
-    fn lca_inner(&self, u: usize, v: usize) -> usize {
+    pub fn path(
+        &self,
+        ou: usize,
+        ov: usize,
+    ) -> impl Iterator<Item = (HlEdge, Direction)> {
+        let u = self.perm[ou];
+        let v = self.perm[ov];
+        let w = self.lca(u, v);
+        let asc = self.ascend(u, w).map(|e| (e, Asc));
+        let desc = self.ascend(v, w).map(|e| (e.rev(), Desc)).rev();
+        asc.chain(desc)
+    }
+
+    pub fn subtree_range(&self, ov: usize) -> (usize, usize) {
+        self.inout[self.perm[ov]]
+    }
+
+    pub fn encode(&self, ov: usize) -> usize { self.perm[ov] }
+    pub fn decode(&self, v: usize) -> usize { self.perm_inv[v] }
+
+    fn lca(&self, u: usize, v: usize) -> usize {
         let dh = |v| self.depth[self.heavy[v]];
         let (mut lo, mut hi) = if dh(u) > dh(v) { (u, v) } else { (v, u) };
 
@@ -146,5 +194,26 @@ impl Hld {
         let mut depth = vec![0; n];
         dfs(g, r, &mut par, &mut depth);
         (par, depth)
+    }
+
+    fn ascend(
+        &self,
+        mut v: usize,
+        r: usize,
+    ) -> impl Iterator<Item = HlEdge> + DoubleEndedIterator {
+        let mut res = vec![];
+        while self.heavy[v] != self.heavy[r] {
+            if self.heavy[v] == v {
+                res.push(Light(v, self.par[v]));
+                v = self.par[v];
+            } else {
+                res.push(Heavy(v, self.heavy[v]));
+                v = self.heavy[v];
+            }
+        }
+        if v != r {
+            res.push(Heavy(v, r));
+        }
+        res.into_iter()
     }
 }
