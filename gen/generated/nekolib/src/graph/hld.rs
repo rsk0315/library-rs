@@ -1,6 +1,12 @@
+//! HL 分解。
+
 use std::fmt::Debug;
 
+/// HL 分解。
+///
 /// <https://codeforces.com/blog/entry/53170>, Easiest HLD with subtree queries.
+///
+/// <https://atcoder.jp/contests/abc294/submissions/39923465>
 #[derive(Clone, Debug)]
 pub struct Hld {
     perm: Vec<usize>,
