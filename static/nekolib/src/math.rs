@@ -21,6 +21,7 @@ pub mod equiv_mod;
 pub mod euler_phi;
 pub mod factors;
 pub mod factors_dup;
+pub mod fraction_bisect;
 pub mod gcd;
 pub mod gcd_recip;
 pub mod harmonic_floor_sum;
@@ -56,6 +57,8 @@ pub use compact_sieve::CompactSieve;
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
 pub use continued_fraction_::continued_fraction;
+#[doc(inline)]
+pub use fraction_bisect::FractionBisect;
 #[doc(inline)]
 pub use segmented_factor_sieve::SegmentedFactorSieve;
 // #[doc(inline)]
