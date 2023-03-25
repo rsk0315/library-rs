@@ -13,6 +13,10 @@ pub trait FractionBisect: Sized + SbInt {
         let mut upper = Fraction::infty();
         loop {
             let cur = lower + upper;
+            if cur.is_deeper(bound) {
+                return upper.into_inner();
+            }
+
             let tf = pred(cur);
             let (from, to) = if tf { (lower, upper) } else { (upper, lower) };
 
@@ -98,6 +102,6 @@ impl<I: SbInt> Fraction<I> {
 #[test]
 fn sanity_check() {
     let sqrt3 = 5000_u64.fraction_bisect(|x, y| x * x <= 3 * y * y);
-    // 解説コード中のコメントまたは解説コードに誤りがある？
-    assert_eq!(sqrt3, (5042, 2911));
+    // assert_eq!(sqrt3, (5042, 2911));
+    assert_eq!(sqrt3, (1351, 780));
 }
