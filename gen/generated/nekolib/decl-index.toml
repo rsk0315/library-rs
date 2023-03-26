@@ -221,11 +221,6 @@ direct = [["traits", "elastic_slice"]]
 whole = [["traits", "elastic_slice"]]
 
 [[depends]]
-name = ["algo", "inversion"]
-direct = [["ds", "vec_segtree"], ["traits", "fold"], ["traits", "get_mut"], ["utils", "op_add"]]
-whole = [["ds", "vec_segtree"], ["traits", "additive"], ["traits", "binop"], ["traits", "fold"], ["traits", "fold_bisect"], ["traits", "get_mut"], ["traits", "set_value"], ["utils", "buf_range"], ["utils", "op_add"]]
-
-[[depends]]
 name = ["algo", "mo"]
 direct = [["math", "sqrt"], ["traits", "elastic_slice"]]
 whole = [["math", "sqrt"], ["traits", "elastic_slice"]]

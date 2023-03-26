@@ -1,12 +1,3 @@
-use super::super::ds::vec_segtree;
-use super::super::traits::fold;
-use super::super::traits::get_mut;
-use super::super::utils::op_add;
-use fold::Fold;
-use get_mut::GetMut;
-use op_add::OpAdd;
-use vec_segtree::VecSegtree;
-
 pub trait Inversion {
     fn inversion(&self) -> u64;
 }
@@ -22,12 +13,25 @@ impl<T: Ord> Inversion for [T] {
             ord
         };
 
-        let mut st: VecSegtree<OpAdd<_>> = vec![0; n].into();
         let mut res = 0;
-        for &i in &ord {
-            res += st.fold(i..);
-            *st.get_mut(i).unwrap() += 1;
+        let mut sum = vec![0; n + 1];
+        for i in ord.iter().map(|&i| i + 1) {
+            {
+                let mut i = i;
+                while i <= n {
+                    res += sum[i];
+                    i += i & i.wrapping_neg();
+                }
+            }
+            {
+                let mut i = i;
+                while i > 0 {
+                    sum[i] += 1;
+                    i -= i & i.wrapping_neg();
+                }
+            }
         }
+
         res
     }
 }
