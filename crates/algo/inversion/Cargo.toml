@@ -6,7 +6,3 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-vec_segtree = { path = "../../ds/vec_segtree" }
-op_add = { path = "../../utils/op_add" }
-get_mut = { path = "../../traits/get_mut" }
-fold = { path = "../../traits/fold" }
