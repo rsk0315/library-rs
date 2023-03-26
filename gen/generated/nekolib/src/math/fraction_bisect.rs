@@ -15,7 +15,7 @@ pub trait FractionBisect: Sized + SbInt {
             if !ztf && !Self::SIGNED {
                 return (fr_zero, fr_zero);
             }
-            if Self::SIGNED && !pred(fr_neg_infty.0, fr_neg_infty.1) {
+            if Self::SIGNED && !ztf && !pred(fr_neg_infty.0, fr_neg_infty.1) {
                 return (fr_neg_infty, fr_neg_infty);
             }
             move |fr: Fraction<Self>| {
