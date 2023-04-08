@@ -15,6 +15,7 @@ pub mod const_div;
 pub mod continued_fraction_;
 // pub mod count_prime;
 pub mod digit_sum;
+pub mod digits;
 pub mod divisors;
 pub mod dlog;
 pub mod equiv_mod;
@@ -57,6 +58,8 @@ pub use compact_sieve::CompactSieve;
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
 pub use continued_fraction_::continued_fraction;
+#[doc(inline)]
+pub use digits::Digits;
 #[doc(inline)]
 pub use fraction_bisect::FractionBisect;
 #[doc(inline)]
