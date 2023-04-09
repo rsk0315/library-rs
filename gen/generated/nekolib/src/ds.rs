@@ -4,6 +4,7 @@
 //! は抽象化されていないという気もするが...
 pub mod bicremental_median;
 pub mod bicremental_median_dev;
+pub mod binary_trie;
 pub mod bit_set;
 pub mod btree_bimap;
 pub mod btree_multiset;
@@ -30,6 +31,8 @@ pub mod wavelet_matrix;
 pub use bicremental_median::BicrementalMedian;
 #[doc(inline)]
 pub use bicremental_median_dev::BicrementalMedianDev;
+#[doc(inline)]
+pub use binary_trie::BinaryTrie;
 #[doc(inline)]
 pub use bit_set::BitSet;
 #[doc(inline)]
