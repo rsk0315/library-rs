@@ -165,9 +165,7 @@ impl<I: SbInt> Add<Fraction<I>> for Fraction<I> {
 }
 
 impl<I: SbInt> Fraction<I> {
-    fn is_deeper(self, bound: I) -> bool {
-        self.0.abs() > bound || self.1 > bound
-    }
+    fn is_deeper(self, bound: I) -> bool { self.1.abs() > bound }
     fn neg(self) -> Self { Self(self.0.neg(), self.1) }
     fn into_inner(self) -> (I, I) { (self.0, self.1) }
 }
@@ -175,13 +173,13 @@ impl<I: SbInt> Fraction<I> {
 #[test]
 fn sanity_check() {
     let sqrt3 = 5000_u64.fraction_bisect(|x, y| x * x <= 3 * y * y);
-    assert_eq!(sqrt3, ((3691, 2131), (1351, 780)));
+    assert_eq!(sqrt3, ((3691, 2131), (5042, 2911)));
 
     assert_eq!(10_u64.fraction_bisect(|_, _| false), ((0, 1), (0, 1)));
     assert_eq!(10_i64.fraction_bisect(|_, _| false), ((-1, 0), (-1, 0)));
 
     let neg_sqrt3 = 5000_i64.fraction_bisect(|x, y| x < 0 && x * x > 3 * y * y);
-    assert_eq!(neg_sqrt3, ((-1351, 780), (-3691, 2131)));
+    assert_eq!(neg_sqrt3, ((-5042, 2911), (-3691, 2131)));
 
     let lt = 5000_i64.fraction_bisect(|x, y| 5 * x < 2 * y);
     assert_eq!(lt, ((1999, 4998), (2, 5)));
@@ -195,8 +193,14 @@ fn sqrt() {
     let sqrt4 = 10_u128.pow(18).fraction_bisect(|x, y| x * x <= 4 * y * y);
 
     assert_eq!(sqrt3.0, (734231055024833855, 423908497265970753));
-    assert_eq!(sqrt3.1, (268747218386539202, 155161278879431551));
+    assert_eq!(sqrt3.1, (1002978273411373057, 579069776145402304));
 
     assert_eq!(sqrt4.0, (2, 1));
     assert_eq!(sqrt4.1, (999999999999999999, 499999999999999999));
+}
+
+#[test]
+fn improper_fraction() {
+    let x = 6_u32.fraction_bisect(|x, y| x * 5 <= y * 13);
+    assert_eq!(x, ((13, 5), (8, 3)));
 }
