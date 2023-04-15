@@ -204,3 +204,17 @@ fn improper_fraction() {
     let x = 6_u32.fraction_bisect(|x, y| x * 5 <= y * 13);
     assert_eq!(x, ((13, 5), (8, 3)));
 }
+
+#[test]
+fn iterate() {
+    let bound = 6_u32;
+    let next = |p, q| bound.fraction_bisect(|x, y| x * q <= p * y).1;
+
+    let (p, q): (Vec<_>, Vec<_>) =
+        std::iter::successors(Some((0, 1)), |&(p, q)| Some(next(p, q)))
+            .take_while(|&(p, q)| p <= q)
+            .unzip();
+
+    assert_eq!(p, [0, 1, 1, 1, 1, 2, 1, 3, 2, 3, 4, 5, 1]);
+    assert_eq!(q, [1, 6, 5, 4, 3, 5, 2, 5, 3, 4, 5, 6, 1]);
+}
