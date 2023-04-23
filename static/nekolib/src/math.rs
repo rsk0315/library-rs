@@ -64,7 +64,7 @@ pub use digits::Digits;
 #[doc(inline)]
 pub use fraction_bisect::FractionBisect;
 #[doc(inline)]
-pub use is_close_float::IsClose;
+pub use is_close_float::IsCloseFloat;
 #[doc(inline)]
 pub use segmented_factor_sieve::SegmentedFactorSieve;
 // #[doc(inline)]
