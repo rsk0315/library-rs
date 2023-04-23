@@ -27,6 +27,7 @@ pub mod gcd;
 pub mod gcd_recip;
 pub mod harmonic_floor_sum;
 pub mod interpolation;
+pub mod is_close_float;
 pub mod lcm;
 pub mod linear_floor_sum;
 pub mod linear_sieve;
@@ -62,6 +63,8 @@ pub use continued_fraction_::continued_fraction;
 pub use digits::Digits;
 #[doc(inline)]
 pub use fraction_bisect::FractionBisect;
+#[doc(inline)]
+pub use is_close_float::IsClose;
 #[doc(inline)]
 pub use segmented_factor_sieve::SegmentedFactorSieve;
 // #[doc(inline)]
