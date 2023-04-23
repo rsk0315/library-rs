@@ -2,4 +2,5 @@
 //!
 //! [`nekolib`]: ../nekolib/index.html
 
+pub mod debug;
 pub mod range_add_on_the_fly;
