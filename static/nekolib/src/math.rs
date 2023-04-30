@@ -22,6 +22,7 @@ pub mod equiv_mod;
 pub mod euler_phi;
 pub mod factors;
 pub mod factors_dup;
+pub mod frac_approx;
 pub mod fraction_bisect;
 pub mod gcd;
 pub mod gcd_recip;
@@ -61,6 +62,8 @@ pub use const_div::{ConstDiv, ConstDiv2};
 pub use continued_fraction_::continued_fraction;
 #[doc(inline)]
 pub use digits::Digits;
+#[doc(inline)]
+pub use frac_approx::{ApproxFrac, FracApprox, FracApproxIter};
 #[doc(inline)]
 pub use fraction_bisect::FractionBisect;
 #[doc(inline)]
