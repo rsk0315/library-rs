@@ -76,7 +76,7 @@ pub fn precompute_butterfly<M: NttFriendly>() -> ButterflyCache<M> {
     ButterflyCache { root, iroot, rate2, irate2, rate3, irate3 }
 }
 
-fn butterfly<M: NttFriendly>(a: &mut [StaticModInt<M>]) {
+pub fn butterfly<M: NttFriendly>(a: &mut [StaticModInt<M>]) {
     let n = a.len();
     let h = ceil_pow2(n as u32);
 
@@ -149,7 +149,7 @@ fn butterfly<M: NttFriendly>(a: &mut [StaticModInt<M>]) {
     });
 }
 
-fn butterfly_inv<M: NttFriendly>(a: &mut [StaticModInt<M>]) {
+pub fn butterfly_inv<M: NttFriendly>(a: &mut [StaticModInt<M>]) {
     let n = a.len();
     let h = ceil_pow2(n as u32);
 
