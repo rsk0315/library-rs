@@ -84,6 +84,14 @@ impl<I: std::fmt::Display> std::fmt::Debug for ApproxFrac<I> {
     }
 }
 
+impl<I> ApproxFrac<I> {
+    pub fn into_inner(self) -> (I, I) {
+        match self {
+            Lower(x) | Upper(x) => x,
+        }
+    }
+}
+
 impl<I: SbInt> From<((Fraction<I>, Fraction<I>), bool)> for ApproxFrac<I> {
     fn from(((lower, upper), tf): ((Fraction<I>, Fraction<I>), bool)) -> Self {
         if tf { Lower(lower.into()) } else { Upper(upper.into()) }
