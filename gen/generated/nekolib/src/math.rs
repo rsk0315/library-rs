@@ -5,14 +5,14 @@
 //! 計算機科学自体 mathematics では？とも思うが...
 //!
 //! [`ds`]: ../ds/index.html
-pub mod modint;
-// pub mod polynomial;
 pub mod bit_binom_;
 pub mod carmichael_lambda;
 pub mod common_quot;
 pub mod compact_sieve;
 pub mod const_div;
 pub mod continued_fraction_;
+pub mod modint;
+pub mod polynomial;
 // pub mod count_prime;
 pub mod convolution;
 pub mod digit_sum;
@@ -74,6 +74,8 @@ pub use frac_approx::{ApproxFrac, FracApprox, FracApproxIter};
 pub use fraction_bisect::FractionBisect;
 #[doc(inline)]
 pub use is_close_float::IsCloseFloat;
+#[doc(inline)]
+pub use polynomial::Polynomial;
 #[doc(inline)]
 pub use segmented_factor_sieve::SegmentedFactorSieve;
 // #[doc(inline)]
