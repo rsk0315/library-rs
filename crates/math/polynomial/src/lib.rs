@@ -71,12 +71,16 @@ impl<M: NttFriendly> Polynomial<M> {
         while cur_len < len {
             let mut tmp = (&two - self * &res) * &res;
             cur_len *= 2;
-            tmp.0.truncate(cur_len);
+            tmp.truncate(cur_len);
             res.0 = tmp.0;
         }
-        res.0.truncate(len);
-        res.normalize();
+        res.truncate(len);
         res
+    }
+
+    pub fn truncate(&mut self, len: usize) {
+        self.0.truncate(len);
+        self.normalize();
     }
 
     pub fn reversed(&self) -> Self {
@@ -136,8 +140,7 @@ impl<M: NttFriendly> Polynomial<M> {
         let mut diff = self.clone().differential();
         diff *= self.recip(len);
         diff.integrate();
-        diff.0.truncate(len + 1);
-        diff.normalize();
+        diff.truncate(len + 1);
         diff
     }
 
@@ -155,11 +158,10 @@ impl<M: NttFriendly> Polynomial<M> {
             cur_len *= 2;
             let mut tmp = &one - res.log(cur_len) + self;
             tmp *= res;
-            tmp.0.truncate(cur_len);
+            tmp.truncate(cur_len);
             res = tmp;
         }
-        res.0.truncate(len);
-        res.normalize();
+        res.truncate(len);
         res
     }
 
