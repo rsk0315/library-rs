@@ -63,7 +63,8 @@ pub use const_div::{ConstDiv, ConstDiv2};
 pub use continued_fraction_::continued_fraction;
 #[doc(inline)]
 pub use convolution::{
-    convolve, convolve_u64, precompute_butterfly, ButterflyCache, NttFriendly,
+    butterfly, butterfly_inv, convolve, convolve_u64, precompute_butterfly,
+    ButterflyCache, NttFriendly,
 };
 #[doc(inline)]
 pub use digits::Digits;
