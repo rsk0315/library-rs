@@ -170,6 +170,8 @@ impl<M: NttFriendly> Polynomial<M> {
     pub fn get(&self, i: usize) -> StaticModInt<M> {
         self.0.get(i).copied().unwrap_or(StaticModInt::new(0))
     }
+
+    pub fn into_inner(self) -> Vec<StaticModInt<M>> { self.0 }
 }
 
 impl<M: NttFriendly> From<Vec<StaticModInt<M>>> for Polynomial<M> {
