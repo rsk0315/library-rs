@@ -166,6 +166,10 @@ impl<M: NttFriendly> Polynomial<M> {
     pub fn pow(&self, k: StaticModInt<M>, len: usize) -> Self {
         (self.log(len) * k).exp(len)
     }
+
+    pub fn get(&self, i: usize) -> StaticModInt<M> {
+        self.0.get(i).copied().unwrap_or(StaticModInt::new(0))
+    }
 }
 
 impl<M: NttFriendly> From<Vec<StaticModInt<M>>> for Polynomial<M> {
