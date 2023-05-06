@@ -14,6 +14,7 @@ pub mod compact_sieve;
 pub mod const_div;
 pub mod continued_fraction_;
 // pub mod count_prime;
+pub mod convolution;
 pub mod digit_sum;
 pub mod digits;
 pub mod divisors;
@@ -60,6 +61,10 @@ pub use compact_sieve::CompactSieve;
 pub use const_div::{ConstDiv, ConstDiv2};
 #[doc(inline)]
 pub use continued_fraction_::continued_fraction;
+#[doc(inline)]
+pub use convolution::{
+    convolve, convolve_u64, precompute_butterfly, ButterflyCache, NttFriendly,
+};
 #[doc(inline)]
 pub use digits::Digits;
 #[doc(inline)]
