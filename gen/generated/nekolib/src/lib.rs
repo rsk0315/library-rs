@@ -22,18 +22,18 @@
 // #![feature(once_cell)]
 //! 
 //! ## Revision
-//! [`5f1ae4d96ae4d4169d2c4d7ff4ab905251fffce0`](https://github.com/rsk0315/library-rs/tree/5f1ae4d96ae4d4169d2c4d7ff4ab905251fffce0)
+//! [`ca56ad8ad12aa48ebb1e7c7ca2846e701dab44d0`](https://github.com/rsk0315/library-rs/tree/ca56ad8ad12aa48ebb1e7c7ca2846e701dab44d0)
 //! 
 //! ```text
 //! +----------------+
-//! |          ..=...|
-//! |         . - =:.|
-//! |        : + : .-|
-//! |       ^ * =  .-|
-//! |        = o  ..:|
-//! |         * .....|
-//! |        .   .$ .|
-//! |                |
+//! |..              |
+//! | .$             |
+//! |  . .   .       |
+//! | . . : ^ .      |
+//! |-.- + : .       |
+//! |+= = = .        |
+//! |+:+ * .         |
+//! |**.: .          |
 //! +----------------+
 //! ```
 pub mod algo;
