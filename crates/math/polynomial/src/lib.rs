@@ -65,12 +65,23 @@ impl<M: NttFriendly> Polynomial<M> {
             return Self(vec![]);
         }
 
+        // let two: Self = vec![2].into();
         let mut res = Self(vec![self.0[0].recip()]);
-        let two = Self(vec![StaticModInt::new(2)]);
         let mut cur_len = 1;
         while cur_len < len {
-            let mut tmp = (&two - self * &res) * &res;
             cur_len *= 2;
+
+            let mut self_: Self =
+                self.0[..self.0.len().min(cur_len)].to_vec().into();
+
+            // let mut tmp = (&two - &self_ * &res) * &res;
+
+            let ftwo = Self(vec![StaticModInt::new(2); 2 * cur_len]);
+            self_.fft_butterfly(2 * cur_len);
+            res.fft_butterfly(2 * cur_len);
+            let mut tmp = (&ftwo - (&self_ & &res)) & &res;
+            tmp.fft_inv_butterfly(2 * cur_len);
+
             tmp.truncate(cur_len);
             res.0 = tmp.0;
         }
@@ -560,7 +571,8 @@ fn sanity_check() {
 fn fft() {
     type Poly = Polynomial<modint::Mod998244353>;
 
-    let n = 4 + 4 + 1;
+    let n = 4 + 4 + 4 + 1;
+    let one: Poly = vec![1].into();
     let f: Poly = vec![0, 1, 2, 3, 4].into();
     let g: Poly = vec![0, 1, 2, 4, 8].into();
     let h: Poly = vec![0, 6, 5, 4, 3].into();
@@ -576,13 +588,17 @@ fn fft() {
         f
     };
 
+    let fone: Poly = vec![1; n.next_power_of_two() as usize].into();
     let ff = fft(&f);
     let fg = fft(&g);
     let fh = fft(&h);
+
+    assert_eq!(fft(&(&f + &one)), fft(&f) + &fone);
 
     assert_eq!(f, ifft(&ff));
     assert_eq!(&f + &h, ifft(&(&ff + &fh)));
     assert_eq!(&f * &g, ifft(&(&ff & &fg)));
 
+    assert_eq!(&f * &g * &h, ifft(&(&ff & &fg & &fh)));
     assert_eq!(f * g + h, ifft(&((ff & fg) + fh)));
 }
