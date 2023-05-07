@@ -78,6 +78,12 @@ impl<M: NttFriendly> Polynomial<M> {
         res
     }
 
+    pub fn truncated(&self, len: usize) -> Self {
+        let mut tmp = self.clone();
+        tmp.truncate(len);
+        tmp
+    }
+
     pub fn truncate(&mut self, len: usize) {
         self.0.truncate(len);
         self.normalize();
