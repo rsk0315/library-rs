@@ -2,11 +2,11 @@
 
 use std::fmt::{self, Debug, Display};
 use std::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub,
-    SubAssign,
+    Add, AddAssign, BitAnd, BitAndAssign, Div, DivAssign, Mul, MulAssign, Neg,
+    Rem, RemAssign, Sub, SubAssign,
 };
 
-use convolution::{convolve, NttFriendly};
+use convolution::{butterfly, butterfly_inv, convolve, NttFriendly};
 use modint::{ModIntBase, StaticModInt};
 
 #[derive(Clone, Eq, PartialEq)]
@@ -180,6 +180,25 @@ impl<M: NttFriendly> Polynomial<M> {
     }
 
     pub fn into_inner(self) -> Vec<StaticModInt<M>> { self.0 }
+
+    pub fn fft_butterfly(&mut self, len: usize) {
+        let ceil_len = len.next_power_of_two();
+        self.0.resize(ceil_len, StaticModInt::new(0));
+        butterfly(&mut self.0);
+        self.normalize();
+    }
+
+    pub fn fft_inv_butterfly(&mut self, len: usize) {
+        let ceil_len = len.next_power_of_two();
+        self.0.resize(ceil_len, StaticModInt::new(0));
+        butterfly_inv(&mut self.0);
+        self.0.truncate(len);
+        let iz = StaticModInt::new(ceil_len).recip();
+        for c in &mut self.0 {
+            *c *= iz;
+        }
+        self.normalize();
+    }
 }
 
 impl<M: NttFriendly> From<Vec<StaticModInt<M>>> for Polynomial<M> {
@@ -280,6 +299,22 @@ impl<M: NttFriendly> RemAssign for Polynomial<M> {
     fn rem_assign(&mut self, other: Polynomial<M>) {
         let div = &*self / &other;
         *self -= div * &other;
+    }
+}
+
+impl<'a, M: NttFriendly> BitAndAssign<&'a Polynomial<M>> for Polynomial<M> {
+    fn bitand_assign(&mut self, other: &'a Polynomial<M>) {
+        self.0.truncate(other.0.len());
+        for (ai, &bi) in self.0.iter_mut().zip(&other.0) {
+            *ai *= bi;
+        }
+        self.normalize();
+    }
+}
+
+impl<M: NttFriendly> BitAndAssign for Polynomial<M> {
+    fn bitand_assign(&mut self, other: Polynomial<M>) {
+        self.bitand_assign(&other);
     }
 }
 
@@ -386,6 +421,27 @@ impl<M: NttFriendly> RemAssign<StaticModInt<M>> for Polynomial<M> {
     }
 }
 
+impl<'a, M: NttFriendly> BitAndAssign<&'a StaticModInt<M>> for Polynomial<M> {
+    fn bitand_assign(&mut self, &other: &'a StaticModInt<M>) {
+        if self.0.is_empty() {
+            return;
+        }
+        if other.get() == 0 {
+            self.0.clear();
+        } else {
+            self.0.truncate(1);
+            self.0[0] *= other;
+            self.normalize();
+        }
+    }
+}
+
+impl<M: NttFriendly> BitAndAssign<StaticModInt<M>> for Polynomial<M> {
+    fn bitand_assign(&mut self, other: StaticModInt<M>) {
+        self.bitand_assign(&other);
+    }
+}
+
 macro_rules! impl_binop {
     ( $( ($op:ident, $op_assign:ident, $op_trait:ident, $op_assign_trait:ident), )* ) => {
         $(
@@ -452,6 +508,7 @@ impl_binop! {
     (mul, mul_assign, Mul, MulAssign),
     (div, div_assign, Div, DivAssign),
     (rem, rem_assign, Rem, RemAssign),
+    (bitand, bitand_assign, BitAnd, BitAndAssign),
 }
 
 impl<M: NttFriendly> Neg for Polynomial<M> {
@@ -497,4 +554,35 @@ fn sanity_check() {
     assert_eq!(x1.pow(5, 10), &x1 * &x1 * &x1 * &x1 * &x1);
 
     assert_eq!(x1.pow(998244352, 10) * &x1 % &x_ten, x1.pow(998244353, 10));
+}
+
+#[test]
+fn fft() {
+    type Poly = Polynomial<modint::Mod998244353>;
+
+    let n = 4 + 4 + 1;
+    let f: Poly = vec![0, 1, 2, 3, 4].into();
+    let g: Poly = vec![0, 1, 2, 4, 8].into();
+    let h: Poly = vec![0, 6, 5, 4, 3].into();
+
+    let fft = |f: &Poly| {
+        let mut f = f.clone();
+        f.fft_butterfly(n);
+        f
+    };
+    let ifft = |f: &Poly| {
+        let mut f = f.clone();
+        f.fft_inv_butterfly(n);
+        f
+    };
+
+    let ff = fft(&f);
+    let fg = fft(&g);
+    let fh = fft(&h);
+
+    assert_eq!(f, ifft(&ff));
+    assert_eq!(&f + &h, ifft(&(&ff + &fh)));
+    assert_eq!(&f * &g, ifft(&(&ff & &fg)));
+
+    assert_eq!(f * g + h, ifft(&((ff & fg) + fh)));
 }
