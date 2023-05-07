@@ -127,6 +127,10 @@ impl<M: Modulus> ModIntBase for StaticModInt<M> {
 
 impl<M: Modulus> InternalImpls for StaticModInt<M> {}
 
+impl<I: RemEuclidU32, M: Modulus> From<I> for StaticModInt<M> {
+    fn from(x: I) -> Self { Self::new(x) }
+}
+
 #[cfg(ignore)]
 const fn is_sprp_32(n: u32, a: u32) -> bool {
     let n = n as u64;
@@ -279,6 +283,10 @@ impl<I: DynamicModIntId> ModIntBase for DynamicModInt<I> {
 }
 
 impl<I: DynamicModIntId> InternalImpls for DynamicModInt<I> {}
+
+impl<J: RemEuclidU32, I: DynamicModIntId> From<J> for DynamicModInt<I> {
+    fn from(x: J) -> Self { Self::new(x) }
+}
 
 macro_rules! impl_modint {
     ( $( ($mod:ident, $val:literal, $modint:ident), )* ) => { $(

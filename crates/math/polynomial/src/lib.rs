@@ -165,8 +165,8 @@ impl<M: NttFriendly> Polynomial<M> {
         res
     }
 
-    pub fn pow(&self, k: StaticModInt<M>, len: usize) -> Self {
-        (self.log(len) * k).exp(len)
+    pub fn pow<I: Into<StaticModInt<M>>>(&self, k: I, len: usize) -> Self {
+        (self.log(len) * k.into()).exp(len)
     }
 
     pub fn get(&self, i: usize) -> StaticModInt<M> {
@@ -465,8 +465,7 @@ impl<'a, M: NttFriendly> Neg for &'a Polynomial<M> {
 
 #[test]
 fn sanity_check() {
-    use modint::Mod998244353;
-    type Poly = Polynomial<Mod998244353>;
+    type Poly = Polynomial<modint::Mod998244353>;
 
     let f: Poly = vec![0, 1, 2, 3, 4].into();
     let g: Poly = vec![0, 1, 2, 4, 8].into();
@@ -484,7 +483,12 @@ fn sanity_check() {
     let h: Poly = vec![1, 9, 2, 6, 8, 3].into();
     let x_ten: Poly =
         (0..9).map(|_| 0).chain(Some(1)).collect::<Vec<_>>().into();
-    assert_eq!((&h * h.recip(10)) % x_ten, Poly::from(vec![1]));
+    assert_eq!((&h * h.recip(10)) % &x_ten, Poly::from(vec![1]));
 
     assert_eq!((&f / &x).integral(), &x * Poly::from(vec![1; 4]));
+
+    let x1: Poly = vec![1; 2].into();
+    assert_eq!(x1.pow(5, 10), &x1 * &x1 * &x1 * &x1 * &x1);
+
+    assert_eq!(x1.pow(998244352, 10) * &x1 % &x_ten, x1.pow(998244353, 10));
 }
