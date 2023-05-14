@@ -33,6 +33,7 @@ pub mod is_close_float;
 pub mod lcm;
 pub mod linear_floor_sum;
 pub mod linear_sieve;
+pub mod miller_rabin;
 pub mod mod_ackermann;
 pub mod mod_factorial_binom;
 pub mod mod_ord;
@@ -74,6 +75,8 @@ pub use frac_approx::{ApproxFrac, FracApprox, FracApproxIter};
 pub use fraction_bisect::FractionBisect;
 #[doc(inline)]
 pub use is_close_float::IsCloseFloat;
+#[doc(inline)]
+pub use miller_rabin::MillerRabin;
 #[doc(inline)]
 pub use polynomial::Polynomial;
 #[doc(inline)]
