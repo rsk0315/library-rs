@@ -25,6 +25,7 @@ pub mod factors;
 pub mod factors_dup;
 pub mod frac_approx;
 pub mod fraction_bisect;
+pub mod garner;
 pub mod gcd;
 pub mod gcd_recip;
 pub mod harmonic_floor_sum;
@@ -73,6 +74,8 @@ pub use digits::Digits;
 pub use frac_approx::{ApproxFrac, FracApprox, FracApproxIter};
 #[doc(inline)]
 pub use fraction_bisect::FractionBisect;
+#[doc(inline)]
+pub use garner::{CrtMod, CrtWrapping};
 #[doc(inline)]
 pub use is_close_float::IsCloseFloat;
 #[doc(inline)]
