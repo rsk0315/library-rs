@@ -457,20 +457,12 @@ pub fn convolve_u64_acl(a: &[u64], b: &[u64]) -> Vec<u64> {
         .collect()
 }
 
-// awk '{ printf("(Mod%de%dp1, %d << %d | 1, ModInt%d, _),\n", $2, $4, $2, $4, $8) }'
-//
-// 5 << 25 | 1 == 167772161
-// 33 << 25 | 1 == 1107296257
-// 51 << 25 | 1 == 1711276033
-// 63 << 25 | 1 == 2113929217
-// 7 << 26 | 1 == 469762049
-// 27 << 26 | 1 == 1811939329
-// 15 << 27 | 1 == 2013265921
-
 enum CrtU64 {}
 enum CrtWrappingU64 {}
 enum CrtU128 {}
 enum CrtWrappingU128 {}
+#[derive(Copy, Clone)]
+struct CrtU32Mod(u32);
 #[derive(Copy, Clone)]
 struct CrtU64Mod(u64);
 #[derive(Copy, Clone)]
@@ -594,9 +586,12 @@ impl Crt for CrtWrappingU128 {
 
 trait CrtMod {
     type Input;
-    type Mod;
     type Output;
     fn crt_mod(self, i: Self::Input) -> Self::Output;
+}
+
+impl CrtU32Mod {
+    fn new(m: u32) -> Self { Self(m) }
 }
 
 impl CrtU64Mod {
@@ -607,9 +602,22 @@ impl CrtU128Mod {
     fn new(m: u128) -> Self { Self(m) }
 }
 
+impl CrtMod for CrtU32Mod {
+    type Input = U32x3;
+    type Output = u32;
+    fn crt_mod(self, xs: Self::Input) -> Self::Output {
+        let [x0, x1, x2] = xs.to_array();
+        [
+            (x0 as u64, MOD0 as u64),
+            (x1 as u64, MOD1 as u64),
+            (x2 as u64, MOD2 as u64),
+        ]
+        .crt_mod(self.0 as u64) as u32
+    }
+}
+
 impl CrtMod for CrtU64Mod {
     type Input = U32x6;
-    type Mod = u64;
     type Output = u64;
     fn crt_mod(self, xs: Self::Input) -> Self::Output {
         let [x0, x1, x2, x3, x4, x5] = xs.to_array();
@@ -627,7 +635,6 @@ impl CrtMod for CrtU64Mod {
 
 impl CrtMod for CrtU128Mod {
     type Input = U32x10;
-    type Mod = u128;
     type Output = u128;
     fn crt_mod(self, xs: Self::Input) -> Self::Output {
         let [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9] = xs.to_array();
@@ -694,6 +701,7 @@ impl_convolve! {
 }
 
 impl_convolve_mod! {
+    (convolve_u32_mod, u32, CrtU32Mod, [Mod0, Mod1, Mod2]),
     (convolve_u64_mod, u64, CrtU64Mod, [Mod0, Mod1, Mod2, Mod3, Mod4, Mod5]),
     (convolve_u128_mod, u128, CrtU128Mod, [Mod0, Mod1, Mod2, Mod3, Mod4, Mod5, Mod6, Mod7, Mod8, Mod9]),
 }
@@ -755,6 +763,20 @@ fn long_wrapping_u128() {
     for i in 0..n {
         assert_eq!(a[i], a[n + n - 2 - i]);
         assert_eq!(a[i], (max64 * max64).wrapping_mul(i as u128 + 1));
+    }
+}
+
+#[test]
+fn long_u32_mod() {
+    let max32 = u32::MAX;
+    let n = 1 << 24;
+    let p = 998244353;
+    let long32 = vec![max32; n];
+    let a = convolve_u32_mod(&long32, &long32, p as u32);
+    for i in 0..n {
+        assert_eq!(a[i], a[n + n - 2 - i]);
+        let expected = (max32 as u64 % p).pow(2) % p * (i as u64 + 1) % p;
+        assert_eq!(a[i], expected as u32);
     }
 }
 
