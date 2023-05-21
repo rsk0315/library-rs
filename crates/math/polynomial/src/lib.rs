@@ -60,21 +60,19 @@ impl<M: NttFriendly> Polynomial<M> {
         }
     }
 
-    pub fn recip(&self, len: usize) -> Self {
+    pub fn recip_naive(&self, len: usize) -> Self {
         if len == 0 {
             return Self(vec![]);
         }
 
-        // let two: Self = vec![2].into();
         let mut res = Self(vec![self.0[0].recip()]);
         let mut cur_len = 1;
         while cur_len < len {
             cur_len *= 2;
+            // f = (2 - f * res) * res
 
             let mut self_: Self =
                 self.0[..self.0.len().min(cur_len)].to_vec().into();
-
-            // let mut tmp = (&two - &self_ * &res) * &res;
 
             let ftwo = Self(vec![StaticModInt::new(2); 2 * cur_len]);
             self_.fft_butterfly(2 * cur_len);
@@ -87,6 +85,46 @@ impl<M: NttFriendly> Polynomial<M> {
         }
         res.truncate(len);
         res
+    }
+
+    pub fn recip(&self, len: usize) -> Self {
+        if len == 0 {
+            return Self(vec![]);
+        }
+
+        let mut res = Self(vec![self.0[0].recip()]);
+        let mut cur_len = 1;
+        while cur_len < len {
+            cur_len *= 2;
+
+            let mut ff: Self =
+                self.0[..self.0.len().min(cur_len)].to_vec().into();
+            let mut gg = res.clone();
+            ff.0.resize(cur_len, StaticModInt::new(0));
+            gg.0.resize(cur_len, StaticModInt::new(0));
+            butterfly(&mut ff.0);
+            butterfly(&mut gg.0);
+            for i in 0..cur_len {
+                ff.0[i] *= gg.0[i];
+            }
+            butterfly_inv(&mut ff.0);
+            let iz = StaticModInt::new(cur_len).recip();
+            for i in 0..cur_len / 2 {
+                ff.0[i] = StaticModInt::new(0);
+                ff.0[cur_len / 2 + i] = -ff.0[cur_len / 2 + i] * iz;
+            }
+            butterfly(&mut ff.0);
+            for i in 0..cur_len {
+                ff.0[i] *= gg.0[i];
+            }
+            butterfly_inv(&mut ff.0);
+            for i in 0..cur_len / 2 {
+                ff.0[i] = res.0[i];
+                ff.0[cur_len / 2 + i] *= iz;
+            }
+            res = ff;
+        }
+        res.truncated(len)
     }
 
     pub fn truncated(mut self, len: usize) -> Self {
@@ -630,4 +668,12 @@ fn newton() {
     let g = Poly::from(vec![1])
         .newton(n, |y, n| (&f - y.recip(n)) * (y * y).truncated(n));
     assert_eq!(g, f.recip(n));
+}
+
+#[test]
+fn recip() {
+    type Poly = Polynomial<modint::Mod998244353>;
+
+    let f: Poly = vec![1, 2, 3, 4].into();
+    assert_eq!(f.recip(10), f.recip_naive(10));
 }
