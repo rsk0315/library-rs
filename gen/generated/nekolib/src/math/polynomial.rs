@@ -6,7 +6,7 @@ use super::modint;
 use std::fmt::{self, Debug, Display};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, Div, DivAssign, Mul, MulAssign, Neg,
-    Rem, RemAssign, Sub, SubAssign,
+    Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
 
 use convolution::{butterfly, butterfly_inv, convolve, NttFriendly};
@@ -291,6 +291,7 @@ impl<M: NttFriendly> Polynomial<M> {
     }
 
     pub fn is_zero(&self) -> bool { self.0.is_empty() }
+    pub fn len(&self) -> usize { self.0.len() }
 
     pub fn div_mod(&self, other: &Polynomial<M>) -> (Self, Self) {
         let q = self / other;
@@ -320,19 +321,6 @@ impl<M: NttFriendly> Polynomial<M> {
             p = u.into();
             q = qq_.into();
             n /= 2;
-
-            // let d = (2 * q.0.len() - 1).next_power_of_two();
-            // let q_: Vec<_> = (0..d)
-            //     .map(|i| if i % 2 == 0 { q.get(i) } else { -q.get(i) })
-            //     .collect();
-            // let q_: Self = q_.into();
-            // let pq_ = &p * &q_;
-            // let qq_ = &q * &q_;
-            // let u: Vec<_> = (n % 2..d).step_by(2).map(|i| pq_.get(i)).collect();
-            // let v: Vec<_> = (0..d).step_by(2).map(|i| qq_.get(i)).collect();
-            // p = u.into();
-            // q = v.into();
-            // n /= 2;
         }
         p.get(0)
     }
@@ -663,6 +651,48 @@ impl<'a, M: NttFriendly> Neg for &'a Polynomial<M> {
     fn neg(self) -> Polynomial<M> { -self.clone() }
 }
 
+impl<M: NttFriendly> ShlAssign<usize> for Polynomial<M> {
+    fn shl_assign(&mut self, sh: usize) {
+        if !self.0.is_empty() {
+            self.0.splice(0..0, (0..sh).map(|_| StaticModInt::new(0)));
+        }
+    }
+}
+
+impl<M: NttFriendly> Shl<usize> for Polynomial<M> {
+    type Output = Polynomial<M>;
+    fn shl(mut self, sh: usize) -> Self::Output {
+        self.shl_assign(sh);
+        self
+    }
+}
+
+impl<'a, M: NttFriendly> Shl<usize> for &'a Polynomial<M> {
+    type Output = Polynomial<M>;
+    fn shl(self, sh: usize) -> Self::Output { self.clone().shl(sh) }
+}
+
+impl<M: NttFriendly> ShrAssign<usize> for Polynomial<M> {
+    fn shr_assign(&mut self, sh: usize) {
+        if !self.0.is_empty() {
+            self.0.splice(0..sh.min(self.0.len()), None);
+        }
+    }
+}
+
+impl<M: NttFriendly> Shr<usize> for Polynomial<M> {
+    type Output = Polynomial<M>;
+    fn shr(mut self, sh: usize) -> Self::Output {
+        self.shr_assign(sh);
+        self
+    }
+}
+
+impl<'a, M: NttFriendly> Shr<usize> for &'a Polynomial<M> {
+    type Output = Polynomial<M>;
+    fn shr(self, sh: usize) -> Self::Output { self.clone().shr(sh) }
+}
+
 #[test]
 fn sanity_check() {
     type Poly = Polynomial<modint::Mod998244353>;
@@ -756,6 +786,7 @@ fn fode() {
 
     let one = Mi::new(1);
     let two = Mi::new(2);
+    let three = Mi::new(3);
     let x: Poly = vec![0, 1].into();
 
     let n = 20;
@@ -766,13 +797,23 @@ fn fode() {
     };
     let y = Poly::from(vec![1]).fode(n + 1, f_df);
 
-    // f(y) - y' = 0
+    // f(y) - y' = 0; y = x + 1/(1-x)
+    assert_eq!(f_df(&y, n).0, y.differential());
+
+    let f_df = |y: &Poly, n| {
+        let d = y - &x;
+        // (y, y') = ((y-x)^3+1, 3(y-x))
+        let dd = (&d * &d).truncated(n);
+        ((&dd * &d + one).truncated(n), &dd * three)
+    };
+    let y = Poly::from(vec![2]).fode(n + 1, f_df);
+
+    // y = x + 2/sqrt(1-8x) = 2 + 9x + 48x^2 + 320x^3 + ...
     assert_eq!(f_df(&y, n).0, y.differential());
 }
 
 #[test]
 fn fibonacci() {
-    type Mi = modint::ModInt998244353;
     type Poly = Polynomial<modint::Mod998244353>;
 
     let p: Poly = vec![1].into();
