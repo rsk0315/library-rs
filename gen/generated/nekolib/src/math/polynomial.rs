@@ -244,6 +244,27 @@ impl<M: NttFriendly> Polynomial<M> {
         y.truncated(n)
     }
 
+    // y' = f(y)
+    pub fn fode(
+        mut self,
+        n: usize,
+        f_df: impl Fn(&Self, usize) -> (Self, Self),
+    ) -> Self {
+        if self.0.is_empty() {
+            self.0.push(StaticModInt::new(0));
+        }
+        let mut d = self.0.len();
+        let mut y = self;
+        while d < n {
+            d *= 2;
+            let (f, df) = f_df(&y, n);
+            let h = f - y.clone().differential();
+            let u = (-df).integral().exp(n);
+            y += (u.recip(n) * (u * h).integral()).truncated(d);
+        }
+        y.truncated(n)
+    }
+
     pub fn get(&self, i: usize) -> StaticModInt<M> {
         self.0.get(i).copied().unwrap_or(StaticModInt::new(0))
     }
@@ -268,6 +289,8 @@ impl<M: NttFriendly> Polynomial<M> {
         }
         self.normalize();
     }
+
+    pub fn is_zero(&self) -> bool { self.0.is_empty() }
 }
 
 impl<M: NttFriendly> From<Vec<StaticModInt<M>>> for Polynomial<M> {
@@ -679,4 +702,25 @@ fn recip() {
 
     let f: Poly = vec![1, 2, 3, 4].into();
     assert_eq!(f.recip(10), f.recip_naive(10));
+}
+
+#[test]
+fn fode() {
+    type Poly = Polynomial<modint::Mod998244353>;
+    type Mi = modint::ModInt998244353;
+
+    let one = Mi::new(1);
+    let two = Mi::new(2);
+    let x: Poly = vec![0, 1].into();
+
+    let n = 20;
+    let f_df = |y: &Poly, n| {
+        let d = y - &x;
+        // (y, y') = ((y-x)^2+1, 2(y-x))
+        ((&d * &d + one).truncated(n), &d * two)
+    };
+    let y = Poly::from(vec![1]).fode(n + 1, f_df);
+
+    // f(y) - y' = 0
+    assert_eq!(f_df(&y, n).0, y.differential());
 }
