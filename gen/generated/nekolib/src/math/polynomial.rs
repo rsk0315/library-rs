@@ -92,10 +92,9 @@ impl<M: NttFriendly> Polynomial<M> {
         res
     }
 
-    pub fn truncated(&self, len: usize) -> Self {
-        let mut tmp = self.clone();
-        tmp.truncate(len);
-        tmp
+    pub fn truncated(mut self, len: usize) -> Self {
+        self.truncate(len);
+        self
     }
 
     pub fn truncate(&mut self, len: usize) {
@@ -103,10 +102,9 @@ impl<M: NttFriendly> Polynomial<M> {
         self.normalize();
     }
 
-    pub fn reversed(&self) -> Self {
-        let mut tmp = self.clone();
-        tmp.reverse();
-        tmp
+    pub fn reversed(mut self) -> Self {
+        self.reverse();
+        self
     }
 
     pub fn reverse(&mut self) {
@@ -187,6 +185,25 @@ impl<M: NttFriendly> Polynomial<M> {
 
     pub fn pow<I: Into<StaticModInt<M>>>(&self, k: I, len: usize) -> Self {
         (self.log(len) * k.into()).exp(len)
+    }
+
+    // f(y) = f(y0) + (y-y0) f'(y0) = 0
+    // y = y0 - f(y0)/f'(y0)
+    pub fn newton(
+        mut self,
+        n: usize,
+        f_fdr: impl Fn(&Self, usize) -> Self, // f(y0)/f'(y0)
+    ) -> Self {
+        if self.0.is_empty() {
+            self.0.push(StaticModInt::new(0));
+        }
+        let mut d = self.0.len();
+        let mut y = self;
+        while d < n {
+            d *= 2;
+            y -= f_fdr(&y, d).truncated(d);
+        }
+        y.truncated(n)
     }
 
     pub fn get(&self, i: usize) -> StaticModInt<M> {
@@ -604,4 +621,16 @@ fn fft() {
 
     assert_eq!(&f * &g * &h, ifft(&(&ff & &fg & &fh)));
     assert_eq!(f * g + h, ifft(&((ff & fg) + fh)));
+}
+
+#[test]
+fn newton() {
+    use modint::Mod998244353;
+    type Poly = Polynomial<Mod998244353>;
+
+    let f: Poly = vec![1, 2, 3, 4, 5].into();
+    let n = 10;
+    let g = Poly::from(vec![1])
+        .newton(n, |y, n| (&f - y.recip(n)) * (y * y).truncated(n));
+    assert_eq!(g, f.recip(n));
 }
