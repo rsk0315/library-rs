@@ -288,6 +288,51 @@ impl<M: NttFriendly> Polynomial<M> {
     }
 
     pub fn is_zero(&self) -> bool { self.0.is_empty() }
+
+    pub fn div_mod(&self, other: &Polynomial<M>) -> (Self, Self) {
+        let q = self / other;
+        let r = self - &q * other;
+        (q, r)
+    }
+
+    // [x^n] self/other
+    pub fn div_nth(
+        &self,
+        other: &Polynomial<M>,
+        mut n: usize,
+    ) -> StaticModInt<M> {
+        let mut p = self.clone();
+        let mut q = other.clone();
+        while n > 0 {
+            let d = (2 * q.0.len() - 1).next_power_of_two();
+            p.fft_butterfly(d);
+            q.fft_butterfly(d);
+            let pq_: Vec<_> = (0..d).map(|i| p.get(i) * q.get(i ^ 1)).collect();
+            let qq_: Vec<_> =
+                (0..d).step_by(2).map(|i| q.get(i) * q.get(i + 1)).collect();
+            let (mut pq_, mut qq_): (Self, Self) = (pq_.into(), qq_.into());
+            pq_.fft_inv_butterfly(d);
+            qq_.fft_inv_butterfly(d / 2);
+            let u: Vec<_> = (n % 2..d).step_by(2).map(|i| pq_.get(i)).collect();
+            p = u.into();
+            q = qq_.into();
+            n /= 2;
+
+            // let d = (2 * q.0.len() - 1).next_power_of_two();
+            // let q_: Vec<_> = (0..d)
+            //     .map(|i| if i % 2 == 0 { q.get(i) } else { -q.get(i) })
+            //     .collect();
+            // let q_: Self = q_.into();
+            // let pq_ = &p * &q_;
+            // let qq_ = &q * &q_;
+            // let u: Vec<_> = (n % 2..d).step_by(2).map(|i| pq_.get(i)).collect();
+            // let v: Vec<_> = (0..d).step_by(2).map(|i| qq_.get(i)).collect();
+            // p = u.into();
+            // q = v.into();
+            // n /= 2;
+        }
+        p.get(0)
+    }
 }
 
 impl<M: NttFriendly> From<Vec<StaticModInt<M>>> for Polynomial<M> {
@@ -720,4 +765,21 @@ fn fode() {
 
     // f(y) - y' = 0
     assert_eq!(f_df(&y, n).0, y.differential());
+}
+
+#[test]
+fn fibonacci() {
+    type Mi = modint::ModInt998244353;
+    type Poly = Polynomial<modint::Mod998244353>;
+
+    let p: Poly = vec![1].into();
+    let q: Poly = vec![1, -1, -1].into();
+
+    let n = 10;
+    let expected = (&p * q.recip(n)).truncated(n);
+
+    let actual: Vec<_> = (0..n).map(|i| p.div_nth(&q, i)).collect();
+    let actual: Poly = actual.into();
+
+    assert_eq!(actual, expected);
 }
