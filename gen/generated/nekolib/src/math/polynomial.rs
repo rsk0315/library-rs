@@ -963,6 +963,8 @@ fn fode() {
     let y = Poly::from(vec![2]).fode(n + 1, f_df);
 
     // y = x + 2/sqrt(1-8x) = 2 + 9x + 48x^2 + 320x^3 + ...
+    // (2/(y-x))^2 = 1-8x
+    assert_eq!(((&y - &x) / two).recip(n).pow(2, n), Poly::from(vec![1, -8]));
     assert_eq!(f_df(&y, n).0, y.differential());
 }
 
