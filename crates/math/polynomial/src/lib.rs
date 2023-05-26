@@ -46,6 +46,8 @@ impl<M: NttFriendly> Debug for Polynomial<M> {
 }
 
 impl<M: NttFriendly> Polynomial<M> {
+    /// $f(x) = 0$ を返す。
+    ///
     /// ```
     /// use nekolib::math::{Mod998244353, Polynomial};
     /// let f = Polynomial::<Mod998244353>::new();
@@ -72,14 +74,7 @@ impl<M: NttFriendly> Polynomial<M> {
         }
     }
 
-    /// ```
-    /// # use nekolib::math::{Mod998244353, Polynomial};
-    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, -1]);
-    /// let g = Poly::from(vec![1; 10]);
-    /// assert_eq!(f.recip_naive(10), g);
-    /// ```
-    pub fn recip_naive(&self, len: usize) -> Self {
+    fn recip_naive(&self, len: usize) -> Self {
         if len == 0 {
             return Self(vec![]);
         }
@@ -106,6 +101,8 @@ impl<M: NttFriendly> Polynomial<M> {
         res
     }
 
+    /// $f(x)\\cdot g(x) \\equiv 1\\pmod{x^n}$ なる $g(x) \\bmod x^n$ を返す。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -153,6 +150,8 @@ impl<M: NttFriendly> Polynomial<M> {
         res.truncated(len)
     }
 
+    /// $f(x)\\bmod x^n$ を返す。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -165,6 +164,8 @@ impl<M: NttFriendly> Polynomial<M> {
         self
     }
 
+    /// $f(x) \\gets f(x) \\bmod x^n$ で更新する。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -178,6 +179,10 @@ impl<M: NttFriendly> Polynomial<M> {
         self.normalize();
     }
 
+    /// $\\gdef\\deg{\\operatorname{deg}}$
+    ///
+    /// $f(x)^{\\mathrm{R}} = x^{\\deg(f)}\\cdot f(1/x)$ を返す。ただし $f(x) = 0$ の場合は $0$ を返す。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -190,6 +195,8 @@ impl<M: NttFriendly> Polynomial<M> {
         self
     }
 
+    /// $f(x) \\gets f(x)^{\\mathrm{R}}$ で更新する。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -203,6 +210,18 @@ impl<M: NttFriendly> Polynomial<M> {
         self.normalize();
     }
 
+    /// $f\'(x)$ を返す。
+    ///
+    /// $n = \\deg(f) + 1$ とし、
+    /// $f(x) = \\sum\_{i=0}^{n-1} a\_i x^i$ のとき、
+    /// $$
+    /// \\begin{aligned}
+    /// f\'(x) &= \\sum\_{i=1}^{n-1} i\\cdot a\_i x^{i-1} \\\\
+    /// &= \\sum\_{i=0}^{n-2} (i+1)\\cdot a\_{i+1} x^i
+    /// \\end{aligned}
+    /// $$
+    /// となる。ただし、$f(x) = 0$ のとき $f\'(x) = 0$ である。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -215,6 +234,8 @@ impl<M: NttFriendly> Polynomial<M> {
         self
     }
 
+    /// $f(x) \\gets f\'(x)$ で更新する。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -233,6 +254,21 @@ impl<M: NttFriendly> Polynomial<M> {
         self.0.remove(0);
     }
 
+    /// $\\gdef\\dd{\\mathrm{d}}$
+    ///
+    /// $\\int\_0^x f(t)\\, \\dd{t}$ を返す。
+    ///
+    /// $n = \\deg(f) + 1$ とし、
+    /// $f(x) = \\sum\_{i=0}^{n-1} a\_i x^i$ のとき、
+    /// $$
+    /// \\begin{aligned}
+    /// \\int\_0^x f(t)\\, \\dd{t}
+    /// &= \\sum\_{i=0}^{n-1} (i+1)^{-1}\\cdot a\_i x^{i+1} \\\\
+    /// &= \\sum\_{i=1}^{n} i\\cdot a\_i x^{i+1}
+    /// \\end{aligned}
+    /// $$
+    /// となる。ただし、$f(x) = 0$ のとき $\\int\_0^t f(t)\\, \\dd{t} = 0$ である。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -245,6 +281,8 @@ impl<M: NttFriendly> Polynomial<M> {
         self
     }
 
+    /// $f(x) \\gets \\int\_0^x f(t)\\, \\dd{t}$ で更新する。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -273,6 +311,10 @@ impl<M: NttFriendly> Polynomial<M> {
         self.0.insert(0, StaticModInt::new(0));
     }
 
+    /// $\[x\^0] f(x) = 1$ なる $f$ に対し、$\\log(f(x)) \\bmod x^n$ を返す。
+    ///
+    /// $\\log(x) = \\int\_0^x f\'(t)\\cdot f(t)^{-1}\\, \\dd{t}$ などが成り立つ。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -292,6 +334,10 @@ impl<M: NttFriendly> Polynomial<M> {
         diff
     }
 
+    /// $\[x\^0] f(x) = 0$ なる $f$ に対し、$\\exp(f(x)) \\bmod x^n$ を返す。
+    ///
+    /// $\\exp(\\log(x)) = x$ などが成り立つ。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -321,6 +367,10 @@ impl<M: NttFriendly> Polynomial<M> {
         res
     }
 
+    /// $\[x\^0] f(x) = 1$ なる $f$ に対し、$f(x)\^k \\bmod x^n$ を返す。
+    ///
+    /// 実際には $f(0) = 1$ の制約はなくせるはず。
+    ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -338,6 +388,11 @@ impl<M: NttFriendly> Polynomial<M> {
     /// `self` を初期解とし、$f(y) = 0$ を満たす $y$ を求める。
     ///
     /// `f_dfr` は $(y, n)$ に対して $f(y)\\cdot f\'(y)^{-1} \\bmod x^n$ を返すとする。
+    ///
+    /// $$y\_{k+1} = (y\_k - f(y\_k)\\cdot f\'(y\_k)^{-1}) \\bmod x^{2^k}$$
+    /// に基づき、
+    /// $$y\\xleftarrow{-} (f(y)\\cdot f\'(y)^{-1}) \\bmod x^{2^k}$$
+    /// で更新する。
     ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
@@ -375,6 +430,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// `self` を初期解とし、$y\' = f(y)$ を満たす $y$ を求める。
     ///
     /// `f_df` は $(y, n)$ に対して $(f(y)\\bmod x^n, f\'(y)\\bmod x^n)$ を返すとする。
+    ///
+    /// あんまりわかってません。
     ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
@@ -416,12 +473,28 @@ impl<M: NttFriendly> Polynomial<M> {
         y.truncated(n)
     }
 
+    /// $\[x^i] f(x)$ を返す。
+    ///
+    /// ```
+    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// let f = Poly::from(vec![5, 0, 7]);
+    /// assert_eq!(f.get(0).get(), 5);
+    /// assert_eq!(f.get(1).get(), 0);
+    /// assert_eq!(f.get(2).get(), 7);
+    /// assert_eq!(f.get(3).get(), 0);
+    /// assert_eq!(f.get(4).get(), 0);
+    /// ```
     pub fn get(&self, i: usize) -> StaticModInt<M> {
         self.0.get(i).copied().unwrap_or(StaticModInt::new(0))
     }
 
+    /// $(\[x^i] f(x))\_{i=0}^{\\deg(f)}$ を返す。
     pub fn into_inner(self) -> Vec<StaticModInt<M>> { self.0 }
 
+    /// $F\_{\\omega}\[f]$ を返す。
+    ///
+    /// $F$ とか $\\omega$ とかの定義をちゃんと書く。butterfly をどう書くか悩ましい。
     pub fn fft_butterfly(&mut self, len: usize) {
         let ceil_len = len.next_power_of_two();
         self.0.resize(ceil_len, StaticModInt::new(0));
@@ -429,6 +502,7 @@ impl<M: NttFriendly> Polynomial<M> {
         self.normalize();
     }
 
+    /// $F\_{\\omega}^{-1}\[f]$ を返す。
     pub fn fft_inv_butterfly(&mut self, len: usize) {
         let ceil_len = len.next_power_of_two();
         self.0.resize(ceil_len, StaticModInt::new(0));
@@ -441,9 +515,15 @@ impl<M: NttFriendly> Polynomial<M> {
         self.normalize();
     }
 
+    /// $f(x) = 0$ を返す。
     pub fn is_zero(&self) -> bool { self.0.is_empty() }
+
+    /// $\\deg(f)-1$ を返す。ただし $f(x) = 0$ のときは $0$ を返す。
     pub fn len(&self) -> usize { self.0.len() }
 
+    /// $(f(x) / g(x), f(x) \\bmod g(x))$ を返す。
+    ///
+    /// $f(x) / g(x)$ は $f(x)\\cdot g(x)^{-1}$ ではなく多項式としての除算である。
     pub fn div_mod(&self, other: &Polynomial<M>) -> (Self, Self) {
         let q = self / other;
         let r = self - &q * other;
@@ -451,6 +531,7 @@ impl<M: NttFriendly> Polynomial<M> {
     }
 
     // [x^n] self/other
+    /// $\[x^n] f(x) \\cdot g(x)^{-1}$ を返す。
     pub fn div_nth(
         &self,
         other: &Polynomial<M>,
