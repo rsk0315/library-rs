@@ -74,6 +74,7 @@ impl<M: NttFriendly> Polynomial<M> {
         }
     }
 
+    #[allow(dead_code)]
     fn recip_naive(&self, len: usize) -> Self {
         if len == 0 {
             return Self(vec![]);
@@ -324,7 +325,7 @@ impl<M: NttFriendly> Polynomial<M> {
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
     /// let f = Poly::from(vec![1, 1]);
     /// let g = Poly::from(vec![0, 1, 499122176, 332748118, 249561088]);
-    /// // log(1+x) = x - 1/2 x^2 + 1/3 x^3 - 1/4 x^4
+    /// // log(1+x) = x - 1/2 x^2 + 1/3 x^3 - 1/4 x^4 + ...
     /// assert_eq!(f.log(5), g);
     /// assert_eq!(f.log(5).differential(), Poly::from(vec![1, -1, 1, -1]));
     /// ```
@@ -347,7 +348,7 @@ impl<M: NttFriendly> Polynomial<M> {
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
     /// let f = Poly::from(vec![0, 1]);
     /// let g = Poly::from(vec![1, 1, 499122177, 166374059, 291154603]);
-    /// // exp(x) = 1 + x + 1/2 x^2 + 1/6 x^3 + 1/24 x^4
+    /// // exp(x) = 1 + x + 1/2 x^2 + 1/6 x^3 + 1/24 x^4 + ...
     /// assert_eq!(f.exp(5), g);
     /// ```
     pub fn exp(&self, len: usize) -> Self {
@@ -416,19 +417,14 @@ impl<M: NttFriendly> Polynomial<M> {
         (g_pow << (l * k_)) * a_l.pow(k_ as u64)
     }
 
-    pub fn circular_naive(&self, im: &Self, len: usize) -> (Self, Self) {
+    #[allow(dead_code)]
+    fn circular_naive(&self, im: &Self, len: usize) -> (Self, Self) {
         let re = self;
         assert_eq!(re.get(0).get(), 0);
         assert_eq!(im.get(0).get(), 0);
         if len == 0 {
             return (Self::new(), Self::new());
         }
-
-        let fft = |f: &Self, k| {
-            let mut g = f.clone();
-            g.fft_butterfly(k);
-            g
-        };
 
         let one = StaticModInt::new(1);
         let mut cos = Self::from(vec![1]);
@@ -437,40 +433,20 @@ impl<M: NttFriendly> Polynomial<M> {
         while cur_len < len {
             cur_len *= 2;
 
-            eprintln!();
-            eprintln!("cur_len: {cur_len} ---");
-
             let dcos = cos.clone().differential();
             let dsin = sin.clone().differential();
-
-            eprintln!("cos: {cos}; {}", fft(&cos, cur_len));
-            eprintln!("sin: {sin}; {}", fft(&sin, cur_len));
-            eprintln!("dcos: {dcos}; {}", fft(&dcos, cur_len));
-            eprintln!("dsin: {dsin}; {}", fft(&dcos, cur_len));
 
             let hypot = (&cos * &cos + &sin * &sin).recip(cur_len);
             let ecos = &dcos * &cos + &dsin * &sin;
             let esin = &dsin * &cos - &dcos * &sin;
 
-            eprintln!("hypot: {hypot}; {}", fft(&hypot, 2 * cur_len));
-            eprintln!("ecos: {ecos}; {}", fft(&ecos, 2 * cur_len));
-            eprintln!("esin: {esin}; {}", fft(&esin, 2 * cur_len));
-
             let logcos = (ecos * &hypot).truncated(cur_len - 1).integral();
             let logsin = (esin * &hypot).truncated(cur_len - 1).integral();
 
-            eprintln!("logcos: {logcos}");
-            eprintln!("logsin: {logsin}");
-
-            let gcos = -logcos + one - im.ref_truncated(cur_len);
-            let gsin = -logsin + re.ref_truncated(cur_len);
+            let gcos = -logcos + one + re.ref_truncated(cur_len);
+            let gsin = -logsin + im.ref_truncated(cur_len);
             let hcos = ((&cos * &gcos) - (&sin * &gsin)).truncated(cur_len);
             let hsin = ((&cos * &gsin) + (&sin * &gcos)).truncated(cur_len);
-
-            eprintln!("gcos: {gcos}; {}", fft(&gcos, 2 * cur_len));
-            eprintln!("gsin: {gsin}; {}", fft(&gsin, 2 * cur_len));
-            eprintln!("hcos: {hcos}; {}", fft(&hcos, 2 * cur_len));
-            eprintln!("hsin: {hsin}; {}", fft(&hsin, 2 * cur_len));
 
             cos = hcos;
             sin = hsin;
@@ -479,21 +455,29 @@ impl<M: NttFriendly> Polynomial<M> {
         (cos.truncated(len), sin.truncated(len))
     }
 
+    /// $\[x^0] f(x) = 0$ かつ $\[x^0] g(x) = 0$ なる $h(x) = f(x)+ig(x)$ に対して
+    /// $(\\cos(h(x)) \\bmod x^n, \\sin(h(x)) \\bmod x^n)$ を返す。
+    ///
+    /// $\\exp(f(x) + ig(x)) = \\exp(f(x))\\cdot(\\cos(g(x)) + i\\sin(g(x)))$
+    ///
+    /// ```
+    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// let zero = Poly::new();
+    /// let f = Poly::from(vec![0, 1]);
+    /// let g_re = Poly::from(vec![1, 0, -499122177, 0, 291154603, 0]);
+    /// let g_im = Poly::from(vec![0, 1, 0, -166374059, 0, 856826403]);
+    /// // cos(x) = 1 - 1/2 x^2 + 1/24 x^4 - ...
+    /// // sin(x) = x - 1/6 x^3 + 1/120 x^5 - ...
+    /// assert_eq!(zero.circular(&f, 6), (g_re, g_im));
+    /// ```
     pub fn circular(&self, im: &Self, len: usize) -> (Self, Self) {
-        // self.circular_naive(im, len);
-
         let re = self;
         assert_eq!(re.get(0).get(), 0);
         assert_eq!(im.get(0).get(), 0);
         if len == 0 {
             return (Self::new(), Self::new());
         }
-
-        // let ifft = |f: &Self, k| {
-        //     let mut g = f.clone();
-        //     g.fft_inv_butterfly(k);
-        //     g
-        // };
 
         let one = StaticModInt::new(1);
         let mut cos = Self::from(vec![1]);
@@ -502,25 +486,12 @@ impl<M: NttFriendly> Polynomial<M> {
         while cur_len < len {
             cur_len *= 2;
 
-            // eprintln!();
-            // eprintln!("cur_len: {cur_len} ---");
-
             let mut dcos = cos.clone().differential();
             let mut dsin = sin.clone().differential();
             cos.fft_butterfly(cur_len);
             sin.fft_butterfly(cur_len);
             dcos.fft_butterfly(cur_len);
             dsin.fft_butterfly(cur_len);
-
-            // cos: F, cur_len
-            // sin: F, cur_len
-            // dcos: F, cur_len
-            // dsin: F, cur_len
-
-            // eprintln!("cos: {}; {cos}", ifft(&cos, cur_len));
-            // eprintln!("sin: {}; {sin}", ifft(&sin, cur_len));
-            // eprintln!("dcos: {}; {dcos}", ifft(&dcos, cur_len));
-            // eprintln!("dsin: {}; {dsin}", ifft(&dsin, cur_len));
 
             let mut hypot = (&cos & &cos) + (&sin & &sin);
             let mut ecos = (&dcos & &cos) + (&dsin & &sin);
@@ -531,14 +502,6 @@ impl<M: NttFriendly> Polynomial<M> {
             ecos.fft_butterfly_double(2 * cur_len);
             esin.fft_butterfly_double(2 * cur_len);
 
-            // hypot: F, 2 * cur_len
-            // ecos: F, 2 * cur_len
-            // esin: F, 2 * cur_len
-
-            // eprintln!("hypot: {}; {hypot}", ifft(&hypot, 2 * cur_len));
-            // eprintln!("ecos: {}; {ecos}", ifft(&ecos, 2 * cur_len));
-            // eprintln!("esin: {}; {esin}", ifft(&esin, 2 * cur_len));
-
             let mut logcos = &ecos & &hypot;
             let mut logsin = &esin & &hypot;
             logcos.fft_inv_butterfly(2 * cur_len);
@@ -546,47 +509,65 @@ impl<M: NttFriendly> Polynomial<M> {
             logcos = logcos.truncated(cur_len - 1).integral();
             logsin = logsin.truncated(cur_len - 1).integral();
 
-            // logcos: f, cur_len
-            // logsin: f, cur_len
-
-            // eprintln!("logcos: {}", logcos);
-            // eprintln!("logsin: {}", logsin);
-
-            let mut gcos = -logcos + one - im.ref_truncated(cur_len);
-            let mut gsin = -logsin + re.ref_truncated(cur_len);
+            let mut gcos = -logcos + one + re.ref_truncated(cur_len);
+            let mut gsin = -logsin + im.ref_truncated(cur_len);
             gcos.fft_butterfly(2 * cur_len);
             gsin.fft_butterfly(2 * cur_len);
             cos.fft_butterfly_double(2 * cur_len);
             sin.fft_butterfly_double(2 * cur_len);
 
-            // gcos: F, 2 * cur_len
-            // gsin: F, 2 * cur_len
-            // cos: F, 2 * cur_len
-            // sin: F, 2 * cur_len
-
-            // eprintln!("({cos}) & ({gcos}) = {}", &cos & &gcos);
-            // eprintln!("({sin}) & ({gsin}) = {}", &sin & &gsin);
-
             let mut hcos = (&cos & &gcos) - (&sin & &gsin);
             let mut hsin = (&cos & &gsin) + (&sin & &gcos);
-            // eprintln!("F[hcos]: {hcos}");
-            // eprintln!("F[hsin]: {hsin}");
             hcos.fft_inv_butterfly(2 * cur_len);
             hsin.fft_inv_butterfly(2 * cur_len);
-
-            // hcos: f, 2 * cur_len
-            // hsin: f, 2 * cur_len
-
-            // eprintln!("gcos: {}; {gcos}", ifft(&gcos, 2 * cur_len));
-            // eprintln!("gsin: {}; {gsin}", ifft(&gsin, 2 * cur_len));
-            // eprintln!("hcos: {hcos}");
-            // eprintln!("hsin: {hsin}");
 
             cos = hcos.truncated(cur_len);
             sin = hsin.truncated(cur_len);
         }
 
         (cos.truncated(len), sin.truncated(len))
+    }
+
+    /// $\\cos(f(x)) \\bmod x^n$ を返す。
+    ///
+    /// ```
+    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// let zero = Poly::new();
+    /// let f = Poly::from(vec![0, 1]);
+    /// let g = Poly::from(vec![1, 0, -499122177, 0, 291154603, 0]);
+    /// // cos(x) = 1 - 1/2 x^2 + 1/24 x^4 - ...
+    /// assert_eq!(f.cos(6), g);
+    /// ```
+    pub fn cos(&self, len: usize) -> Self { Self::new().circular(self, len).0 }
+
+    /// $\\sin(f(x)) \\bmod x^n$ を返す。
+    ///
+    /// ```
+    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// let zero = Poly::new();
+    /// let f = Poly::from(vec![0, 1]);
+    /// let g = Poly::from(vec![0, 1, 0, -166374059, 0, 856826403]);
+    /// // sin(x) = x - 1/6 x^3 + 1/120 x^5 - ...
+    /// assert_eq!(f.sin(6), g);
+    /// ```
+    pub fn sin(&self, len: usize) -> Self { Self::new().circular(self, len).1 }
+
+    /// $\\tan(f(x)) \\bmod x^n$ を返す。
+    ///
+    /// ```
+    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// let zero = Poly::new();
+    /// let f = Poly::from(vec![0, 1]);
+    /// let g = Poly::from(vec![0, 1, 0, 332748118, 0, 732045859]);
+    /// // tan(x) = x + 1/3 x^3 + 2/15 x^5 ...
+    /// assert_eq!(f.tan(6), g);
+    /// ```
+    pub fn tan(&self, len: usize) -> Self {
+        let (cos, sin) = Self::new().circular(self, len);
+        (sin * cos.recip(len)).truncated(len)
     }
 
     // f(y) = f(y0) + (y-y0) f'(y0) = 0
@@ -1334,13 +1315,45 @@ fn butterfly_double() {
 
 #[test]
 fn sin_cos() {
+    type Mi = modint::ModInt998244353;
     type Poly = Polynomial<modint::Mod998244353>;
 
+    let n = 100;
     let zero: Poly = vec![0].into();
     let x: Poly = vec![0, 1].into();
-    let (sin, cos) = zero.circular(&x, 8);
-    println!("exp({zero} + i ({x})) = ({cos}) + i ({sin})");
-    let (sin, cos) = x.circular(&zero, 8);
-    println!("exp({x} + i ({zero})) = ({cos}) + i ({sin})");
-    panic!();
+
+    let exp_x = x.exp(n);
+    let (exp, o) = x.circular(&zero, n);
+
+    assert_eq!(exp, exp_x);
+    assert_eq!(o, zero);
+
+    let (cos, sin) = zero.circular(&x, n);
+    for i in 0..n {
+        let sgn = Mi::new(if i / 2 % 2 == 0 { 1 } else { -1 });
+        if i % 2 == 0 {
+            assert_eq!(cos.get(i), sgn * exp_x.get(i));
+            assert_eq!(sin.get(i).get(), 0);
+        } else {
+            assert_eq!(cos.get(i).get(), 0);
+            assert_eq!(sin.get(i), sgn * exp_x.get(i));
+        }
+    }
+
+    // e^(i(x+x^2)) = e^(ix) e^(ix^2) = (cos(x) + i sin(x)) (cos(x^2) + i sin(x^2))
+    // = (cos(x) cos(x^2) - sin(x) sin(x^2)) + i (sin(x) cos(x^2) + cos(x) sin(x^2))
+    let z = zero.circular(&Poly::from(vec![0, 1, 1]), n);
+
+    let (cos2, sin2): (Poly, Poly) = {
+        let mut cos2 = vec![Mi::new(0); n];
+        let mut sin2 = vec![Mi::new(0); n];
+        for i in (0..n).step_by(2) {
+            cos2[i] = cos.get(i / 2);
+            sin2[i] = sin.get(i / 2);
+        }
+        (cos2.into(), sin2.into())
+    };
+
+    assert_eq!(z.0, (&cos * &cos2 - &sin * &sin2).truncated(n));
+    assert_eq!(z.1, (&sin * &cos2 + &cos * &sin2).truncated(n));
 }
