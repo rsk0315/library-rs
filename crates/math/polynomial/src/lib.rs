@@ -164,6 +164,10 @@ impl<M: NttFriendly> Polynomial<M> {
         self
     }
 
+    pub fn ref_truncated(&self, len: usize) -> Self {
+        self.0[..len.min(self.0.len())].to_vec().into()
+    }
+
     /// $f(x) \\gets f(x) \\bmod x^n$ で更新する。
     ///
     /// ```
@@ -412,6 +416,179 @@ impl<M: NttFriendly> Polynomial<M> {
         (g_pow << (l * k_)) * a_l.pow(k_ as u64)
     }
 
+    pub fn circular_naive(&self, im: &Self, len: usize) -> (Self, Self) {
+        let re = self;
+        assert_eq!(re.get(0).get(), 0);
+        assert_eq!(im.get(0).get(), 0);
+        if len == 0 {
+            return (Self::new(), Self::new());
+        }
+
+        let fft = |f: &Self, k| {
+            let mut g = f.clone();
+            g.fft_butterfly(k);
+            g
+        };
+
+        let one = StaticModInt::new(1);
+        let mut cos = Self::from(vec![1]);
+        let mut sin = Self::from(vec![0]);
+        let mut cur_len = 1;
+        while cur_len < len {
+            cur_len *= 2;
+
+            eprintln!();
+            eprintln!("cur_len: {cur_len} ---");
+
+            let dcos = cos.clone().differential();
+            let dsin = sin.clone().differential();
+
+            eprintln!("cos: {cos}; {}", fft(&cos, cur_len));
+            eprintln!("sin: {sin}; {}", fft(&sin, cur_len));
+            eprintln!("dcos: {dcos}; {}", fft(&dcos, cur_len));
+            eprintln!("dsin: {dsin}; {}", fft(&dcos, cur_len));
+
+            let hypot = (&cos * &cos + &sin * &sin).recip(cur_len);
+            let ecos = &dcos * &cos + &dsin * &sin;
+            let esin = &dsin * &cos - &dcos * &sin;
+
+            eprintln!("hypot: {hypot}; {}", fft(&hypot, 2 * cur_len));
+            eprintln!("ecos: {ecos}; {}", fft(&ecos, 2 * cur_len));
+            eprintln!("esin: {esin}; {}", fft(&esin, 2 * cur_len));
+
+            let logcos = (ecos * &hypot).truncated(cur_len - 1).integral();
+            let logsin = (esin * &hypot).truncated(cur_len - 1).integral();
+
+            eprintln!("logcos: {logcos}");
+            eprintln!("logsin: {logsin}");
+
+            let gcos = -logcos + one - im.ref_truncated(cur_len);
+            let gsin = -logsin + re.ref_truncated(cur_len);
+            let hcos = ((&cos * &gcos) - (&sin * &gsin)).truncated(cur_len);
+            let hsin = ((&cos * &gsin) + (&sin * &gcos)).truncated(cur_len);
+
+            eprintln!("gcos: {gcos}; {}", fft(&gcos, 2 * cur_len));
+            eprintln!("gsin: {gsin}; {}", fft(&gsin, 2 * cur_len));
+            eprintln!("hcos: {hcos}; {}", fft(&hcos, 2 * cur_len));
+            eprintln!("hsin: {hsin}; {}", fft(&hsin, 2 * cur_len));
+
+            cos = hcos;
+            sin = hsin;
+        }
+
+        (cos.truncated(len), sin.truncated(len))
+    }
+
+    pub fn circular(&self, im: &Self, len: usize) -> (Self, Self) {
+        // self.circular_naive(im, len);
+
+        let re = self;
+        assert_eq!(re.get(0).get(), 0);
+        assert_eq!(im.get(0).get(), 0);
+        if len == 0 {
+            return (Self::new(), Self::new());
+        }
+
+        // let ifft = |f: &Self, k| {
+        //     let mut g = f.clone();
+        //     g.fft_inv_butterfly(k);
+        //     g
+        // };
+
+        let one = StaticModInt::new(1);
+        let mut cos = Self::from(vec![1]);
+        let mut sin = Self::from(vec![0]);
+        let mut cur_len = 1;
+        while cur_len < len {
+            cur_len *= 2;
+
+            // eprintln!();
+            // eprintln!("cur_len: {cur_len} ---");
+
+            let mut dcos = cos.clone().differential();
+            let mut dsin = sin.clone().differential();
+            cos.fft_butterfly(cur_len);
+            sin.fft_butterfly(cur_len);
+            dcos.fft_butterfly(cur_len);
+            dsin.fft_butterfly(cur_len);
+
+            // cos: F, cur_len
+            // sin: F, cur_len
+            // dcos: F, cur_len
+            // dsin: F, cur_len
+
+            // eprintln!("cos: {}; {cos}", ifft(&cos, cur_len));
+            // eprintln!("sin: {}; {sin}", ifft(&sin, cur_len));
+            // eprintln!("dcos: {}; {dcos}", ifft(&dcos, cur_len));
+            // eprintln!("dsin: {}; {dsin}", ifft(&dsin, cur_len));
+
+            let mut hypot = (&cos & &cos) + (&sin & &sin);
+            let mut ecos = (&dcos & &cos) + (&dsin & &sin);
+            let mut esin = (&dsin & &cos) - (&dcos & &sin);
+            hypot.fft_inv_butterfly(cur_len);
+            hypot = hypot.recip(cur_len);
+            hypot.fft_butterfly(2 * cur_len);
+            ecos.fft_butterfly_double(2 * cur_len);
+            esin.fft_butterfly_double(2 * cur_len);
+
+            // hypot: F, 2 * cur_len
+            // ecos: F, 2 * cur_len
+            // esin: F, 2 * cur_len
+
+            // eprintln!("hypot: {}; {hypot}", ifft(&hypot, 2 * cur_len));
+            // eprintln!("ecos: {}; {ecos}", ifft(&ecos, 2 * cur_len));
+            // eprintln!("esin: {}; {esin}", ifft(&esin, 2 * cur_len));
+
+            let mut logcos = &ecos & &hypot;
+            let mut logsin = &esin & &hypot;
+            logcos.fft_inv_butterfly(2 * cur_len);
+            logsin.fft_inv_butterfly(2 * cur_len);
+            logcos = logcos.truncated(cur_len - 1).integral();
+            logsin = logsin.truncated(cur_len - 1).integral();
+
+            // logcos: f, cur_len
+            // logsin: f, cur_len
+
+            // eprintln!("logcos: {}", logcos);
+            // eprintln!("logsin: {}", logsin);
+
+            let mut gcos = -logcos + one - im.ref_truncated(cur_len);
+            let mut gsin = -logsin + re.ref_truncated(cur_len);
+            gcos.fft_butterfly(2 * cur_len);
+            gsin.fft_butterfly(2 * cur_len);
+            cos.fft_butterfly_double(2 * cur_len);
+            sin.fft_butterfly_double(2 * cur_len);
+
+            // gcos: F, 2 * cur_len
+            // gsin: F, 2 * cur_len
+            // cos: F, 2 * cur_len
+            // sin: F, 2 * cur_len
+
+            // eprintln!("({cos}) & ({gcos}) = {}", &cos & &gcos);
+            // eprintln!("({sin}) & ({gsin}) = {}", &sin & &gsin);
+
+            let mut hcos = (&cos & &gcos) - (&sin & &gsin);
+            let mut hsin = (&cos & &gsin) + (&sin & &gcos);
+            // eprintln!("F[hcos]: {hcos}");
+            // eprintln!("F[hsin]: {hsin}");
+            hcos.fft_inv_butterfly(2 * cur_len);
+            hsin.fft_inv_butterfly(2 * cur_len);
+
+            // hcos: f, 2 * cur_len
+            // hsin: f, 2 * cur_len
+
+            // eprintln!("gcos: {}; {gcos}", ifft(&gcos, 2 * cur_len));
+            // eprintln!("gsin: {}; {gsin}", ifft(&gsin, 2 * cur_len));
+            // eprintln!("hcos: {hcos}");
+            // eprintln!("hsin: {hsin}");
+
+            cos = hcos.truncated(cur_len);
+            sin = hsin.truncated(cur_len);
+        }
+
+        (cos.truncated(len), sin.truncated(len))
+    }
+
     // f(y) = f(y0) + (y-y0) f'(y0) = 0
     // y = y0 - f(y0)/f'(y0)
     /// `self` を初期解とし、$f(y) = 0$ を満たす $y$ を求める。
@@ -518,6 +695,16 @@ impl<M: NttFriendly> Polynomial<M> {
         self.0.get(i).copied().unwrap_or(StaticModInt::new(0))
     }
 
+    pub fn eval(&self, t: impl Into<StaticModInt<M>>) -> StaticModInt<M> {
+        let t = t.into();
+        let mut ft = StaticModInt::new(0);
+        for &a in self.0.iter().rev() {
+            ft *= t;
+            ft += a;
+        }
+        ft
+    }
+
     /// $(\[x^i] f(x))\_{i=0}^{\\deg(f)}$ を返す。
     pub fn into_inner(self) -> Vec<StaticModInt<M>> { self.0 }
 
@@ -542,6 +729,28 @@ impl<M: NttFriendly> Polynomial<M> {
             *c *= iz;
         }
         self.normalize();
+    }
+
+    /// $F\_{\\omega\^2}\[f]$ を $F\_{\\omega}\[f]$ で更新する。
+    // [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15]
+    pub fn fft_butterfly_double(&mut self, to_len: usize) {
+        if self.is_zero() {
+            return;
+        }
+
+        let mut dbl = self.clone();
+        let g = StaticModInt::<M>::new(M::PRIMITIVE_ROOT);
+        let zeta = g.pow((M::VALUE as u64 - 1) / (to_len as u64));
+
+        dbl.fft_inv_butterfly(to_len / 2);
+        let mut r = StaticModInt::new(1);
+        for i in 0..dbl.0.len() {
+            dbl.0[i] *= r;
+            r *= zeta;
+        }
+        dbl.fft_butterfly(to_len / 2);
+        self.0.resize(to_len / 2, StaticModInt::new(0));
+        self.0.append(&mut dbl.0);
     }
 
     /// $f(x) = 0$ を返す。
@@ -1105,4 +1314,33 @@ fn fibonacci() {
     let actual: Poly = actual.into();
 
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn butterfly_double() {
+    type Poly = Polynomial<modint::Mod998244353>;
+
+    let f: Poly = vec![1, 2, 3, 4, 5].into();
+    let fft = |f: &Poly, n| {
+        let mut f = f.clone();
+        f.fft_butterfly(n);
+        f
+    };
+    let mut ff8_dbl = fft(&f, 8);
+    let ff16 = fft(&f, 16);
+    ff8_dbl.fft_butterfly_double(16);
+    assert_eq!(ff8_dbl, ff16);
+}
+
+#[test]
+fn sin_cos() {
+    type Poly = Polynomial<modint::Mod998244353>;
+
+    let zero: Poly = vec![0].into();
+    let x: Poly = vec![0, 1].into();
+    let (sin, cos) = zero.circular(&x, 8);
+    println!("exp({zero} + i ({x})) = ({cos}) + i ({sin})");
+    let (sin, cos) = x.circular(&zero, 8);
+    println!("exp({x} + i ({zero})) = ({cos}) + i ({sin})");
+    panic!();
 }
