@@ -15,6 +15,8 @@ use modint::{ModIntBase, StaticModInt};
 ///
 /// $\\gdef\\deg{\\operatorname{deg}}$
 /// $\\gdef\\dd{\\mathrm{d}}$
+/// $\\gdef\\dx{{\\textstyle{\\frac{\\dd}{\\dd x}}}}$
+/// $\\gdef\\dy{{\\textstyle{\\frac{\\dd}{\\dd y}}}}$
 ///
 /// $(f(x), g(x))\\bmod x^n$ を $(f(x)\\bmod x^n, g(x)\\bmod x^n)$ の略記として用いる。
 ///
@@ -59,6 +61,7 @@ impl<M: NttFriendly> Debug for Polynomial<M> {
 impl<M: NttFriendly> Polynomial<M> {
     /// $f(x) = 0$ を返す。
     ///
+    /// # Examples
     /// ```
     /// use nekolib::math::{Mod998244353, Polynomial};
     /// let f = Polynomial::<Mod998244353>::new();
@@ -115,6 +118,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $f(x)\\cdot g(x) \\equiv 1\\pmod{x^n}$ なる $g(x) \\bmod x^n$ を返す。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -164,6 +168,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $f(x)\\bmod x^n$ を返す。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -176,12 +181,24 @@ impl<M: NttFriendly> Polynomial<M> {
         self
     }
 
+    /// $f(x)\\bmod x^n$ を返す。
+    ///
+    /// # Examples
+    /// ```
+    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// let f = Poly::from(vec![1, 2, 3, 4, 5]);
+    /// let g = Poly::from(vec![1, 2, 3]);
+    /// assert_eq!(f.ref_truncated(3), g);
+    /// assert_eq!(f.ref_truncated(3), g);
+    /// ```
     pub fn ref_truncated(&self, len: usize) -> Self {
         self.0[..len.min(self.0.len())].to_vec().into()
     }
 
     /// $f(x) \\gets f(x) \\bmod x^n$ で更新する。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -197,6 +214,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $f(x)^{\\mathrm{R}} \\triangleq x^{\\deg(f)}\\cdot f(1/x)$ を返す。ただし $f(x) = 0$ の場合は $0$ を返す。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -211,6 +229,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $f(x) \\gets f(x)^{\\mathrm{R}}$ で更新する。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -236,6 +255,7 @@ impl<M: NttFriendly> Polynomial<M> {
     /// $$
     /// となる。ただし、$f(x) = 0$ のとき $f\'(x) = 0$ である。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -250,6 +270,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $f(x) \\gets f\'(x)$ で更新する。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -282,6 +303,7 @@ impl<M: NttFriendly> Polynomial<M> {
     /// $$
     /// となる。ただし、$f(x) = 0$ のとき $\\int\_0^t f(t)\\, \\dd{t} = 0$ である。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -305,6 +327,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $f(x) \\gets \\int\_0^x f(t)\\, \\dd{t}$ で更新する。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -335,8 +358,14 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $\[x\^0] f(x) = 1$ なる $f$ に対し、$\\log(f(x)) \\bmod x^n$ を返す。
     ///
-    /// $\\log(x) = \\int\_0^x f\'(t)\\cdot f(t)^{-1}\\, \\dd{t}$ などが成り立つ。
+    /// $\\log(1-f(x)) = -\\sum\_{n=1}^{\\infty} \\frac{f(x)^n}{n}$ などで定義される。
+    /// $\\dx\\log(f(x)) = f\'(t)\\cdot f(t)^{-1}$ や
+    /// $\\log(f(x)g(x)) = \\log(f(x))+\\log(g(x))$
+    /// などが成り立つ。
     ///
+    /// また、$\[x\^0]\\log(f(x)) = 0$ となる。
+    ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -358,8 +387,16 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $\[x\^0] f(x) = 0$ なる $f$ に対し、$\\exp(f(x)) \\bmod x^n$ を返す。
     ///
-    /// $\\exp(\\log(x)) = x$ などが成り立つ。
+    /// $\\exp(f(x)) = \\sum\_{n=0}^{\\infty} \\frac{f(x)^n}{n!}$ によって定義される。
+    /// $\\dx \\exp(f(x)) = \\exp(f(x))\\cdot \\dx f(x)$ や
+    /// $\\exp(f(x)+g(x)) = \\exp(f(x))\\exp(g(x))$
+    /// などが成り立つ。
     ///
+    /// また、$\\prod\_i f\_i(x) = \\exp(\\sum\_i \\log(f\_i(x)))$
+    /// や $\[x\^0] \\exp(f(x)) = 1$
+    /// も成り立つ。
+    ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -391,6 +428,24 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $f(x)\^k \\bmod x^n$ を返す。
     ///
+    /// # Ideas
+    ///
+    /// 自明なケースとして、
+    /// $k = 0$ のときは $1$ である。
+    /// $f(x) = 0$ のときは $0$ である。$0^0 = 1$ としている。
+    ///
+    /// それ以外のとき、$f(x) = a\_l x^l \\cdot (1+g(x))$ と書ける。
+    /// $$
+    /// \\begin{aligned}
+    /// f(x)^k &= (a\_l x\^l \\cdot (1+g(x)))^k \\\\
+    /// &= a\_l^k x\^{lk} \\cdot \\exp(k\\log(1+g(x)))
+    /// \\end{aligned}
+    /// $$
+    ///
+    /// によって計算できる。$\\log$ の引数の定数項が $1$ であることと、$\\exp$
+    /// の引数の定数項が $0$ になっていることに注意せよ。
+    ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -417,7 +472,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
         // 0^0 = 1
         if k_ == 0 {
-            return Self::from(vec![1]);
+            return Self::from(vec![1]).truncated(len);
         } else if self.is_zero() {
             return Self::new();
         }
@@ -476,7 +531,9 @@ impl<M: NttFriendly> Polynomial<M> {
     /// $(\\cos(h(x)), \\sin(h(x))) \\bmod x^n$ を返す。
     ///
     /// $\\exp(f(x) + ig(x)) = \\exp(f(x))\\cdot(\\cos(g(x)) + i\\sin(g(x)))$
+    /// から定義される。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -547,6 +604,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $\\cos(f(x)) \\bmod x^n$ を返す。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -560,6 +618,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $\\sin(f(x)) \\bmod x^n$ を返す。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -573,6 +632,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $\\tan(f(x)) \\bmod x^n$ を返す。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -593,16 +653,18 @@ impl<M: NttFriendly> Polynomial<M> {
     ///
     /// `f_dfr` は $(y, n)$ に対して $f(y)\\cdot f\'(y)^{-1} \\bmod x^n$ を返すとする。
     ///
+    /// Newton 法による
     /// $$y\_{k+1} = (y\_k - f(y\_k)\\cdot f\'(y\_k)^{-1}) \\bmod x^{2^k}$$
     /// に基づき、
     /// $$y\\xleftarrow{-} (f(y)\\cdot f\'(y)^{-1}) \\bmod x^{2^k}$$
     /// で更新する。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
     /// let three = Poly::from(vec![3]);
-    /// let f_dfr = |y: &Poly, n| {
+    /// let catalan = |y: &Poly, n| {
     ///     // f(y) = y^2+3y+2+x
     ///     // f(y) / f'(y) = (y^2+3y+2+x) / (2y+3)
     ///     let f = (y * y + &three * y + Poly::from(vec![2, 1])).truncated(n);
@@ -638,9 +700,6 @@ impl<M: NttFriendly> Polynomial<M> {
     /// # Ideas
     ///
     /// 基本的な方針は Newton 法と同じである。Taylor 展開を用いて二次収束する更新式を得る。
-    ///
-    /// $\\gdef\\dx{{\\textstyle{\\frac{\\dd}{\\dd x}}}}$
-    /// $\\gdef\\dy{{\\textstyle{\\frac{\\dd}{\\dd y}}}}$
     ///
     /// $y\\equiv y\_k \\pmod{x^{2^k}}$ を満たす
     /// $y\_k = \\sum\_{i=0}^{2^k-1} a\_i x^i$ が得られているとする。
@@ -697,6 +756,7 @@ impl<M: NttFriendly> Polynomial<M> {
     /// - Fateman, Richard J. "Series solutions of algebraic and differential equations: a comparison of linear and quadratic algebraic convergence." In *Proceedings of the ACM-SIGSAM 1989 international symposium on Symbolic and algebraic computation*, pp. 11--16. 1989.
     /// - Von Zur Gathen, Joachim, and Jürgen Gerhard. *Modern computer algebra*. Cambridge university press, 2013.
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -739,6 +799,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $\[x^i] f(x)$ を返す。
     ///
+    /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, ModIntBase, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
@@ -862,12 +923,46 @@ impl<M: NttFriendly> From<Vec<StaticModInt<M>>> for Polynomial<M> {
     }
 }
 
+impl<'a, M: NttFriendly> From<&'a [StaticModInt<M>]> for Polynomial<M> {
+    fn from(buf: &'a [StaticModInt<M>]) -> Self {
+        let mut res = Self(buf.to_vec());
+        res.normalize();
+        res
+    }
+}
+
+impl<M: NttFriendly, const N: usize> From<[StaticModInt<M>; N]>
+    for Polynomial<M>
+{
+    fn from(buf: [StaticModInt<M>; N]) -> Self {
+        let mut res = Self(buf.to_vec());
+        res.normalize();
+        res
+    }
+}
+
 macro_rules! impl_from {
     ( $($ty:ty) * ) => { $(
         impl<M: NttFriendly> From<Vec<$ty>> for Polynomial<M> {
             fn from(buf: Vec<$ty>) -> Self {
                 let mut res =
                     Self(buf.into_iter().map(StaticModInt::new).collect());
+                res.normalize();
+                res
+            }
+        }
+        impl<'a, M: NttFriendly> From<&'a [$ty]> for Polynomial<M> {
+            fn from(buf: &'a [$ty]) -> Self {
+                let mut res =
+                    Self(buf.iter().map(|&x| StaticModInt::new(x)).collect());
+                res.normalize();
+                res
+            }
+        }
+        impl<M: NttFriendly, const N: usize> From<[$ty; N]> for Polynomial<M> {
+            fn from(buf: [$ty; N]) -> Self {
+                let mut res =
+                    Self(buf.iter().map(|&x| StaticModInt::new(x)).collect());
                 res.normalize();
                 res
             }
@@ -1226,26 +1321,26 @@ fn sanity_check() {
     type Poly = Polynomial<modint::Mod998244353>;
 
     let f: Poly = vec![0, 1, 2, 3, 4].into();
-    let g: Poly = vec![0, 1, 2, 4, 8].into();
-    assert_eq!(&f * g, Poly::from(vec![0, 0, 1, 4, 11, 26, 36, 40, 32]));
+    let g = Poly::from(&[0, 1, 2, 4, 8][..]);
+    assert_eq!(&f * g, Poly::from([0, 0, 1, 4, 11, 26, 36, 40, 32]));
 
-    let x: Poly = vec![0, 1].into();
+    let x: Poly = [0, 1].into();
     let exp_recip: Vec<_> =
         x.exp(10).0.into_iter().map(|x| x.recip().get()).collect();
     assert_eq!(exp_recip, [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880]);
 
-    let one_x: Poly = vec![1, -1].into();
+    let one_x: Poly = [1, -1].into();
     let log_diff = one_x.log(10).differential();
-    assert_eq!(log_diff, Poly::from(vec![-1; 9]));
+    assert_eq!(log_diff, Poly::from([-1; 9]));
 
-    let h: Poly = vec![1, 9, 2, 6, 8, 3].into();
+    let h: Poly = [1, 9, 2, 6, 8, 3].into();
     let x_ten: Poly =
         (0..9).map(|_| 0).chain(Some(1)).collect::<Vec<_>>().into();
-    assert_eq!((&h * h.recip(10)) % &x_ten, Poly::from(vec![1]));
+    assert_eq!((&h * h.recip(10)) % &x_ten, Poly::from([1]));
 
-    assert_eq!((&f / &x).integral(), &x * Poly::from(vec![1; 4]));
+    assert_eq!((&f / &x).integral(), &x * Poly::from([1; 4]));
 
-    let x1: Poly = vec![1; 2].into();
+    let x1: Poly = [1; 2].into();
     assert_eq!(x1.pow(5, 10), &x1 * &x1 * &x1 * &x1 * &x1);
 
     assert_eq!(x1.pow(998244352, 10) * &x1 % &x_ten, x1.pow(998244353, 10));
@@ -1255,24 +1350,24 @@ fn sanity_check() {
 fn fft() {
     type Poly = Polynomial<modint::Mod998244353>;
 
-    let n = 4 + 4 + 4 + 1;
-    let one: Poly = vec![1].into();
-    let f: Poly = vec![0, 1, 2, 3, 4].into();
-    let g: Poly = vec![0, 1, 2, 4, 8].into();
-    let h: Poly = vec![0, 6, 5, 4, 3].into();
+    const N: usize = 4 + 4 + 4 + 1;
+    let one: Poly = [1].into();
+    let f: Poly = [0, 1, 2, 3, 4].into();
+    let g: Poly = [0, 1, 2, 4, 8].into();
+    let h: Poly = [0, 6, 5, 4, 3].into();
 
     let fft = |f: &Poly| {
         let mut f = f.clone();
-        f.fft_butterfly(n);
+        f.fft_butterfly(N);
         f
     };
     let ifft = |f: &Poly| {
         let mut f = f.clone();
-        f.fft_inv_butterfly(n);
+        f.fft_inv_butterfly(N);
         f
     };
 
-    let fone: Poly = vec![1; n.next_power_of_two() as usize].into();
+    let fone: Poly = [1; N.next_power_of_two() as usize].into();
     let ff = fft(&f);
     let fg = fft(&g);
     let fh = fft(&h);
@@ -1292,11 +1387,11 @@ fn recip() {
     type Mi = modint::ModInt998244353;
     type Poly = Polynomial<modint::Mod998244353>;
 
-    let f: Poly = vec![1, 2, 3, 4].into();
+    let f: Poly = [1, 2, 3, 4].into();
     assert_eq!(f.recip(10), f.recip_naive(10));
 
     let n = 100;
-    let f = Poly::from(vec![1, -1]).recip(n).integral();
+    let f = Poly::from([1, -1]).recip(n).integral();
     for i in 1..=n {
         assert_eq!((f.get(i) * Mi::new(i)).get(), 1);
     }
@@ -1306,10 +1401,10 @@ fn recip() {
 fn pow() {
     type Poly = Polynomial<modint::Mod998244353>;
 
-    let f: Poly = vec![0, 0, 0, 2, 1, 3].into();
+    let f: Poly = [0, 0, 0, 2, 1, 3].into();
 
     for len in 0..100 {
-        let mut g = Poly::from(vec![1]);
+        let mut g = Poly::from([1]).truncated(len);
         for k in 0..=10 {
             assert_eq!(f.pow(k, len), g);
 
@@ -1322,12 +1417,20 @@ fn pow() {
 #[test]
 fn polyeqn() {
     type Poly = Polynomial<modint::Mod998244353>;
+    type Mi = modint::ModInt998244353;
 
-    let f: Poly = vec![1, 2, 3, 4, 5].into();
+    let f: Poly = [1, 2, 3, 4, 5].into();
     let n = 10;
-    let g = Poly::from(vec![1])
+    let g = Poly::from([1])
         .polyeqn(n, |y, n| (&f - y.recip(n)) * (y * y).truncated(n));
     assert_eq!(g, f.recip(n));
+
+    let cat = Poly::from([1]).polyeqn(n, |y, n| {
+        let f = ((y * y) << 1) - y + Mi::new(1);
+        let df = (y << 1) * Mi::new(2) - Mi::new(1);
+        (f.truncated(n) * df.recip(n)).truncated(n)
+    });
+    assert_eq!(cat, Poly::from([1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862]));
 }
 
 #[test]
@@ -1338,7 +1441,7 @@ fn fode() {
     let one = Mi::new(1);
     let two = Mi::new(2);
     let three = Mi::new(3);
-    let x: Poly = vec![0, 1].into();
+    let x: Poly = [0, 1].into();
 
     let n = 20;
     let f_df = |y: &Poly, n| {
@@ -1346,7 +1449,7 @@ fn fode() {
         // (y, y') = ((y-x)^2+1, 2(y-x))
         ((&d * &d + one).truncated(n), &d * two)
     };
-    let y = Poly::from(vec![1]).fode(n + 1, f_df);
+    let y = Poly::from([1]).fode(n + 1, f_df);
 
     // f(y) - y' = 0; y = x + 1/(1-x)
     assert_eq!(f_df(&y, n).0, y.differential());
@@ -1357,11 +1460,11 @@ fn fode() {
         let dd = (&d * &d).truncated(n);
         ((&dd * &d + one).truncated(n), &dd * three)
     };
-    let y = Poly::from(vec![2]).fode(n + 1, f_df);
+    let y = Poly::from([2]).fode(n + 1, f_df);
 
     // y = x + 2/sqrt(1-8x) = 2 + 9x + 48x^2 + 320x^3 + ...
     // (2/(y-x))^2 = 1-8x
-    assert_eq!(((&y - &x) / two).recip(n).pow(2, n), Poly::from(vec![1, -8]));
+    assert_eq!(((&y - &x) / two).recip(n).pow(2, n), Poly::from([1, -8]));
     assert_eq!(f_df(&y, n).0, y.differential());
 }
 
@@ -1369,8 +1472,8 @@ fn fode() {
 fn fibonacci() {
     type Poly = Polynomial<modint::Mod998244353>;
 
-    let p: Poly = vec![1].into();
-    let q: Poly = vec![1, -1, -1].into();
+    let p: Poly = [1].into();
+    let q: Poly = [1, -1, -1].into();
 
     let n = 10;
     let expected = (&p * q.recip(n)).truncated(n);
@@ -1385,7 +1488,7 @@ fn fibonacci() {
 fn butterfly_double() {
     type Poly = Polynomial<modint::Mod998244353>;
 
-    let f: Poly = vec![1, 2, 3, 4, 5].into();
+    let f: Poly = [1, 2, 3, 4, 5].into();
     let fft = |f: &Poly, n| {
         let mut f = f.clone();
         f.fft_butterfly(n);
@@ -1403,8 +1506,8 @@ fn sin_cos() {
     type Poly = Polynomial<modint::Mod998244353>;
 
     let n = 100;
-    let zero: Poly = vec![0].into();
-    let x: Poly = vec![0, 1].into();
+    let zero: Poly = [0].into();
+    let x: Poly = [0, 1].into();
 
     let exp_x = x.exp(n);
     let (exp, o) = x.circular(&zero, n);
@@ -1426,7 +1529,7 @@ fn sin_cos() {
 
     // e^(i(x+x^2)) = e^(ix) e^(ix^2) = (cos(x) + i sin(x)) (cos(x^2) + i sin(x^2))
     // = (cos(x) cos(x^2) - sin(x) sin(x^2)) + i (sin(x) cos(x^2) + cos(x) sin(x^2))
-    let z = zero.circular(&Poly::from(vec![0, 1, 1]), n);
+    let z = zero.circular(&Poly::from([0, 1, 1]), n);
 
     let (cos2, sin2): (Poly, Poly) = {
         let mut cos2 = vec![Mi::new(0); n];
