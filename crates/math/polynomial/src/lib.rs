@@ -122,8 +122,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, -1]);
-    /// let g = Poly::from(vec![1; 10]);
+    /// let f: Poly = [1, -1].into();
+    /// let g: Poly = [1; 10].into();
     /// assert_eq!(f.recip(10), g);
     /// ```
     pub fn recip(&self, len: usize) -> Self {
@@ -172,8 +172,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, 2, 3, 4, 5]);
-    /// let g = Poly::from(vec![1, 2, 3]);
+    /// let f: Poly = [1, 2, 3, 4, 5].into();
+    /// let g: Poly = [1, 2, 3].into();
     /// assert_eq!(f.truncated(3), g);
     /// ```
     pub fn truncated(mut self, len: usize) -> Self {
@@ -187,8 +187,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, 2, 3, 4, 5]);
-    /// let g = Poly::from(vec![1, 2, 3]);
+    /// let f: Poly = [1, 2, 3, 4, 5].into();
+    /// let g: Poly = [1, 2, 3].into();
     /// assert_eq!(f.ref_truncated(3), g);
     /// assert_eq!(f.ref_truncated(3), g);
     /// ```
@@ -202,8 +202,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let mut f = Poly::from(vec![1, 2, 3, 4, 5]);
-    /// let g = Poly::from(vec![1, 2, 3]);
+    /// let mut f: Poly = [1, 2, 3, 4, 5].into();
+    /// let g: Poly = [1, 2, 3].into();
     /// f.truncate(3);
     /// assert_eq!(f, g);
     /// ```
@@ -218,8 +218,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![0, 1, 2]);
-    /// let g = Poly::from(vec![2, 1]);
+    /// let f: Poly = [0, 1, 2].into();
+    /// let g: Poly = [2, 1].into();
     /// assert_eq!(f.reversed(), g);
     /// ```
     pub fn reversed(mut self) -> Self {
@@ -233,8 +233,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let mut f = Poly::from(vec![0, 1, 2]);
-    /// let g = Poly::from(vec![2, 1]);
+    /// let mut f: Poly = [0, 1, 2].into();
+    /// let g: Poly = [2, 1].into();
     /// f.reverse();
     /// assert_eq!(f, g);
     /// ```
@@ -259,8 +259,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, 1, 1, 1]);
-    /// let g = Poly::from(vec![1, 2, 3]);
+    /// let f: Poly = [1, 1, 1, 1].into();
+    /// let g: Poly = [1, 2, 3].into();
     /// assert_eq!(f.differential(), g);
     /// ```
     pub fn differential(mut self) -> Self {
@@ -274,8 +274,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let mut f = Poly::from(vec![1, 1, 1, 1]);
-    /// let g = Poly::from(vec![1, 2, 3]);
+    /// let mut f: Poly = [1, 1, 1, 1].into();
+    /// let g: Poly = [1, 2, 3].into();
     /// f.differentiate();
     /// assert_eq!(f, g);
     /// ```
@@ -307,16 +307,16 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, 2, 3]);
-    /// let g = Poly::from(vec![0, 1, 1, 1]);
+    /// let f: Poly = [1, 2, 3].into();
+    /// let g: Poly = [0, 1, 1, 1].into();
     /// assert_eq!(f.integral(), g);
     /// ```
     ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, -1]).recip(4).integral();
-    /// let g = Poly::from(vec![0, 1, 499122177, 332748118, 748683265]);
+    /// let f = Poly::from([1, -1]).recip(4).integral();
+    /// let g = Poly::from([0, 1, 499122177, 332748118, 748683265]);
     /// // \Integrate (1/(1-x)) dx = x + 1/2 x^2 + 1/3 x^3 + 1/4 x^4 + ...
     /// assert_eq!(f, g);
     /// ```
@@ -331,8 +331,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let mut f = Poly::from(vec![1, 2, 3]);
-    /// let g = Poly::from(vec![0, 1, 1, 1]);
+    /// let mut f: Poly = [1, 2, 3].into();
+    /// let g: Poly = [0, 1, 1, 1].into();
     /// f.integrate();
     /// assert_eq!(f, g);
     /// ```
@@ -369,11 +369,11 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, 1]);
-    /// let g = Poly::from(vec![0, 1, 499122176, 332748118, 249561088]);
+    /// let f: Poly = [1, 1].into();
+    /// let g: Poly = [0, 1, 499122176, 332748118, 249561088].into();
     /// // log(1+x) = x - 1/2 x^2 + 1/3 x^3 - 1/4 x^4 + ...
     /// assert_eq!(f.log(5), g);
-    /// assert_eq!(f.log(5).differential(), Poly::from(vec![1, -1, 1, -1]));
+    /// assert_eq!(f.log(5).differential(), [1, -1, 1, -1].into());
     /// ```
     pub fn log(&self, len: usize) -> Self {
         assert_eq!(self.0[0].get(), 1);
@@ -400,8 +400,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![0, 1]);
-    /// let g = Poly::from(vec![1, 1, 499122177, 166374059, 291154603]);
+    /// let f: Poly = [0, 1].into();
+    /// let g: Poly = [1, 1, 499122177, 166374059, 291154603].into();
     /// // exp(x) = 1 + x + 1/2 x^2 + 1/6 x^3 + 1/24 x^4 + ...
     /// assert_eq!(f.exp(5), g);
     /// ```
@@ -449,8 +449,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![1, 1]);
-    /// let g = Poly::from(vec![1, 4, 6, 4, 1]);
+    /// let f: Poly = [1, 1].into();
+    /// let g: Poly = [1, 4, 6, 4, 1].into();
     /// // (1+x)^4 = 1 + 4x + 6x^2 + 4x^3 + x^4
     /// assert_eq!(f.pow(4, 10), g);
     /// ```
@@ -458,8 +458,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![0, 0, 2, 6]);
-    /// let g = Poly::from(vec![64, 1152, 8640, 34560]) << 12;
+    /// let f: Poly = [0, 0, 2, 6].into();
+    /// let g = Poly::from([64, 1152, 8640, 34560]) << 12;
     /// // (2x^2+6x^3)^6
     /// // = (2x^2 (1 + 3x))^6
     /// // = 64x^12 (1 + 18x + 135x^2 + 540x^3 + ...)
@@ -472,7 +472,7 @@ impl<M: NttFriendly> Polynomial<M> {
 
         // 0^0 = 1
         if k_ == 0 {
-            return Self::from(vec![1]).truncated(len);
+            return Self::from([1]).truncated(len);
         } else if self.is_zero() {
             return Self::new();
         }
@@ -499,8 +499,8 @@ impl<M: NttFriendly> Polynomial<M> {
         }
 
         let one = StaticModInt::new(1);
-        let mut cos = Self::from(vec![1]);
-        let mut sin = Self::from(vec![0]);
+        let mut cos = Self::from([1]);
+        let mut sin = Self::from([0]);
         let mut cur_len = 1;
         while cur_len < len {
             cur_len *= 2;
@@ -538,9 +538,9 @@ impl<M: NttFriendly> Polynomial<M> {
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
     /// let zero = Poly::new();
-    /// let f = Poly::from(vec![0, 1]);
-    /// let g_re = Poly::from(vec![1, 0, -499122177, 0, 291154603, 0]);
-    /// let g_im = Poly::from(vec![0, 1, 0, -166374059, 0, 856826403]);
+    /// let f: Poly = [0, 1].into();
+    /// let g_re: Poly = [1, 0, -499122177, 0, 291154603, 0].into();
+    /// let g_im: Poly = [0, 1, 0, -166374059, 0, 856826403].into();
     /// // cos(x) = 1 - 1/2 x^2 + 1/24 x^4 - ...
     /// // sin(x) = x - 1/6 x^3 + 1/120 x^5 - ...
     /// assert_eq!(zero.circular(&f, 6), (g_re, g_im));
@@ -554,8 +554,8 @@ impl<M: NttFriendly> Polynomial<M> {
         }
 
         let one = StaticModInt::new(1);
-        let mut cos = Self::from(vec![1]);
-        let mut sin = Self::from(vec![0]);
+        let mut cos = Self::from([1]);
+        let mut sin = Self::from([0]);
         let mut cur_len = 1;
         while cur_len < len {
             cur_len *= 2;
@@ -609,8 +609,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
     /// let zero = Poly::new();
-    /// let f = Poly::from(vec![0, 1]);
-    /// let g = Poly::from(vec![1, 0, -499122177, 0, 291154603, 0]);
+    /// let f: Poly = [0, 1].into();
+    /// let g: Poly = [1, 0, -499122177, 0, 291154603, 0].into();
     /// // cos(x) = 1 - 1/2 x^2 + 1/24 x^4 - ...
     /// assert_eq!(f.cos(6), g);
     /// ```
@@ -623,8 +623,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
     /// let zero = Poly::new();
-    /// let f = Poly::from(vec![0, 1]);
-    /// let g = Poly::from(vec![0, 1, 0, -166374059, 0, 856826403]);
+    /// let f: Poly = [0, 1].into();
+    /// let g: Poly = [0, 1, 0, -166374059, 0, 856826403].into();
     /// // sin(x) = x - 1/6 x^3 + 1/120 x^5 - ...
     /// assert_eq!(f.sin(6), g);
     /// ```
@@ -637,8 +637,8 @@ impl<M: NttFriendly> Polynomial<M> {
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
     /// let zero = Poly::new();
-    /// let f = Poly::from(vec![0, 1]);
-    /// let g = Poly::from(vec![0, 1, 0, 332748118, 0, 732045859]);
+    /// let f: Poly = [0, 1].into();
+    /// let g: Poly = [0, 1, 0, 332748118, 0, 732045859].into();
     /// // tan(x) = x + 1/3 x^3 + 2/15 x^5 ...
     /// assert_eq!(f.tan(6), g);
     /// ```
@@ -663,16 +663,19 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let three = Poly::from(vec![3]);
+    /// let one = Poly::from([1]);
+    /// let two = Poly::from([2]);
+    /// let three = Poly::from([3]);
     /// let catalan = |y: &Poly, n| {
-    ///     // f(y) = y^2+3y+2+x
-    ///     // f(y) / f'(y) = (y^2+3y+2+x) / (2y+3)
-    ///     let f = (y * y + &three * y + Poly::from(vec![2, 1])).truncated(n);
-    ///     let df = y + y + &three;
-    ///     (f * df.recip(n)).truncated(n)
+    ///     // c(x) = 1 + x c(x)^2
+    ///     // f(y) = x y^2 - y + 1
+    ///     // f(y) / f'(y) = (x y^2 - y + 1) / (2xy - 1)
+    ///     let f = ((y * y) << 1) - y + &one;
+    ///     let df = ((y * &two) << 1) - &one;
+    ///     (f.truncated(n) * df.recip(n)).truncated(n)
     /// };
-    /// let f = Poly::from(vec![-1]).polyeqn(6, f_dfr);
-    /// let g = Poly::from(vec![-1, -1, -1, -2, -5, -14]);
+    /// let f = Poly::from([1]).polyeqn(6, catalan);
+    /// let g = Poly::from([1, 1, 2, 5, 14, 42]);
     /// assert_eq!(f, g);
     /// ```
     pub fn polyeqn(
@@ -760,21 +763,21 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let x = Poly::from(vec![0, 1]);
-    /// let one = Poly::from(vec![1]);
-    /// let three = Poly::from(vec![3]);
+    /// let x: Poly = [0, 1].into();
+    /// let one: Poly = [1].into();
+    /// let three: Poly = [3].into();
     /// let f_df = |y: &Poly, n| {
     ///     let d = y - &x;
-    ///     // (y, y') = ((y-x)^3+1, 3(y-x)^2)
+    ///     // (f(y), f'(y)) = ((y-x)^3+1, 3(y-x)^2)
     ///     let dd = (&d * &d).truncated(n);
     ///     ((&dd * &d + &one).truncated(n), &dd * &three)
     /// };
     ///
     /// let n = 4;
-    /// let y = Poly::from(vec![2]).fode(n + 1, f_df);
+    /// let y = Poly::from([2]).fode(n + 1, f_df);
     ///
     /// // y = x + 2/sqrt(1-8x) = 2 + 9x + 48x^2 + 320x^3 + 2240x^4 + ...
-    /// assert_eq!(y, Poly::from(vec![2, 9, 48, 320, 2240]));
+    /// assert_eq!(y, [2, 9, 48, 320, 2240].into());
     /// assert_eq!(f_df(&y, n).0, y.differential());
     /// ```
     pub fn fode(
@@ -803,7 +806,7 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     /// # use nekolib::math::{Mod998244353, ModIntBase, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
-    /// let f = Poly::from(vec![5, 0, 7]);
+    /// let f: Poly = [5, 0, 7].into();
     /// assert_eq!(f.get(0).get(), 5);
     /// assert_eq!(f.get(1).get(), 0);
     /// assert_eq!(f.get(2).get(), 7);
@@ -1446,7 +1449,7 @@ fn fode() {
     let n = 20;
     let f_df = |y: &Poly, n| {
         let d = y - &x;
-        // (y, y') = ((y-x)^2+1, 2(y-x))
+        // (f(y), f'(y)) = ((y-x)^2+1, 2(y-x))
         ((&d * &d + one).truncated(n), &d * two)
     };
     let y = Poly::from([1]).fode(n + 1, f_df);
@@ -1456,7 +1459,7 @@ fn fode() {
 
     let f_df = |y: &Poly, n| {
         let d = y - &x;
-        // (y, y') = ((y-x)^3+1, 3(y-x))
+        // (f(y), f'(y)) = ((y-x)^3+1, 3(y-x))
         let dd = (&d * &d).truncated(n);
         ((&dd * &d + one).truncated(n), &dd * three)
     };
