@@ -409,6 +409,8 @@ impl<M: NttFriendly> Polynomial<M> {
     pub fn exp(&self, len: usize) -> Self {
         assert_eq!(self.0.get(0).map(|x| x.get()).unwrap_or(0), 0);
 
+        return self.exp_fast(len);
+
         if len == 0 {
             return Self(vec![]);
         }
@@ -425,6 +427,61 @@ impl<M: NttFriendly> Polynomial<M> {
         }
         res.truncate(len);
         res
+    }
+
+    fn exp_fast(&self, len: usize) -> Self {
+        let mut inv = Self::from([0, 1]);
+        if inv.len() >= len {
+            return inv.truncated(len);
+        }
+
+        let mut b = Self::from([1, self.get(1).get()]);
+        let mut c = Self::from([1]);
+        let mut z1 = Self::new();
+        let mut z2 = Self::from([1, 1]);
+
+        let mut cur_len = 2;
+        while cur_len < len {
+            cur_len *= 2;
+
+            let mut y = b.clone();
+            y.fft_butterfly(cur_len);
+            z1 = z2;
+            let mut z = &y & &z1;
+            z.fft_inv_butterfly(cur_len / 2);
+            z.0[..cur_len / 4].fill(StaticModInt::new(0));
+            z.fft_butterfly(cur_len / 2);
+            z &= -&z1;
+            z.fft_inv_butterfly(cur_len / 2);
+            c.0.resize(cur_len / 4, StaticModInt::new(0));
+            c.0.extend_from_slice(&z.0[..cur_len / 4]);
+            z2 = c.clone();
+            z2.fft_butterfly(cur_len);
+            let mut x: Self = self.0[..self.0.len().min(cur_len / 2)].into();
+            x.differentiate();
+            x.fft_butterfly(cur_len / 2);
+            x &= &y;
+            x.fft_inv_butterfly(cur_len / 2);
+            x -= b.clone().differential();
+            x.0.resize(cur_len, StaticModInt::new(0));
+            for i in 0..cur_len / 2 - 1 {
+                x.0[cur_len / 2 + i] = std::mem::take(&mut x.0[i]);
+            }
+            x.fft_inv_butterfly(cur_len);
+            x.0.pop();
+            x.integrate();
+            for i in cur_len / 2..cur_len.min(self.0.len()) {
+                x.0[i] += self.0[i];
+            }
+            x.0[..cur_len / 2].fill(StaticModInt::new(0));
+            x.fft_butterfly(cur_len);
+            x &= &y;
+            x.fft_inv_butterfly(cur_len);
+            b.0.resize(cur_len, StaticModInt::new(0));
+            b.0.extend_from_slice(&x.0[cur_len / 2..]);
+        }
+
+        b.truncated(len)
     }
 
     /// $f(x)\^k \\bmod x^n$ を返す。
