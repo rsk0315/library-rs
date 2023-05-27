@@ -9,6 +9,17 @@ use std::ops::{
 use convolution::{butterfly, butterfly_inv, convolve, NttFriendly};
 use modint::{ModIntBase, StaticModInt};
 
+/// 多項式。
+///
+/// ## Notations
+///
+/// $\\gdef\\deg{\\operatorname{deg}}$
+/// $\\gdef\\dd{\\mathrm{d}}$
+///
+/// $(f(x), g(x))\\bmod x^n$ を $(f(x)\\bmod x^n, g(x)\\bmod x^n)$ の略記として用いる。
+///
+/// $f(x) = \\sum\_{i=0}^{n} a\_i x^i$ ($a\_{n}\\neq 0$) に対して $\\deg(f) = n$ とする。
+/// ただし、$f(x) = 0$ に対しては $\\deg(f) = -\\infty$ とする。
 #[derive(Clone, Eq, PartialEq)]
 pub struct Polynomial<M: NttFriendly>(Vec<StaticModInt<M>>);
 
@@ -184,9 +195,7 @@ impl<M: NttFriendly> Polynomial<M> {
         self.normalize();
     }
 
-    /// $\\gdef\\deg{\\operatorname{deg}}$
-    ///
-    /// $f(x)^{\\mathrm{R}} = x^{\\deg(f)}\\cdot f(1/x)$ を返す。ただし $f(x) = 0$ の場合は $0$ を返す。
+    /// $f(x)^{\\mathrm{R}} \\triangleq x^{\\deg(f)}\\cdot f(1/x)$ を返す。ただし $f(x) = 0$ の場合は $0$ を返す。
     ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
@@ -259,7 +268,6 @@ impl<M: NttFriendly> Polynomial<M> {
         self.0.remove(0);
     }
 
-    /// $\\gdef\\dd{\\mathrm{d}}$
     ///
     /// $\\int\_0^x f(t)\\, \\dd{t}$ を返す。
     ///
@@ -465,7 +473,7 @@ impl<M: NttFriendly> Polynomial<M> {
     }
 
     /// $\[x^0] f(x) = 0$ かつ $\[x^0] g(x) = 0$ なる $h(x) = f(x)+ig(x)$ に対して
-    /// $(\\cos(h(x)) \\bmod x^n, \\sin(h(x)) \\bmod x^n)$ を返す。
+    /// $(\\cos(h(x)), \\sin(h(x))) \\bmod x^n$ を返す。
     ///
     /// $\\exp(f(x) + ig(x)) = \\exp(f(x))\\cdot(\\cos(g(x)) + i\\sin(g(x)))$
     ///
@@ -623,11 +631,71 @@ impl<M: NttFriendly> Polynomial<M> {
     }
 
     // y' = f(y)
-    /// `self` を初期解とし、$y\' = f(y)$ を満たす $y$ を求める。
+    /// `self` を初期解とし、$y\' = f(y, x)$ を満たす $y(x)$ を求める。
     ///
-    /// `f_df` は $(y, n)$ に対して $(f(y)\\bmod x^n, f\'(y)\\bmod x^n)$ を返すとする。
+    /// `f_df` は $(y, n)$ に対して $(f(y, x), f\'(y, x)) \\bmod x^n$ を返すとする。
     ///
-    /// あんまりわかってません。
+    /// # Ideas
+    ///
+    /// 基本的な方針は Newton 法と同じである。Taylor 展開を用いて二次収束する更新式を得る。
+    ///
+    /// $\\gdef\\dx{{\\textstyle{\\frac{\\dd}{\\dd x}}}}$
+    /// $\\gdef\\dy{{\\textstyle{\\frac{\\dd}{\\dd y}}}}$
+    ///
+    /// $y\\equiv y\_k \\pmod{x^{2^k}}$ を満たす
+    /// $y\_k = \\sum\_{i=0}^{2^k-1} a\_i x^i$ が得られているとする。
+    /// このとき、ある $\\psi(y)$ が存在して、$f(y, x)$ の $y\_k$ のまわりでの Taylor 展開が
+    /// $$ f(y, x) = f(y\_k, x) + \\left(\\dy f(y\_k, x)\\right)\\cdot (y-y\_k) + \\psi(y)\\cdot (y-y\_k)^2 $$
+    /// と書ける。仮定より $y-y\_k\\equiv 0\\pmod{x^{2^k}}$ なので、
+    /// $$ f(y, x) \\equiv f(y\_k, x) + \\left(\\dy f(y\_k, x)\\right)\\cdot (y-y\_k) \\pmod{x^{2^{k+1}}} $$
+    /// となる。また、$y\' = y\_k\' + (y\' - y\_k\')$ と書けるので、$y\' = f(y, x)$ より
+    /// $$ y\_k\' + (y\' - y\_k\') \\equiv f(y\_k, x) + \\left(\\dy f(y\_k, x)\\right)\\cdot (y-y\_k) \\pmod{x^{2^{k+1}}} $$
+    /// が成り立つ。
+    ///
+    /// ここで $e\_k = y-y\_k$ とおくと、
+    /// $$ y\_k\' + e\_k\' \\equiv f(y\_k, x) + \\left(\\dy f(y\_k, x)\\right)\\cdot e\_k \\pmod{x^{2^{k+1}}} $$
+    /// が成り立つ。$e\_k$ について整理して
+    /// $$ e\_k\' + \\underbrace{\\left(-\\dy f(y\_k, x)\\right)}\_{g(x)}\\cdot e\_k \\equiv \\underbrace{f(y\_k, x) - y\_k\'\\vphantom{\\left(\\dy\\right)}}\_{h(x)} \\pmod{x^{2^{k+1}}} $$
+    /// を得る。$e\_k\' + g(x)\\cdot e\_k \\equiv h(x)$ の形式の微分方程式が得られたので、これについて考える。
+    ///
+    /// $\\mu(x) = \\exp(\\int\_0^x g(t)\\, \\dd{t})$ を両辺に掛けて[^intexp]、
+    /// $$
+    /// \\begin{aligned}
+    /// e\_k\'\\cdot\\mu(x) + g(x)\\cdot e\_k\\cdot\\mu(x)
+    /// &\\equiv h(x) \\mu(x) \\\\
+    /// \\dx \\left(e\_k\\cdot\\mu(x)\\right)
+    /// &\\equiv h(x) \\mu(x) \\\\
+    /// % e\_k\\cdot \\mu(x) &\\equiv \\int\_0^x h(t)\\mu(t)\\, \\dd{t} + C \\\\
+    /// % e\_k &\\equiv \\frac{1}{\\mu(x)}\\left(\\int\_0^x h(t)\\mu(t)\\, \\dd{t} + C\\right) \\\\
+    /// \\end{aligned}
+    /// $$
+    /// より、
+    /// $$
+    /// e\_k \\equiv \\frac{1}{\\mu(x)}\\left(\\int\_0^x h(t)\\mu(t)\\, \\dd{t} + C\\right) \\pmod{x^{2^{k+1}}}
+    /// $$
+    /// を得る。$\\exp$ の性質から $\\mu(x) \\equiv 1 \\pmod{x}$ であり、$C\\mu(x)^{-1} \\equiv C\\pmod{x}$ となる。
+    /// ところで、$e\_k = y-y\_k\\equiv 0 \\pmod{x^{2^k}}$ であったため、$C = 0$ となる必要がある。
+    ///
+    /// [^intexp]: $\\exp$ の引数の定数項は $0$ となる必要がある。
+    ///
+    /// さて、$y = y\_k + e\_k \\pmod{x^{2^{k+1}}}$ なので、$y\_{k+1} \\triangleq y\_k + e\_k$ とすると、$y \\equiv y\_{k+1} \\pmod{x^{2^{k+1}}}$ を得られる。
+    /// すなわち、以下で更新することになる。
+    ///
+    /// $$
+    /// \\begin{aligned}
+    /// g\_k &= -\\dy f(y\_k, x) \\bmod x^{2^{k+1}} \\\\
+    /// \\mu\_k &= \\exp\\left(\\int\_0^x g(t)\\, \\dd{t}\\right) \\bmod x^{2^{k+1}}\\\\
+    /// e\_k &= \\frac{1}{\\mu\_k}\\int\_0^x \\big(f(y\_k, x)-y\_k\')\\cdot \\mu\_k\\big)\\, \\dd{x} \\bmod x^{2^{k+1}} \\\\
+    /// y\_{k+1} &= y\_k + e\_k
+    /// \\end{aligned}
+    /// $$
+    ///
+    /// 実際には $y$ を immutable で管理して $y\\xleftarrow{+}e\_k$ の更新をしている。
+    ///
+    /// # References
+    ///
+    /// - Fateman, Richard J. "Series solutions of algebraic and differential equations: a comparison of linear and quadratic algebraic convergence." In *Proceedings of the ACM-SIGSAM 1989 international symposium on Symbolic and algebraic computation*, pp. 11--16. 1989.
+    /// - Von Zur Gathen, Joachim, and Jürgen Gerhard. *Modern computer algebra*. Cambridge university press, 2013.
     ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
