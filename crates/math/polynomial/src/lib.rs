@@ -17,6 +17,7 @@ use modint::{ModIntBase, StaticModInt};
 /// $\\gdef\\dd{\\mathrm{d}}$
 /// $\\gdef\\dx{{\\textstyle{\\frac{\\dd}{\\dd x}}}}$
 /// $\\gdef\\dy{{\\textstyle{\\frac{\\dd}{\\dd y}}}}$
+/// $\\gdef\\qed{\\square}$
 ///
 /// $(f(x), g(x))\\bmod x^n$ を $(f(x)\\bmod x^n, g(x)\\bmod x^n)$ の略記として用いる。
 ///
@@ -658,6 +659,45 @@ impl<M: NttFriendly> Polynomial<M> {
     /// に基づき、
     /// $$y\\xleftarrow{-} (f(y)\\cdot f\'(y)^{-1}) \\bmod x^{2^k}$$
     /// で更新する。
+    ///
+    /// # Ideas
+    /// 多項式 $\\varphi(y)$ の $g$ のまわりでの Taylor 展開は、
+    /// $$ \\varphi(y) = \\sum\_{i=0}^{\\deg(\\varphi)} \\varphi\_i\\cdot (y-g)^i $$
+    /// として定義される。各係数 $\\varphi\_i$ は一意に定まり、Taylor 係数と呼ばれる。
+    ///
+    /// 微分して $y=g$ を代入することなどで、ある多項式 $\\psi$ を用いて以下のように書ける。
+    /// $$ \\varphi(y) = \\varphi(g) + \\left(\\dy\\varphi(g)\\right)\\cdot (y-g) + \\psi(y)\\cdot (y-g)^2. $$
+    ///
+    /// さて、$f(y\_k)\\equiv 0 \\pmod{x^{2^k}}$ なる $y\_k$ が得られており、かつ $\\dy f(y\_k)$ が逆元を持つとき、
+    /// $$ y\_{k+1} \\triangleq y\_k - f(y\_k)\\cdot \\dy f(y\_k)^{-1} \\bmod {x^{2^{k+1}}} $$
+    /// で得られる $y\_{k+1}$ によって $f(y\_{k+1}) \\equiv 0\\pmod{x^{2^{k+1}}}$ が成り立つことを示す。
+    ///
+    /// ## Proof
+    /// まず、$f(y\_k) \\equiv \\pmod{x^{2^k}}$ であることと、$x^{2^k}$ が $x^{2^{k+1}}$ を割り切ることから
+    /// $y\_{k+1} = y\_k \\pmod{x^{2^k}}$ は成り立つ。
+    /// これより、$(y\_{k+1} - y\_k)^2 \\pmod {x^{2^{k+1}}}$ も従う。
+    /// さて、多項式 $f$ の $y\_k$ のまわりでの Taylor 展開から、ある $\\psi$ に対して
+    /// $$ f(y) = f(y\_k) + \\left(\\dy f(y\_k)\\right)\\cdot (y-y\_k) + \\psi(y)\\cdot (y-y\_k)^2 $$
+    /// が成り立つので、
+    /// $$
+    ///  f(y) \\equiv f(y\_k) + \\left(\\dy f(y\_k)\\right)\\cdot (y-y\_k) \\equiv 0 \\pmod {x^{2^{k+1}}}
+    /// $$
+    /// となる。$y$ について整理して
+    /// $$
+    /// y \\equiv y\_k -f(y\_k)\\cdot \\dy f(y\_k)^{-1} \\pmod{x^{2^{k+1}}}
+    /// $$
+    /// を得る。$\\qed$
+    ///
+    /// なお、一般に、環 $R$ において、$x\\in R$ が $y\\in R$ を法とする逆元を持つことは、
+    /// $y^i$ ($i\\in\\N\_{\\ge 1}$) を法とする逆元を持つことと同値である。
+    ///
+    /// よって、上記の手続きを繰り返すことにより、$y$ を任意の次数で求めることができる。
+    /// $x^{2^k}\\to x^{2^{k+1}}$ としていた箇所は、一般に $x^l\\to x^{2l}$ と置き換えることも可能。
+    /// 実際には、定数項のみを与え、$x^{2^0}=x$ を法として始めることが多いであろう。
+    ///
+    /// # References
+    ///
+    /// - Von Zur Gathen, Joachim, and Jürgen Gerhard. *Modern computer algebra*. Cambridge university press, 2013.
     ///
     /// # Examples
     /// ```
