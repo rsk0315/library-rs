@@ -1509,6 +1509,16 @@ fn fode() {
     // (2/(y-x))^2 = 1-8x
     assert_eq!(((&y - &x) / two).recip(n).pow(2, n), Poly::from([1, -8]));
     assert_eq!(f_df(&y, n).0, y.differential());
+
+    let catalan = |y: &Poly, n| {
+        let xy2r = (-((y * Mi::new(2)) << 1) + Mi::new(1)).recip(n);
+        let f = ((y * y).truncated(n) * &xy2r).truncated(n);
+        let df = (y * Mi::new(2) * (-(y << 1) + Mi::new(1))).truncated(n)
+            * (&xy2r * &xy2r).truncated(n);
+        (f, df.truncated(n))
+    };
+    let y = Poly::from([1]).fode(10, catalan);
+    assert_eq!(y, [1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862].into());
 }
 
 #[test]
