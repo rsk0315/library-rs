@@ -628,7 +628,7 @@ impl<M: NttFriendly> Polynomial<M> {
     /// let three = Poly::from(vec![3]);
     /// let f_df = |y: &Poly, n| {
     ///     let d = y - &x;
-    ///     // (y, y') = ((y-x)^3+1, 3(y-x))
+    ///     // (y, y') = ((y-x)^3+1, 3(y-x)^2)
     ///     let dd = (&d * &d).truncated(n);
     ///     ((&dd * &d + &one).truncated(n), &dd * &three)
     /// };
