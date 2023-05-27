@@ -1511,6 +1511,7 @@ fn fode() {
     assert_eq!(f_df(&y, n).0, y.differential());
 
     let catalan = |y: &Poly, n| {
+        // (f(y), f'(y)) = (y^2/(1-2xy), 2y(1-xy)/(1-2xy)^2)
         let xy2r = (-((y * Mi::new(2)) << 1) + Mi::new(1)).recip(n);
         let f = ((y * y).truncated(n) * &xy2r).truncated(n);
         let df = (y * Mi::new(2) * (-(y << 1) + Mi::new(1))).truncated(n)
