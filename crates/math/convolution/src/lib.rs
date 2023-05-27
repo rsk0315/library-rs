@@ -297,7 +297,13 @@ pub fn convolve<M: NttFriendly>(
     }
     let (n, m) = (a.len(), b.len());
 
-    if n.min(m) <= 60 { convolve_naive(&a, &b) } else { convolve_fft(a, b) }
+    if n.min(m) <= 60 {
+        convolve_naive(&a, &b)
+    } else if (n + m - 2).is_power_of_two() {
+        convolve_pow2p1(a, b)
+    } else {
+        convolve_fft(a, b)
+    }
 }
 
 fn convolve_naive<M: NttFriendly>(
@@ -311,6 +317,33 @@ fn convolve_naive<M: NttFriendly>(
         for j in 0..m {
             res[i + j] += a[i] * b[j];
         }
+    }
+    res
+}
+
+fn convolve_pow2p1<M: NttFriendly>(
+    a: Vec<StaticModInt<M>>,
+    b: Vec<StaticModInt<M>>,
+) -> Vec<StaticModInt<M>> {
+    let n = a.len();
+    let m = b.len();
+    let len = n + m - 1;
+    assert!((len - 1).is_power_of_two());
+
+    // n + m - 1 == 2^k + 1
+    //
+    // (a[0] + x a[1..]) (b[0] + x b[1..])
+    // a[0] b[0] + x (a[0] b[1..] + b[0] a[1..]) + x^2 a[1..] b[1..]
+
+    let mut res = convolve_fft(a[1..].to_vec(), b[1..].to_vec());
+    res.splice(0..0, (0..2).map(|_| StaticModInt::new(0)));
+
+    res[0] += a[0] * b[0];
+    for i in 1..n {
+        res[i] += a[i] * b[0];
+    }
+    for j in 1..m {
+        res[j] += a[0] * b[j];
     }
     res
 }
@@ -804,4 +837,15 @@ fn long_u128_mod() {
         assert_eq!(a[i], a[n + n - 2 - i]);
         assert_eq!(a[i], (max64 * max64 % p) * (i as u128 + 1) % p);
     }
+}
+
+#[test]
+fn pow2p1() {
+    type Mi = modint::ModInt998244353;
+
+    let n = 1 << 6 | 1;
+    let a: Vec<_> = (0..n).map(|x| Mi::new(x + 1)).collect();
+    let b = a.clone();
+    let expected = convolve_naive(&a, &b);
+    assert_eq!(convolve(a, b), expected);
 }
