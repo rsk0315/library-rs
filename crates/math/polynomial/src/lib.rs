@@ -281,6 +281,15 @@ impl<M: NttFriendly> Polynomial<M> {
     /// let g = Poly::from(vec![0, 1, 1, 1]);
     /// assert_eq!(f.integral(), g);
     /// ```
+    ///
+    /// ```
+    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// let f = Poly::from(vec![1, -1]).recip(4).integral();
+    /// let g = Poly::from(vec![0, 1, 499122177, 332748118, 748683265]);
+    /// // \Integrate (1/(1-x)) dx = x + 1/2 x^2 + 1/3 x^3 + 1/4 x^4 + ...
+    /// assert_eq!(f, g);
+    /// ```
     pub fn integral(mut self) -> Self {
         self.integrate();
         self
@@ -1212,10 +1221,17 @@ fn fft() {
 
 #[test]
 fn recip() {
+    type Mi = modint::ModInt998244353;
     type Poly = Polynomial<modint::Mod998244353>;
 
     let f: Poly = vec![1, 2, 3, 4].into();
     assert_eq!(f.recip(10), f.recip_naive(10));
+
+    let n = 100;
+    let f = Poly::from(vec![1, -1]).recip(n).integral();
+    for i in 1..=n {
+        assert_eq!((f.get(i) * Mi::new(i)).get(), 1);
+    }
 }
 
 #[test]
