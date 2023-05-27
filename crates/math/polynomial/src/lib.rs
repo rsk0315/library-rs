@@ -367,9 +367,7 @@ impl<M: NttFriendly> Polynomial<M> {
         res
     }
 
-    /// $\[x\^0] f(x) = 1$ なる $f$ に対し、$f(x)\^k \\bmod x^n$ を返す。
-    ///
-    /// 実際には $f(0) = 1$ の制約はなくせるはず。
+    /// $f(x)\^k \\bmod x^n$ を返す。
     ///
     /// ```
     /// # use nekolib::math::{Mod998244353, Polynomial};
@@ -379,8 +377,39 @@ impl<M: NttFriendly> Polynomial<M> {
     /// // (1+x)^4 = 1 + 4x + 6x^2 + 4x^3 + x^4
     /// assert_eq!(f.pow(4, 10), g);
     /// ```
+    ///
+    /// ```
+    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// let f = Poly::from(vec![0, 0, 2, 6]);
+    /// let g = Poly::from(vec![64, 1152, 8640, 34560]) << 12;
+    /// // (2x^2+6x^3)^6
+    /// // = (2x^2 (1 + 3x))^6
+    /// // = 64x^12 (1 + 18x + 135x^2 + 540x^3 + ...)
+    /// // = 64x^12 + 1152x^13 + 8640x^14 + 34560x^15 + ...
+    /// assert_eq!(f.pow(6, 16), g);
+    /// ```
     pub fn pow<I: Into<StaticModInt<M>>>(&self, k: I, len: usize) -> Self {
-        (self.log(len) * k.into()).exp(len)
+        let k = k.into();
+        let k_ = k.get() as usize;
+
+        // 0^0 = 1
+        if k_ == 0 {
+            return Self::from(vec![1]);
+        } else if self.is_zero() {
+            return Self::new();
+        }
+
+        // f(x) = (a_l x^l) (1+g(x))
+        let l = (0..).find(|&i| self.0[i].get() != 0).unwrap();
+        let a_l = self.0[l];
+        if len <= l * k_ {
+            return Self::new();
+        }
+
+        let g = (self >> l) / a_l;
+        let g_pow = (g.log(len) * k).exp(len - l * k_);
+        (g_pow << (l * k_)) * a_l.pow(k_ as u64)
     }
 
     // f(y) = f(y0) + (y-y0) f'(y0) = 0
@@ -476,7 +505,7 @@ impl<M: NttFriendly> Polynomial<M> {
     /// $\[x^i] f(x)$ を返す。
     ///
     /// ```
-    /// # use nekolib::math::{Mod998244353, Polynomial};
+    /// # use nekolib::math::{Mod998244353, ModIntBase, Polynomial};
     /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
     /// let f = Poly::from(vec![5, 0, 7]);
     /// assert_eq!(f.get(0).get(), 5);
@@ -992,23 +1021,39 @@ fn fft() {
 }
 
 #[test]
+fn recip() {
+    type Poly = Polynomial<modint::Mod998244353>;
+
+    let f: Poly = vec![1, 2, 3, 4].into();
+    assert_eq!(f.recip(10), f.recip_naive(10));
+}
+
+#[test]
+fn pow() {
+    type Poly = Polynomial<modint::Mod998244353>;
+
+    let f: Poly = vec![0, 0, 0, 2, 1, 3].into();
+
+    for len in 0..100 {
+        let mut g = Poly::from(vec![1]);
+        for k in 0..=10 {
+            assert_eq!(f.pow(k, len), g);
+
+            g *= &f;
+            g.truncate(len);
+        }
+    }
+}
+
+#[test]
 fn polyeqn() {
-    use modint::Mod998244353;
-    type Poly = Polynomial<Mod998244353>;
+    type Poly = Polynomial<modint::Mod998244353>;
 
     let f: Poly = vec![1, 2, 3, 4, 5].into();
     let n = 10;
     let g = Poly::from(vec![1])
         .polyeqn(n, |y, n| (&f - y.recip(n)) * (y * y).truncated(n));
     assert_eq!(g, f.recip(n));
-}
-
-#[test]
-fn recip() {
-    type Poly = Polynomial<modint::Mod998244353>;
-
-    let f: Poly = vec![1, 2, 3, 4].into();
-    assert_eq!(f.recip(10), f.recip_naive(10));
 }
 
 #[test]
