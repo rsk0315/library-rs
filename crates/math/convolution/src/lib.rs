@@ -354,11 +354,9 @@ fn convolve_fft<M: NttFriendly>(
 ) -> Vec<StaticModInt<M>> {
     let (n, m) = (a.len(), b.len());
     let z = (n + m - 1).next_power_of_two();
-    a.resize(z, StaticModInt::new(0));
-    b.resize(z, StaticModInt::new(0));
 
-    butterfly(&mut a);
-    butterfly(&mut b);
+    butterfly_with_resize(&mut a, z);
+    butterfly_with_resize(&mut b, z);
 
     for (ai, bi) in a.iter_mut().zip(&mut b) {
         *ai *= *bi;
@@ -372,6 +370,37 @@ fn convolve_fft<M: NttFriendly>(
     }
 
     a
+}
+
+fn butterfly_with_resize<M: NttFriendly>(
+    a: &mut Vec<StaticModInt<M>>,
+    new_len: usize,
+) {
+    let cur_len = a.len();
+    if cur_len.next_power_of_two() == new_len {
+        a.resize(new_len, 0.into());
+        butterfly(a);
+        return;
+    }
+
+    a.resize(cur_len.next_power_of_two(), 0.into());
+    let mut fa = a.to_vec();
+    butterfly(&mut fa);
+    while fa.len() < new_len {
+        let g = StaticModInt::<M>::new(M::PRIMITIVE_ROOT);
+        let zeta = g.pow((M::VALUE as u64 - 1) / (2 * fa.len() as u64));
+
+        let mut ra = a.clone();
+        ra.resize(fa.len(), 0.into());
+        let mut r = StaticModInt::new(1);
+        for i in 0..ra.len() {
+            ra[i] *= r;
+            r *= zeta;
+        }
+        butterfly(&mut ra);
+        fa.append(&mut ra);
+    }
+    *a = fa;
 }
 
 macro_rules! impl_modint_ntt {
