@@ -412,6 +412,8 @@ impl<M: NttFriendly> Polynomial<M> {
     pub fn exp(&self, len: usize) -> Self {
         assert_eq!(self.0.get(0).map(|x| x.get()).unwrap_or(0), 0);
 
+        return self.exp_fast(len);
+
         if len == 0 {
             return Self(vec![]);
         }
@@ -428,6 +430,61 @@ impl<M: NttFriendly> Polynomial<M> {
         }
         res.truncate(len);
         res
+    }
+
+    fn exp_fast(&self, len: usize) -> Self {
+        let mut b = Self::from([1, self.get(1).get()]);
+        let mut c = Self::from([1]);
+        let mut z2 = Self::from([1, 1]);
+
+        let mut cur_len = 2;
+        while cur_len < len {
+            let m = cur_len;
+            cur_len *= 2;
+
+            let mut y = b.clone();
+            y.0.resize(2 * m, 0.into());
+            y.fft_butterfly(2 * m);
+            let z1 = z2;
+            let mut z = &y & &z1;
+            z.fft_inv_butterfly(m);
+            z.0.resize(m, 0.into());
+            z.0[..m / 2].fill(0.into());
+            z.fft_butterfly(m);
+            z &= -&z1;
+            z.fft_inv_butterfly(m);
+            c.0.resize(m / 2, 0.into());
+            c.0.extend_from_slice(&z.0[z.0.len().min(m / 2)..]);
+            z2 = c.clone();
+            z2.fft_butterfly(2 * m);
+            let mut x = Self::from(&self.0[..m.min(self.0.len())]);
+            x.differentiate();
+            x.fft_butterfly(m);
+            x &= &y;
+            x.fft_inv_butterfly(m);
+            x -= b.clone().differential();
+            x.0.resize(2 * m, 0.into());
+            for i in 0..m - 1 {
+                x.0[m + i] = x.0[i];
+                x.0[i] = 0.into();
+            }
+            x.fft_butterfly(2 * m);
+            x &= &z2;
+            x.fft_inv_butterfly(2 * m);
+            x.integrate();
+            for i in m..self.0.len().min(2 * m) {
+                x.0[i] += self.0[i];
+            }
+            x.0.resize(2 * m, 0.into());
+            x.0[..m].fill(0.into());
+            x.fft_butterfly(2 * m);
+            x &= &y;
+            x.fft_inv_butterfly(2 * m);
+            b.0.resize(m, 0.into());
+            b.0.extend_from_slice(&x.0[x.0.len().min(m)..]);
+        }
+
+        b.truncated(len)
     }
 
     /// $f(x)\^k \\bmod x^n$ を返す。
@@ -959,6 +1016,19 @@ impl<M: NttFriendly> Polynomial<M> {
         }
         p.get(0)
     }
+
+    #[allow(dead_code)]
+    fn sparse(&self, thresh: usize) -> Option<Vec<(usize, StaticModInt<M>)>> {
+        let nz: Vec<_> = self
+            .0
+            .iter()
+            .copied()
+            .enumerate()
+            .filter(|&(_, ai)| ai.get() != 0)
+            .take(thresh + 1)
+            .collect();
+        (nz.len() <= thresh).then(|| nz)
+    }
 }
 
 impl<M: NttFriendly> From<Vec<StaticModInt<M>>> for Polynomial<M> {
@@ -1452,7 +1522,7 @@ fn pow() {
     for len in 0..100 {
         let mut g = Poly::from([1]).truncated(len);
         for k in 0..=10 {
-            assert_eq!(f.pow(k, len), g);
+            assert_eq!(f.pow(k, len), g, "({})^{}", f, k);
 
             g *= &f;
             g.truncate(len);
