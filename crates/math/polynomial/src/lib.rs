@@ -430,55 +430,150 @@ impl<M: NttFriendly> Polynomial<M> {
     }
 
     fn exp_fast(&self, len: usize) -> Self {
-        let mut inv = Self::from([0, 1]);
-        if inv.len() >= len {
-            return inv.truncated(len);
-        }
-
         let mut b = Self::from([1, self.get(1).get()]);
         let mut c = Self::from([1]);
-        let mut z1 = Self::new();
         let mut z2 = Self::from([1, 1]);
 
         let mut cur_len = 2;
         while cur_len < len {
+            let m = cur_len;
             cur_len *= 2;
 
+            // eprintln!("b = {b}");
+
+            // let mut y = b.clone(); // y: m
+            // y.fft_butterfly(2 * m); // y: 2m
+            // let z1 = z2; // z1: m
+            // let mut z = &y & &z1; // z: m
+            // z.fft_inv_butterfly(m); // z: m
+            // z.0[..m / 2].fill(StaticModInt::new(0)); // z: m
+            // z.fft_butterfly(m); // z: m
+            // z &= -&z1; // z: m
+            // z.fft_inv_butterfly(m); // z: m
+            // c.0.resize(m / 2, StaticModInt::new(0)); // c: m/2
+            // c.0.extend_from_slice(&z.0[m / 2..]); // c: m
+            // z2 = c.clone(); // z2: m
+            // z2.fft_butterfly(2 * m); // z2: 2m
+            // let mut x: Self = self.0[..self.0.len().min(m)].into(); // x: m
+            // x.differentiate(); // x: m
+            // x.fft_butterfly(m); // x: m
+            // x &= &y; // x: m
+            // x.fft_inv_butterfly(m); // x: m
+            // x -= b.clone().differential(); // x: m
+            // x.0.resize(2 * m, StaticModInt::new(0)); // x: 2m
+            // for i in 0..m - 1 {
+            //     x.0[m + i] = std::mem::take(&mut x.0[i]); // x: 2m
+            // }
+            // x.fft_butterfly(2 * m); // x: 2m
+            // x &= &z2; // x: 2m
+            // x.fft_inv_butterfly(2 * m); // x: 2m
+            // x.0.pop(); // x: 2m
+            // x.integrate(); // x: 2m
+            // x.0.resize(2 * m, StaticModInt::new(0)); // x: 2m
+            // for i in m..self.0.len().min(2 * m) {
+            //     x.0[i] += self.0[i]; // x: 2m
+            // }
+            // x.0[..m].fill(StaticModInt::new(0)); // x: 2m
+            // x.fft_butterfly(2 * m); // x: 2m
+            // x &= &y; // x: 2m
+            // x.fft_inv_butterfly(2 * m); // x: 2m
+            // b.0.resize(m, StaticModInt::new(0)); // b: m
+            // b.0.extend_from_slice(&x.0[m..]); // b: 2m
+            // b.0.resize(2 * m, StaticModInt::new(0)); // b: 2m
+
+            // ---
+
+            eprintln!("\ncur_len: {cur_len} ---");
+
+            eprintln!("{b}");
+            // assert_eq!(b.0.len(), m);
+            // assert_eq!(c.0.len(), m / 2);
+            // assert_eq!(z2.0.len(), m);
+
+            // auto y = b;
             let mut y = b.clone();
-            y.fft_butterfly(cur_len);
-            z1 = z2;
+            // y.resize(2 * m);
+            y.0.resize(2 * m, 0.into());
+            // y.ntt();
+            y.fft_butterfly(2 * m);
+            // z1 = z2;
+            let z1 = z2;
+            // fps z(m);
+            // for (int i = 0; i < m; ++i) z[i] = y[i] * z1[i];
             let mut z = &y & &z1;
-            z.fft_inv_butterfly(cur_len / 2);
-            z.0[..cur_len / 4].fill(StaticModInt::new(0));
-            z.fft_butterfly(cur_len / 2);
+            // z.intt();
+            z.fft_inv_butterfly(m);
+            // fill(begin(z), begin(z) + m / 2, mint(0));
+            z.0.resize(m, 0.into());
+            z.0[..m / 2].fill(0.into());
+            // z.ntt();
+            z.fft_butterfly(m);
+            // for (int i = 0; i < m; ++i) z[i] *= -z1[i];
             z &= -&z1;
-            z.fft_inv_butterfly(cur_len / 2);
-            c.0.resize(cur_len / 4, StaticModInt::new(0));
-            c.0.extend_from_slice(&z.0[..cur_len / 4]);
+            // z.intt();
+            z.fft_inv_butterfly(m);
+            // c.insert(end(c), begin(z) + m / 2, end(z));
+            c.0.resize(m / 2, 0.into());
+            z.0.resize(m, 0.into());
+            c.0.extend_from_slice(&z.0[m / 2..]);
+            // z2 = c;
             z2 = c.clone();
-            z2.fft_butterfly(cur_len);
-            let mut x: Self = self.0[..self.0.len().min(cur_len / 2)].into();
+            // z2.resize(2 * m);
+            z2.0.resize(2 * m, 0.into());
+            // z2.ntt();
+            z2.fft_butterfly(2 * m);
+            // fps x(begin(*this), begin(*this) + min<int>(this->size(), m));
+            let mut x = Self::from(&self.0[..m.min(self.0.len())]);
+            // x.resize(m);
+            x.0.resize(m, 0.into());
+            // inplace_diff(x);
             x.differentiate();
-            x.fft_butterfly(cur_len / 2);
+            // x.push_back(mint(0));
+            x.0.push(0.into());
+            // x.ntt();
+            x.fft_butterfly(m);
+            // for (int i = 0; i < m; ++i) x[i] *= y[i];
             x &= &y;
-            x.fft_inv_butterfly(cur_len / 2);
+            // x.intt();
+            x.fft_inv_butterfly(m);
+            // x -= b.diff();
             x -= b.clone().differential();
-            x.0.resize(cur_len, StaticModInt::new(0));
-            for i in 0..cur_len / 2 - 1 {
-                x.0[cur_len / 2 + i] = std::mem::take(&mut x.0[i]);
+            // x.resize(2 * m);
+            x.0.resize(2 * m, 0.into());
+            // for (int i = 0; i < m - 1; ++i) x[m + i] = x[i], x[i] = mint(0);
+            for i in 0..m - 1 {
+                x.0[m + i] = x.0[i];
+                x.0[i] = 0.into();
             }
-            x.fft_inv_butterfly(cur_len);
-            x.0.pop();
+            // x.ntt();
+            x.fft_butterfly(2 * m);
+            // for (int i = 0; i < 2 * m; ++i) x[i] *= z2[i];
+            x &= &z2;
+            // x.intt();
+            x.fft_inv_butterfly(2 * m);
+            // x.pop_back();
+            eprintln!("{x}");
+            // inplace_integral(x);
             x.integrate();
-            for i in cur_len / 2..cur_len.min(self.0.len()) {
+            // for (int i = m; i < min<int>(this->size(), 2 * m); ++i) x[i] += (*this)[i];
+            eprintln!("{x}");
+            for i in m..self.0.len().min(2 * m) {
                 x.0[i] += self.0[i];
             }
-            x.0[..cur_len / 2].fill(StaticModInt::new(0));
-            x.fft_butterfly(cur_len);
+            // fill(begin(x), begin(x) + m, mint(0));
+            x.0[..m].fill(0.into());
+            // x.ntt();
+            x.fft_butterfly(2 * m);
+            // for (int i = 0; i < 2 * m; ++i) x[i] *= y[i];
             x &= &y;
-            x.fft_inv_butterfly(cur_len);
-            b.0.resize(cur_len, StaticModInt::new(0));
-            b.0.extend_from_slice(&x.0[cur_len / 2..]);
+            // x.intt();
+            x.fft_inv_butterfly(2 * m);
+            // b.insert(end(b), begin(x) + m, end(x));
+            b.0.resize(m, 0.into());
+            x.0.resize(2 * m, 0.into());
+            b.0.extend_from_slice(&x.0[m..]);
+
+            eprintln!("{b}");
         }
 
         b.truncated(len)
@@ -543,7 +638,12 @@ impl<M: NttFriendly> Polynomial<M> {
         }
 
         let g = (self >> l) / a_l;
+        eprintln!("g: {}", g);
+        eprintln!("g.log({len}): {}", g.log(len));
+        eprintln!("g.log({len}) * {k}: {}", g.log(len) * k);
         let g_pow = (g.log(len) * k).exp(len - l * k_);
+        eprintln!("(g.log({len}) * {k}).exp({}): {}", len - l * k_, g_pow);
+        eprintln!("pow: {}", &g_pow << (l * k_));
         (g_pow << (l * k_)) * a_l.pow(k_ as u64)
     }
 
@@ -1506,7 +1606,7 @@ fn pow() {
     for len in 0..100 {
         let mut g = Poly::from([1]).truncated(len);
         for k in 0..=10 {
-            assert_eq!(f.pow(k, len), g);
+            assert_eq!(f.pow(k, len), g, "({})^{}", f, k);
 
             g *= &f;
             g.truncate(len);
@@ -1654,4 +1754,11 @@ fn sin_cos() {
 
     assert_eq!(z.0, (&cos * &cos2 - &sin * &sin2).truncated(n));
     assert_eq!(z.1, (&sin * &cos2 + &cos * &sin2).truncated(n));
+}
+
+#[test]
+fn exp_fast() {
+    type Poly = Polynomial<modint::Mod998244353>;
+    let x = Poly::from([0, 1]);
+    println!("{}", x.exp_fast(20));
 }
