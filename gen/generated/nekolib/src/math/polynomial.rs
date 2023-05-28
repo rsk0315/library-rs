@@ -472,10 +472,10 @@ impl<M: NttFriendly> Polynomial<M> {
             x &= &z2;
             x.fft_inv_butterfly(2 * m);
             x.integrate();
+            x.0.resize(2 * m, 0.into());
             for i in m..self.0.len().min(2 * m) {
                 x.0[i] += self.0[i];
             }
-            x.0.resize(2 * m, 0.into());
             x.0[..m].fill(0.into());
             x.fft_butterfly(2 * m);
             x &= &y;
@@ -892,10 +892,10 @@ impl<M: NttFriendly> Polynomial<M> {
         let mut y = self;
         while d < n {
             d *= 2;
-            let (f, df) = f_df(&y, n);
+            let (f, df) = f_df(&y, d);
             let h = f - y.clone().differential();
-            let u = (-df).integral().exp(n);
-            y += (u.recip(n) * (u * h).integral()).truncated(d);
+            let u = (-df).integral().exp(d);
+            y += (u.recip(d) * (u * h).truncated(d).integral()).truncated(d);
         }
         y.truncated(n)
     }
