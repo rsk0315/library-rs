@@ -1113,6 +1113,19 @@ impl<M: NttFriendly> Polynomial<M> {
         }
         p.get(0)
     }
+
+    #[allow(dead_code)]
+    fn sparse(&self, thresh: usize) -> Option<Vec<(usize, StaticModInt<M>)>> {
+        let nz: Vec<_> = self
+            .0
+            .iter()
+            .copied()
+            .enumerate()
+            .filter(|&(_, ai)| ai.get() != 0)
+            .take(thresh + 1)
+            .collect();
+        (nz.len() <= thresh).then(|| nz)
+    }
 }
 
 impl<M: NttFriendly> From<Vec<StaticModInt<M>>> for Polynomial<M> {
