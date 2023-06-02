@@ -67,7 +67,7 @@ pub use continued_fraction_::continued_fraction;
 pub use convolution::{
     butterfly, butterfly_inv, convolve, convolve_u128, convolve_u128_mod,
     convolve_u32_mod, convolve_u64, convolve_u64_mod, convolve_wrapping_u128,
-    convolve_wrapping_u64, precompute_butterfly, ButterflyCache, NttFriendly,
+    convolve_wrapping_u64, ButterflyCache, NttFriendly,
 };
 #[doc(inline)]
 pub use digits::Digits;

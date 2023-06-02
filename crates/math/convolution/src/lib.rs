@@ -1,5 +1,4 @@
-use std::cell::RefCell;
-use std::thread::LocalKey;
+use std::sync::OnceLock;
 
 use garner::{CrtMod as CrtModInternal, CrtWrapping};
 use modint::{Mod998244353, ModIntBase, Modulus, RemEuclidU32, StaticModInt};
@@ -80,21 +79,22 @@ pub trait NttFriendly: Modulus {
     const EXP: u32 = (Self::VALUE - 1).trailing_zeros();
     const ODD: u32 = Self::VALUE >> Self::EXP;
 
-    fn butterfly_cache()
-    -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>>;
-}
-
-impl NttFriendly for Mod998244353 {
-    fn butterfly_cache()
-    -> &'static LocalKey<RefCell<Option<ButterflyCache<Self>>>> {
-        thread_local! {
-            static BUTTERFLY_CACHE: RefCell<Option<ButterflyCache<Mod998244353>>> = Default::default();
-        }
-        &BUTTERFLY_CACHE
+    fn cache() -> &'static OnceLock<ButterflyCache<Self>>;
+    fn butterfly_cache() -> &'static ButterflyCache<Self> {
+        Self::cache().get_or_init(precompute_butterfly)
     }
 }
 
-pub fn precompute_butterfly<M: NttFriendly>() -> ButterflyCache<M> {
+static MOD998244353_CACHE: OnceLock<ButterflyCache<Mod998244353>> =
+    OnceLock::new();
+
+impl NttFriendly for Mod998244353 {
+    fn cache() -> &'static OnceLock<ButterflyCache<Self>> {
+        &MOD998244353_CACHE
+    }
+}
+
+fn precompute_butterfly<M: NttFriendly>() -> ButterflyCache<M> {
     let g = StaticModInt::<M>::new(M::PRIMITIVE_ROOT);
     let rank2 = M::EXP as usize;
 
@@ -140,152 +140,144 @@ pub fn butterfly<M: NttFriendly>(a: &mut [StaticModInt<M>]) {
     let n = a.len();
     let h = ceil_pow2(n as u32);
 
-    M::butterfly_cache().with(|cache| {
-        let mut cache = cache.borrow_mut();
-        let ButterflyCache { root, rate2, rate3, .. } =
-            cache.get_or_insert_with(precompute_butterfly);
+    let ButterflyCache { root, rate2, rate3, .. } = M::butterfly_cache();
 
-        // a[i, i + (n >> len), i + 2 * (n >> len), ...] is transformed
-        let mut len = 0;
-        while len < h {
-            if h - len == 1 {
-                let p = 1 << (h - len - 1);
-                let mut rot = StaticModInt::new(1);
-                for s in 0..1 << len {
-                    let offset = s << (h - len);
-                    for i in 0..p {
-                        let l = a[i + offset];
-                        let r = a[i + offset + p] * rot;
-                        a[i + offset] = l + r;
-                        a[i + offset + p] = l - r;
-                    }
-                    if s + 1 != 1 << len {
-                        rot *= rate2[(!s).trailing_zeros() as usize];
-                    }
+    // a[i, i + (n >> len), i + 2 * (n >> len), ...] is transformed
+    let mut len = 0;
+    while len < h {
+        if h - len == 1 {
+            let p = 1 << (h - len - 1);
+            let mut rot = StaticModInt::new(1);
+            for s in 0..1 << len {
+                let offset = s << (h - len);
+                for i in 0..p {
+                    let l = a[i + offset];
+                    let r = a[i + offset + p] * rot;
+                    a[i + offset] = l + r;
+                    a[i + offset + p] = l - r;
                 }
-                len += 1;
-            } else {
-                // 4-base
-                let p = 1 << (h - len - 2);
-                let imag_u64 = root[2].get() as u64;
-                let mut rot = StaticModInt::new(1);
-
-                for s in 0..1 << len {
-                    let rot2 = rot * rot;
-                    let rot3 = rot2 * rot;
-
-                    let rot_u64 = rot.get() as u64;
-                    let rot2_u64 = rot2.get() as u64;
-                    let rot3_u64 = rot3.get() as u64;
-
-                    let offset = s << (h - len);
-                    for i in 0..p {
-                        let mod2 = (M::VALUE as u64).pow(2);
-                        let a0 = a[i + offset].get() as u64;
-                        let a1 = a[i + offset + p].get() as u64 * rot_u64;
-                        let a2 = a[i + offset + 2 * p].get() as u64 * rot2_u64;
-                        let a3 = a[i + offset + 3 * p].get() as u64 * rot3_u64;
-
-                        let a1na3 = StaticModInt::<M>::new(a1 + mod2 - a3);
-                        let a1na3imag = a1na3.get() as u64 * imag_u64;
-                        let na2 = mod2 - a2;
-
-                        a[i + offset] = StaticModInt::new(a0 + a2 + a1 + a3);
-                        a[i + offset + p] =
-                            StaticModInt::new(a0 + a2 + (2 * mod2 - (a1 + a3)));
-                        a[i + offset + 2 * p] =
-                            StaticModInt::new(a0 + na2 + a1na3imag);
-                        a[i + offset + 3 * p] =
-                            StaticModInt::new(a0 + na2 + (mod2 - a1na3imag));
-                    }
-
-                    if s + 1 != 1 << len {
-                        rot *= rate3[(!s).trailing_zeros() as usize];
-                    }
+                if s + 1 != 1 << len {
+                    rot *= rate2[(!s).trailing_zeros() as usize];
                 }
-                len += 2;
             }
+            len += 1;
+        } else {
+            // 4-base
+            let p = 1 << (h - len - 2);
+            let imag_u64 = root[2].get() as u64;
+            let mut rot = StaticModInt::new(1);
+
+            for s in 0..1 << len {
+                let rot2 = rot * rot;
+                let rot3 = rot2 * rot;
+
+                let rot_u64 = rot.get() as u64;
+                let rot2_u64 = rot2.get() as u64;
+                let rot3_u64 = rot3.get() as u64;
+
+                let offset = s << (h - len);
+                for i in 0..p {
+                    let mod2 = (M::VALUE as u64).pow(2);
+                    let a0 = a[i + offset].get() as u64;
+                    let a1 = a[i + offset + p].get() as u64 * rot_u64;
+                    let a2 = a[i + offset + 2 * p].get() as u64 * rot2_u64;
+                    let a3 = a[i + offset + 3 * p].get() as u64 * rot3_u64;
+
+                    let a1na3 = StaticModInt::<M>::new(a1 + mod2 - a3);
+                    let a1na3imag = a1na3.get() as u64 * imag_u64;
+                    let na2 = mod2 - a2;
+
+                    a[i + offset] = StaticModInt::new(a0 + a2 + a1 + a3);
+                    a[i + offset + p] =
+                        StaticModInt::new(a0 + a2 + (2 * mod2 - (a1 + a3)));
+                    a[i + offset + 2 * p] =
+                        StaticModInt::new(a0 + na2 + a1na3imag);
+                    a[i + offset + 3 * p] =
+                        StaticModInt::new(a0 + na2 + (mod2 - a1na3imag));
+                }
+
+                if s + 1 != 1 << len {
+                    rot *= rate3[(!s).trailing_zeros() as usize];
+                }
+            }
+            len += 2;
         }
-    });
+    }
 }
 
 pub fn butterfly_inv<M: NttFriendly>(a: &mut [StaticModInt<M>]) {
     let n = a.len();
     let h = ceil_pow2(n as u32);
 
-    M::butterfly_cache().with(|cache| {
-        let mut cache = cache.borrow_mut();
-        let ButterflyCache { iroot, irate2, irate3, .. } =
-            cache.get_or_insert_with(precompute_butterfly);
+    let ButterflyCache { iroot, irate2, irate3, .. } = M::butterfly_cache();
 
-        // a[i, i + (n >> len), i + 2 * (n >> len), ...] is transformed
-        let mut len = h;
-        while len > 0 {
-            if len == 1 {
-                let p = 1 << (h - len);
-                let mut irot = StaticModInt::new(1);
-                for s in 0..1 << (len - 1) {
-                    let offset = s << (h - len + 1);
-                    for i in 0..p {
-                        let l = a[i + offset];
-                        let r = a[i + offset + p];
-                        a[i + offset] = l + r;
-                        a[i + offset + p] = (l - r) * irot
-                    }
-
-                    if s + 1 != 1 << (len - 1) {
-                        irot *= irate2[(!s).trailing_zeros() as usize];
-                    }
+    // a[i, i + (n >> len), i + 2 * (n >> len), ...] is transformed
+    let mut len = h;
+    while len > 0 {
+        if len == 1 {
+            let p = 1 << (h - len);
+            let mut irot = StaticModInt::new(1);
+            for s in 0..1 << (len - 1) {
+                let offset = s << (h - len + 1);
+                for i in 0..p {
+                    let l = a[i + offset];
+                    let r = a[i + offset + p];
+                    a[i + offset] = l + r;
+                    a[i + offset + p] = (l - r) * irot
                 }
-                len -= 1;
-            } else {
-                // 4-base
-                let p = 1 << (h - len);
-                let mod1 = M::VALUE as u64;
-                let iimag_u64 = iroot[2].get() as u64;
 
-                let mut irot = StaticModInt::new(1);
-                for s in 0..1 << (len - 2) {
-                    let irot2 = irot * irot;
-                    let irot3 = irot2 * irot;
-
-                    let irot_u64 = irot.get() as u64;
-                    let irot2_u64 = irot2.get() as u64;
-                    let irot3_u64 = irot3.get() as u64;
-
-                    let offset = s << (h - len + 2);
-                    for i in 0..p {
-                        let a0 = a[i + offset].get() as u64;
-                        let a1 = a[i + offset + p].get() as u64;
-                        let a2 = a[i + offset + 2 * p].get() as u64;
-                        let a3 = a[i + offset + 3 * p].get() as u64;
-
-                        let a2na3_u64 =
-                            StaticModInt::<M>::new(mod1 + a2 - a3).get() as u64;
-                        let a2na3iimag =
-                            StaticModInt::<M>::new(a2na3_u64 * iimag_u64);
-                        let a2na3iimag_u64 = a2na3iimag.get() as u64;
-
-                        a[i + offset] = StaticModInt::new(a0 + a1 + a2 + a3);
-                        a[i + offset + p] = StaticModInt::new(
-                            (a0 + (mod1 - a1) + a2na3iimag_u64) * irot_u64,
-                        );
-                        a[i + offset + 2 * p] = StaticModInt::new(
-                            (a0 + a1 + (mod1 - a2) + (mod1 - a3)) * irot2_u64,
-                        );
-                        a[i + offset + 3 * p] = StaticModInt::new(
-                            (a0 + (mod1 - a1) + (mod1 - a2na3iimag_u64))
-                                * irot3_u64,
-                        );
-                    }
-                    if s + 1 != 1 << (len - 2) {
-                        irot *= irate3[(!s).trailing_zeros() as usize];
-                    }
+                if s + 1 != 1 << (len - 1) {
+                    irot *= irate2[(!s).trailing_zeros() as usize];
                 }
-                len -= 2;
             }
+            len -= 1;
+        } else {
+            // 4-base
+            let p = 1 << (h - len);
+            let mod1 = M::VALUE as u64;
+            let iimag_u64 = iroot[2].get() as u64;
+
+            let mut irot = StaticModInt::new(1);
+            for s in 0..1 << (len - 2) {
+                let irot2 = irot * irot;
+                let irot3 = irot2 * irot;
+
+                let irot_u64 = irot.get() as u64;
+                let irot2_u64 = irot2.get() as u64;
+                let irot3_u64 = irot3.get() as u64;
+
+                let offset = s << (h - len + 2);
+                for i in 0..p {
+                    let a0 = a[i + offset].get() as u64;
+                    let a1 = a[i + offset + p].get() as u64;
+                    let a2 = a[i + offset + 2 * p].get() as u64;
+                    let a3 = a[i + offset + 3 * p].get() as u64;
+
+                    let a2na3_u64 =
+                        StaticModInt::<M>::new(mod1 + a2 - a3).get() as u64;
+                    let a2na3iimag =
+                        StaticModInt::<M>::new(a2na3_u64 * iimag_u64);
+                    let a2na3iimag_u64 = a2na3iimag.get() as u64;
+
+                    a[i + offset] = StaticModInt::new(a0 + a1 + a2 + a3);
+                    a[i + offset + p] = StaticModInt::new(
+                        (a0 + (mod1 - a1) + a2na3iimag_u64) * irot_u64,
+                    );
+                    a[i + offset + 2 * p] = StaticModInt::new(
+                        (a0 + a1 + (mod1 - a2) + (mod1 - a3)) * irot2_u64,
+                    );
+                    a[i + offset + 3 * p] = StaticModInt::new(
+                        (a0 + (mod1 - a1) + (mod1 - a2na3iimag_u64))
+                            * irot3_u64,
+                    );
+                }
+                if s + 1 != 1 << (len - 2) {
+                    irot *= irate3[(!s).trailing_zeros() as usize];
+                }
+            }
+            len -= 2;
         }
-    });
+    }
 }
 
 pub fn convolve<M: NttFriendly>(
@@ -375,35 +367,30 @@ fn convolve_fft<M: NttFriendly>(
 }
 
 macro_rules! impl_modint_ntt {
-    ( $( ($mod:ident, $val:expr), )* ) => { $(
+    ( $( ($mod:ident, $val:expr, $cache:ident), )* ) => { $(
         #[derive(Clone, Copy, Eq, PartialEq)]
         struct $mod;
+        static $cache: OnceLock<ButterflyCache<$mod>> = OnceLock::new();
         impl Modulus for $mod {
             const VALUE: u32 = $val;
         }
         impl NttFriendly for $mod {
-            fn butterfly_cache()
-            -> &'static LocalKey<RefCell<Option<ButterflyCache<$mod>>>> {
-                thread_local! {
-                    static BUTTERFLY_CACHE: RefCell<Option<ButterflyCache<$mod>>> = Default::default();
-                }
-                &BUTTERFLY_CACHE
-            }
+            fn cache() -> &'static OnceLock<ButterflyCache<$mod>> { &$cache }
         }
     )* }
 }
 
 impl_modint_ntt! {
-    (Mod45e24p1, 45 << 24 | 1),
-    (Mod73e24p1, 73 << 24 | 1),
-    (Mod127e24p1, 127 << 24 | 1),
-    (Mod5e25p1, 5 << 25 | 1),
-    (Mod33e25p1, 33 << 25 | 1),
-    (Mod51e25p1, 51 << 25 | 1),
-    (Mod63e25p1, 63 << 25 | 1),
-    (Mod7e26p1, 7 << 26 | 1),
-    (Mod27e26p1, 27 << 26 | 1),
-    (Mod15e27p1, 15 << 27 | 1),
+    (Mod45e24p1, 45 << 24 | 1, MOD45E24P1_CACHE),
+    (Mod73e24p1, 73 << 24 | 1, MOD73E24P1_CACHE),
+    (Mod127e24p1, 127 << 24 | 1, MOD127E24P1_CACHE),
+    (Mod5e25p1, 5 << 25 | 1, MOD5E25P1_CACHE),
+    (Mod33e25p1, 33 << 25 | 1, MOD33E25P1_CACHE),
+    (Mod51e25p1, 51 << 25 | 1, MOD51E25P1_CACHE),
+    (Mod63e25p1, 63 << 25 | 1, MOD63E25P1_CACHE),
+    (Mod7e26p1, 7 << 26 | 1, MOD7E26P1_CACHE),
+    (Mod27e26p1, 27 << 26 | 1, MOD27E26P1_CACHE),
+    (Mod15e27p1, 15 << 27 | 1, MOD15E27P1_CACHE),
 }
 
 type Mod0 = Mod15e27p1;
