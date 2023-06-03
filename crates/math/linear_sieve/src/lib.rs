@@ -133,11 +133,7 @@ impl LinearSieve {
     /// assert_eq!(sieve.least_factor(24), Some(2));
     /// ```
     pub fn least_factor(&self, n: usize) -> Option<usize> {
-        if n < 2 {
-            None
-        } else {
-            Some(self.lpf[n])
-        }
+        if n < 2 { None } else { Some(self.lpf[n]) }
     }
 
     /// $n$ の素因数を列挙する。重複あり。
@@ -358,6 +354,67 @@ impl LinearSieve {
             }
         }
         dp
+    }
+
+    /// 最小素因数を用いて DP を行う。
+    ///
+    /// # Examples
+    /// ```
+    /// use nekolib::math::LinearSieve;
+    ///
+    /// let sieve = LinearSieve::new(10);
+    ///
+    /// // Moebius mu function
+    /// let mu = sieve.dp(0, 1, |&x, _| 0, |&x, _| -x);
+    /// assert_eq!(mu, [0, 1, -1, -1, 0, -1, 1, -1, 0, 0, 1]);
+    ///
+    /// // Euler phi function
+    /// let phi = sieve.dp(0, 1, |&x, p| x * p, |&x, p| x * (p - 1));
+    /// assert_eq!(phi, [0, 1, 1, 2, 2, 4, 2, 6, 4, 6, 4]);
+    ///
+    /// // the number of distinct prime factors
+    /// let omega = sieve.dp(0, 0, |&x, _| x, |&x, _| x + 1);
+    /// assert_eq!(omega, [0, 0, 1, 1, 1, 1, 2, 1, 1, 1, 2]);
+    ///
+    /// // the number of prime factors
+    /// let cap_omega = sieve.dp(0, 0, |&x, _| x + 1, |&x, _| x + 1);
+    /// assert_eq!(cap_omega, [0, 0, 1, 1, 2, 1, 2, 1, 3, 2, 2]);
+    ///
+    /// // sum of divisors
+    /// let eq = |&(prod, sum, pow): &_, p| (prod, sum + pow * p, pow * p);
+    /// let gt = |&(prod, sum, _): &_, p| (prod * sum, 1 + p, p);
+    /// let sigma: Vec<_> = sieve.dp((1, 1, 1), (1, 1, 1), eq, gt)
+    ///     .into_iter().map(|(prod, sum, _)| prod * sum)
+    ///     .collect();
+    /// assert_eq!(sigma, [1, 1, 3, 4, 7, 6, 12, 8, 15, 13, 18]);
+    /// ```
+    pub fn dp<T>(
+        &self,
+        zero: T,
+        one: T,
+        eq: impl Fn(&T, usize) -> T,
+        gt: impl Fn(&T, usize) -> T,
+    ) -> Vec<T> {
+        let n = self.lpf.len() - 1;
+
+        if n == 0 {
+            return vec![zero];
+        } else if n == 1 {
+            return vec![zero, one];
+        }
+
+        let mut res = vec![zero, one];
+        res.reserve(n + 1);
+        for i in 2..=n {
+            let lpf = self.lpf[i];
+            let tmp = if lpf == self.lpf[i / lpf] {
+                eq(&res[i / lpf], lpf)
+            } else {
+                gt(&res[i / lpf], lpf)
+            };
+            res.push(tmp);
+        }
+        res
     }
 }
 
