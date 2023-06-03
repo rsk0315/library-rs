@@ -386,6 +386,28 @@ impl<M: NttFriendly> Polynomial<M> {
         diff
     }
 
+    #[allow(dead_code)]
+    fn exp_naive(&self, len: usize) -> Self {
+        assert_eq!(self.0.get(0).map(|x| x.get()).unwrap_or(0), 0);
+
+        if len == 0 {
+            return Self(vec![]);
+        }
+
+        let mut res = Self(vec![StaticModInt::new(1)]);
+        let one = Self(vec![StaticModInt::new(1)]);
+        let mut cur_len = 1;
+        while cur_len < len {
+            cur_len *= 2;
+            let mut tmp = &one - res.log(cur_len) + self;
+            tmp *= res;
+            tmp.truncate(cur_len);
+            res = tmp;
+        }
+        res.truncate(len);
+        res
+    }
+
     /// $\[x\^0] f(x) = 0$ なる $f$ に対し、$\\exp(f(x)) \\bmod x^n$ を返す。
     ///
     /// $\\exp(f(x)) = \\sum\_{n=0}^{\\infty} \\frac{f(x)^n}{n!}$ によって定義される。
@@ -407,29 +429,6 @@ impl<M: NttFriendly> Polynomial<M> {
     /// assert_eq!(f.exp(5), g);
     /// ```
     pub fn exp(&self, len: usize) -> Self {
-        assert_eq!(self.0.get(0).map(|x| x.get()).unwrap_or(0), 0);
-
-        return self.exp_fast(len);
-
-        if len == 0 {
-            return Self(vec![]);
-        }
-
-        let mut res = Self(vec![StaticModInt::new(1)]);
-        let one = Self(vec![StaticModInt::new(1)]);
-        let mut cur_len = 1;
-        while cur_len < len {
-            cur_len *= 2;
-            let mut tmp = &one - res.log(cur_len) + self;
-            tmp *= res;
-            tmp.truncate(cur_len);
-            res = tmp;
-        }
-        res.truncate(len);
-        res
-    }
-
-    fn exp_fast(&self, len: usize) -> Self {
         let mut b = Self::from([1, self.get(1).get()]);
         let mut c = Self::from([1]);
         let mut z2 = Self::from([1, 1]);
