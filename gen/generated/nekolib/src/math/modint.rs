@@ -464,8 +464,32 @@ macro_rules! impl_rem_euclid_u32 {
     )* }
 }
 
+macro_rules! impl_rem_euclid_u32_small {
+    ( $($ty:ty)* ) => { $(
+        impl RemEuclidU32 for $ty {
+            fn rem_euclid_u32(self, n: u32) -> u32 {
+                (self as u32).rem_euclid(n)
+            }
+        }
+    )* }
+}
+
 impl_rem_euclid_u32! {
-    i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize
+    i64 i128 isize u32 u64 u128 usize
+}
+
+impl_rem_euclid_u32_small! {
+    i8 i16 u8 u16
+}
+
+impl RemEuclidU32 for i32 {
+    fn rem_euclid_u32(self, n: u32) -> u32 {
+        if self >= 0 {
+            (self as u32).rem_euclid(n)
+        } else {
+            (self as i64).rem_euclid(n as i64) as u32
+        }
+    }
 }
 
 #[test]

@@ -44,14 +44,14 @@ struct Reduce2<T, F, W> {
 
 /// LARSCH algorithm。
 ///
-/// $E[i] = F[j] + W(j, i)$ ($0\\le j<i<n$) と書ける DP を計算する。
-/// ここで、$F[j]$ は $E[j]$ から高速に計算できる値とし、$W$ は concave QI
+/// $E\[i] = F\[j] + W(j, i)$ ($0\\le j<i<n$) と書ける DP を計算する。
+/// ここで、$F\[j]$ は $E\[j]$ から高速に計算できる値とし、$W$ は concave QI
 /// を満たすとする。
 ///
 /// `todo!()` ちゃんと書く
 ///
 /// $\\gdef\\DP{\operatorname{dp}}$
-/// 行列 $M[i, j]$ は、$\\DP[j]$ から $\\DP[i]$ に遷移するときのコストを表し、
+/// 行列 $M\[i, j]$ は、$\\DP\[j]$ から $\\DP\[i]$ に遷移するときのコストを表し、
 /// 値がオンラインに定まる。この行列は concave totally monotone になっている。
 ///
 /// この行列の row minima を求めるのに相当する。
@@ -82,7 +82,7 @@ struct Reduce2<T, F, W> {
 /// 愚直に書いたときの DP がどんな感じかを書いておくと役立つ場合がありそう。`todo!()`
 ///
 /// # Complexity
-/// $E[\\bullet]$ の計算を $O(1)$ time として $O(n)$ time。
+/// $E\[\\bullet]$ の計算を $O(1)$ time として $O(n)$ time。
 ///
 /// # References
 /// - Larmore, Lawrence L., and Baruch Schieber. "On-line dynamic programming with applications to the prediction of RNA secondary structure." *Journal of Algorithms* 12, no. 3 (1991): 490--515.
