@@ -16,6 +16,9 @@ use modint::{ModIntBase, StaticModInt};
 /// $\\gdef\\deg{\\operatorname{deg}}$
 /// $\\gdef\\lc{\\operatorname{lc}}$
 /// $\\gdef\\divides{\\sqsubseteq}$
+/// $\\gdef\\im{\\operatorname{im}}$
+/// $\\gdef\\card#1{|{#1}|}$
+/// $\\gdef\\placeholder{\\bullet}$
 /// $\\gdef\\dd{\\mathrm{d}}$
 /// $\\gdef\\dx{{\\textstyle{\\frac{\\dd}{\\dd x}}}}$
 /// $\\gdef\\dy{{\\textstyle{\\frac{\\dd}{\\dd y}}}}$
@@ -48,20 +51,21 @@ use modint::{ModIntBase, StaticModInt};
 ///
 /// 群 $G$ が可換律 (*commutativity*) を満たすとき、すなわち $a, b\\in G\\implies ab=ba$ のとき、$G$ は可換 (*commutative*, *Abelian*) であると言う。
 ///
-/// 群の準同型写像 (*group homomorphism*) とは、群 $G$, $H$ の間の写像
+/// 群の準同型写像 (*group homomorphism*)、あるいは群準同型とは、群 $G$, $H$ の間の写像
 /// $\\varphi\\colon G\\to H$ であって、任意の $g\_1, g\_2\\in G$ に対して
 /// $\\varphi(g\_1 g\_2) = \\varphi(g\_1)\\varphi(g\_2)$ を満たすものを言う。
 ///
-/// 群の準同型写像 $\\varphi\\colon G\\to H$ の核 (*kernel*) と像 (*image*) は、それぞれ
+/// 群準同型 $\\varphi\\colon G\\to H$ の核 (*kernel*) と像 (*image*) は、それぞれ
 /// $$
 /// \\begin{aligned}
 /// \\ker(\\varphi) &= \\{g\\in G\\mid \\varphi(g) = 1\\} \\subseteq G \\\\
-/// \\operatorname{im}(\\varphi) &= \\varphi(G) = \\{\\varphi(g)\\mid g\\in G\\} \\\\
+/// \\im(\\varphi) &= \\varphi(G) = \\{\\varphi(g)\\mid g\\in G\\} \\\\
 /// \\end{aligned}
 /// $$
-/// で定義される。
+/// で定義される。これらが有限のとき、$\\card{G} = \\card{\\ker(\\varphi)}\\cdot\\card{\\im(\\varphi)}$
+/// が成り立ち、群の準同型定理と呼ばれる。
 ///
-/// ### Rings
+/// ### Rings and Ideals
 ///
 /// 環とは、集合 $R$ と二つの二項演算 $+, \\times\\colon R\\times R\\to R$ であって、次の条件を満たすものを言う。
 ///
@@ -73,14 +77,15 @@ use modint::{ModIntBase, StaticModInt};
 /// また、文献によっては単位元 $1$ を持つ制約を除くこともある。
 /// ここでは、単位元 $1$ を持ち可換である環について考える。
 ///
-/// 環の準同型写像 (*ring homomorphism*) とは、環 $R$, $S$ の間の写像であって、
+/// 環の準同型写像 (*ring homomorphism*)、あるいは環準同型とは、環 $R$, $S$ の間の写像であって、
 ///
 /// - $r\_1, r\_2\\in R \\implies \\varphi(r\_1+r\_2) = \\varphi(r\_1) + \\varphi(r\_2)$
 /// - $r\_1, r\_2\\in R \\implies \\varphi(r\_1\\times r\_2) = \\varphi(r\_1) \\times \\varphi(r\_2)$
 /// - $\\varphi(0\_R) = 0\_S$
 /// - $\\varphi(1\_R) = 1\_S$
 ///
-/// を満たすものを言う。
+/// を満たすものを言う。$\\varphi$ が全単射であるとき、$\\varphi$ は同型写像 (*isomorphism*)
+/// と言い、$R$ と $S$ は同型 (*isomorphic*) となる。これを $R\\cong S$ と書く。
 ///
 /// 右イデアル (*right ideal*) $I$ とは、$R$ の部分集合であって、次の条件を満たすものを言う。
 ///
@@ -103,13 +108,68 @@ use modint::{ModIntBase, StaticModInt};
 /// ($r$ *and* $s$ *are congruent modulo* $I$) とは、$r-s\\in I$
 /// であることを言い、$r\\equiv s \\pmod{I}$ と書く。
 ///
-/// 整域とは、
-///
-/// 一般の環 $R$ と $a, b\\in R$ に対して、$a$ が $b$ を割り切る ($a$ *divides* $b$)
+/// 環 $R$ と $a, b\\in R$ に対して、$a$ が $b$ を割り切る ($a$ *divides* $b$)
 /// とは、ある $r\\in R$ が存在して $a\\times r = b$ となることを言い、$a\\sqsubseteq b$
 /// と書く。そうでないとき $a\\not\\sqsubseteq b$ と書く。[^notation-divides]
 ///
 /// [^notation-divides]: 通常はそれぞれ $a\\mid b$、$a \\nmid b$ と書くが、対称でない述語に左右対称な記号を使うのが不満なので $\\sqsubseteq$ を用いている。$a = b$ を除きたいときに $a\\sqsubset b$ のように書くことにできるのもうれしい。
+///
+/// 任意の $r\\in R$ に対して、集合 $r\\bmod I = r+I = \\{r+a\\mid a\\in I\\} \\subseteq R$
+/// を $I$ を法とする剰余類 (*residue class modulo* $I$) や、$I$ の傍系 (*coset*) と言う。[^def-bmod]
+///
+/// [^def-bmod]: 競プロ界隈において、$a, m\\in \\Z$ に対して $a\\bmod m$ と書いたときは、剰余類 $\\{\\dots, a-m, a, a+m, \\dots\\}$ ではなく $0\\le r \\lt m$ かつ $m\\divides (a-r)$
+/// を満たす一意な整数 $r$ を指すことの方が多いか。
+///
+/// 任意の $r, s\\in R$ に対して以下の等式が成り立つ。
+///
+/// $$ r\\bmod I = s\\bmod I \\iff r-s \\in I \\iff r\\equiv s\\pmod{I}. $$
+///
+/// 商集合 $R/I = \\{r\\bmod I\\mid r\\in R\\}$、すなわち $I$
+/// を法とする剰余類全体からなる集合は、環の演算を
+///
+/// $$
+/// \\begin{aligned}
+/// (r\\bmod I) + (s\\bmod I) &= (r+s)\\bmod I \\\\
+/// (r\\bmod I) \\times (s\\bmod I) &= (r\\times s)\\bmod I
+/// \\end{aligned}
+/// $$
+///
+/// で定めることで環を成す。これを、$I$ を法とする $R$ の剰余類環
+/// (*residue class ring of* $R$ *modulo* $I$) と呼ぶ。
+///
+/// 自然な (*canonical*) 環準同型 $\\varphi\\colon R\\to R/I$
+/// を、$r\\mapsto (r\\bmod I)$ として定義する。
+/// より一般に、$S\\subseteq R$ が $I$ の代表系 (*system of representatives*) であるとは、
+/// 任意の $a\\in R$ に対し、ちょうど一つの $b\\in S$ が存在して $a\\equiv b\\pmod{I}$
+/// となることを言う。代表系についても、$I$
+/// を法とする加法と乗法を入れることで、環にすることができ、$S\\cong R/I$ となる。
+///
+/// 環の準同型定理もある。環準同型 $\\varphi\\colon R\\to S$ に対し、
+/// $$
+/// I = \\ker(\\varphi) = \\{r\\in R\\mid \\varphi(r) = 0\\} \\subseteq R
+/// $$
+/// を $\\varphi$ の核と言い、$I$ は $R$ のイデアルである。$R/I$
+/// は、$S$ の部分環 $\\varphi(R) = \\{\\varphi(r)\\mid r\\in R\\}$ と同型である。
+/// $\\varphi(R)$ を $\\varphi$ の像と言う。
+///
+/// ### Integral domains and further
+///
+/// 整域 (*integral domain*) とは、自明でない可換環であって、非零な零因子を持たないものを言う。
+/// ここで自明でない (*nontrivial*) 環とは、$1$ と $0$ が異なる環を指す。
+/// 零因子 (*zero divisor*) とは、$a\\in R$ であって、ある $b\\in R\\smallsetminus\\{0\\}$
+/// に対して $a\\times b=0$ となるものを指す。
+///
+/// この性質により、$a\\ne 0$ かつ $ab=ac$ のとき $b=c$ を導くことができる。これは簡約律
+/// (*cancellation law*) と呼ばれる。
+///
+// 整数環は、次の二つの重要な性質を持つ。
+//
+// - 除算の性質。$a, b\\in\\Z, b\\ne 0$ に対し、一意な $q, r\\in\\Z$ が存在し、$a=qb+r$ かつ $0\\le r\\lt|b|$
+// - 一意な素因数分解。$1$ より大きい任意の整数は、素数の積として一意に表せる。
+//
+// これを一般の環に拡張するためには、さらにいくつかの概念を導入する必要がある。
+//
+// 除算のときに使うから、少なくとも前者は書いておく必要あるな
 ///
 /// ## Definitions
 ///
@@ -127,15 +187,15 @@ use modint::{ModIntBase, StaticModInt};
 /// 零でない多項式 $a$ に対して、$a$ の次数 (*degree*) $\\deg(a)$ とは、$a\_n\\ne 0$
 /// となるような最大の $n$ を指す。また、最高次の係数 (*leading coefficient*) $\\lc(a)$
 /// とは $a\_{\\deg(a)}$ を指し、$\\lc(a) = 1$ のとき $a$ は *monic* であると言う。
-/// 零多項式 $0\_{R[x]} = (0, 0, \\dots)$ に対しては $\\deg(0\_{R[x]}) = -\\infty$ としておく。以後、零多項式は単に $0$ と書く。
+/// 零多項式 $0\_{R\[x]} = (0, 0, \\dots)$ に対しては $\\deg(0\_{R\[x]}) = -\\infty$ としておく。以後、零多項式は単に $0$ と書く。
 ///
 /// また、$(a\_0, a\_1, \\dots)$ が $k \\gt n$ に対して $a\_k = 0$ を満たすとき、
 /// 代わりに $a\_0 + a\_1 x + a\_2 x^2 + \\dots + a\_n x^n$ と書く方が普通である。
 /// ここで、不定元 (*indeterminate*) $x$ は単なる placeholder であり、このとき
-/// $S = R[x]$ と書く。
+/// $S = R\[x]$ と書く。
 ///
 /// $R$ 上の冪級数 (*power series*) の環は、ベクトルのうち有限個の $a\_i$
-/// のみが非零である制約がない以外は多項式の環と同様に定義され、$R[[x]]$ と書かれる。
+/// のみが非零である制約がない以外は多項式の環と同様に定義され、$R\[\[x]]$ と書かれる。
 /// この制約がないことにより、次数・最高次の係数・monic については定義されない。
 ///
 // $R$ が整域であるとき、$R[x]$ の単元 (unit) は $R$ の単元である。
@@ -143,17 +203,69 @@ use modint::{ModIntBase, StaticModInt};
 ///
 /// ### Properties
 ///
-/// $1$ を持つ可換環 $R$ と $f\\in R[x]$ に対して以下が成り立つ。
+/// $1$ を持つ可換環 $R$ と $f\\in R\[x]$ に対して以下が成り立つ。
 ///
 /// - 任意の $u\\in R$ に対し、$f(u) = 0 \\iff (x-u) \\divides f$ が成り立つ。
-/// - $R$ が整域で $f\\ne 0$ のとき、$f$ を高々 $\\deg(f)$ 個の根を $R$ に持つ。
+/// - $R$ が整域で $f\\ne 0$ のとき、$f$ は高々 $\\deg(f)$ 個の根を $R$ に持つ。
 ///
-/// ## Notations
+/// 任意の $m\\in\\Z$ に対し、自然な環準同型 $\\varphi\\colon\\Z\\to\\Z\_m$
+/// は、多項式の各係数に適用することができる。これによって作られる準同型
+/// $\\Z\[x]\\to\\Z\_m\[x]$ も通常 $\\varphi$ と書かれる。その核は
+/// $m\\Z\[x]$、すなわち全ての係数が $m$ で割り切れるような多項式からなるイデアルである。
 ///
-/// $(f(x), g(x))\\bmod x^n$ を $(f(x)\\bmod x^n, g(x)\\bmod x^n)$ の略記として用いる。
+/// 任意の $u\\in R$ を固定したとき、評価準同型 (*evaluation homomorphism*)
+/// $\\varepsilon\_u\\colon R\[x]\\to R$ は、多項式 $f\\in R\[x]$
+/// を受け取り、$\\varepsilon\_u(f) = f(u) \\in R$ を返す[^def-eval]。
+/// $\\ker(\\varepsilon\_u) = \\angled{x-u}$ である。
+/// 環の準同型定理と合わせて、$R\[x]/\\angled{x-u}\\cong \\im(\\varepsilon\_u) = R$
+/// を得る。
 ///
-/// $f(x) = \\sum\_{i=0}^{n} a\_i x^i$ ($a\_{n}\\neq 0$) に対して $\\deg(f) = n$ とする。
-/// ただし、$f(x) = 0$ に対しては $\\deg(f) = -\\infty$ とする。
+/// [^def-eval]: $f(u)$ という表記の定義が書かれていない気がするけれども、イデアル
+/// $\\angled{x-u}$ で作られる（$R$ と同型な）剰余類を用いて定義するということ？
+///
+/// ## Operations
+///
+/// ### Divisions
+///
+/// ### Formal derivatives
+///
+/// 可換かつ $1$ を持つ環 $R$ を考える。$\\varphi = \\sum\_{i=0}^n \\varphi\_i y^i \\in R\[y]$
+/// に対し、$\\varphi$ の形式微分 (*formal derivative*) を
+/// $$ \\varphi\' = \\sum\_{i=0}^n i\\cdot \\varphi\_i y^{i-1} $$
+/// で定義する。
+/// $R = \\R$ においては極限操作を用いて定義されるが、一般の環においては極限の概念はない。
+/// ここで、$i$ が $\\sum$ の添字としての役割と、$i = 1+\\dots+1\\in R$
+/// としての役割を持っていることに注意せよ。
+/// 形式微分は、いくつかの馴染み深い性質を持つ。
+///
+/// - $\\placeholder\'$ は $R$-線形である。すなわち $(a\\varphi+b\\psi)\' = a\\varphi\'+b\\psi\'$ が成り立つ。
+/// - $\\placeholder\'$ は Leibniz rule を満たす。すなわち $(\\varphi\\psi)\' = \\varphi\'\\psi + \\psi\'\\varphi$ が成り立つ。
+/// - $\\placeholder\'$ は chain rule を満たす。すなわち $(\\varphi(\\psi))\' = \\varphi\'(\\psi)\\,\\psi\'$ が成り立つ。
+///     - $\\varphi\\in R\[y]$ なのか？
+///
+/// ### Taylor expansions
+///
+/// ### Newton iterations
+///
+/// ### Multiplicative inverses
+///
+/// ### Integrations
+///
+/// ### Logarithms and Exponentials
+///
+/// ### Other functions
+///
+///
+// ## Notations
+//
+// $(f(x), g(x))\\bmod x^n$ を $(f(x)\\bmod x^n, g(x)\\bmod x^n)$ の略記として用いる。
+//
+// $f(x) = \\sum\_{i=0}^{n} a\_i x^i$ ($a\_{n}\\neq 0$) に対して $\\deg(f) = n$ とする。
+// ただし、$f(x) = 0$ に対しては $\\deg(f) = -\\infty$ とする。
+///
+/// ## References
+///
+/// - Von Zur Gathen, Joachim, and Jürgen Gerhard. *Modern computer algebra*. Cambridge university press, 2013.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Polynomial<M: NttFriendly>(Vec<StaticModInt<M>>);
 
