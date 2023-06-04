@@ -12,7 +12,7 @@ use gcd_recip::GcdRecip;
 /// なる各素数 $j$ に対して、$\\lpf{i\\times j} = j$ とわかる。
 /// 素因数分解の一意性から、各整数の最小素因数の更新は一回ずつしか行われず、線形時間で構築できる。
 ///
-/// また、$\\lpf{i}$ が $\\lpf{i / \\lpf{i}}$
+/// また、$\\lpf{i}$ が $\\lpf{i / {\\lpf{i}}}$
 /// と等しいかで場合分けしながら DP することで、各 $i$ が $\\lpf{i}$
 /// で何回割り切れるかも求められる。
 /// なお、これは DP せず各 $i$ に対して愚直に計算しても $O(n)$ になることが示せるらしい。
@@ -318,7 +318,7 @@ impl LinearSieve {
     /// # Idea
     ///
     /// $$
-    /// \\recip{i}{m} \\equiv \\recip{\\lpf{i}}{m}\\cdot\\recip{(i/\\lpf{i})}{m}\\pmod{m}
+    /// \\recip{i}{m} \\equiv \\recip{\\lpf{i}}{m}\\cdot\\recip{(i/{\\lpf{i}})}{m}\\pmod{m}
     /// $$
     /// に基づく。素数は $O(n/\\log(n))$ 個しかないため、互除法で愚直に求めても全体では
     /// $O(n)$ 時間となる。
@@ -357,6 +357,17 @@ impl LinearSieve {
     }
 
     /// 最小素因数を用いて DP を行う。
+    ///
+    /// 関数 $f$ であって、任意の $i\\gt 1$ に対して
+    /// $$
+    /// f(i) = \\begin{cases}
+    /// g\_{=}(f(i/j), \\lpf{i}), & \\text{if }\\lpf{i} = \\lpf{i/j}; \\\\
+    /// g\_{\\gt}(f(i/j), \\lpf{i}), & \\text{if }\\lpf{i} \\gt \\lpf{i/j} \\\\
+    /// \\end{cases}
+    /// $$
+    /// となるものを計算する。ただし $j = \\lpf{i}$ とする。
+    ///
+    /// `(zero, one, eq, gt)` はそれぞれ $(f(0), f(1), g\_{=}, g\_{\\gt})$ である。
     ///
     /// # Examples
     /// ```
