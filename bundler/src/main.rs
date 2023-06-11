@@ -120,11 +120,23 @@ fn bundle(filename: &str, index_path: &Path) -> Result<(), Box<dyn Error>> {
         tmp
     };
 
+    let commit = {
+        let commit_path = index_path.parent().unwrap().join("../.commit");
+        std::fs::File::open(commit_path).ok().map(|mut fin| {
+            let mut s = "".to_owned();
+            fin.read_to_string(&mut s).unwrap();
+            s.trim().to_owned()
+        })
+    };
+
     println!("");
     println!("/// This module is bundled automatically.");
     println!(
         "/// See <https://rsk0315.github.io/library-rs/nekolib/> for documentation."
     );
+    if let Some(commit) = commit {
+        println!("/// Commit: {}", commit);
+    }
     println!("pub mod nekolib {{");
     for (crate_name, v) in includes {
         println!("    pub mod {} {{", &crate_name);
