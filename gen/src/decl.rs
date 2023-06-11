@@ -74,26 +74,20 @@ pub fn decl(
                 let mut whole = whole[&k].clone();
                 v.sort_unstable();
                 whole.sort_unstable();
-                eprintln!("name: {:?}", &k);
-                eprintln!("direct: {:#?}", &v);
-                eprintln!("whole: {:#?}", &whole);
-                DependsMap {
-                    name: k,
-                    direct: v,
-                    whole,
-                }
+                // eprintln!("name: {:?}", &k);
+                // eprintln!("direct: {:#?}", &v);
+                // eprintln!("whole: {:#?}", &whole);
+                DependsMap { name: k, direct: v, whole }
             })
             .collect(),
     };
 
-    eprintln!("{:#?}", res);
+    // eprintln!("{:#?}", res);
 
     let toml = toml::ser::to_string(&res)?;
-    eprintln!("decl; writing to: {:?}", dst_toml);
-    let mut outfile = std::fs::OpenOptions::new()
-        .create(true)
-        .write(true)
-        .open(&dst_toml)?;
+    // eprintln!("decl; writing to: {:?}", dst_toml);
+    let mut outfile =
+        std::fs::OpenOptions::new().create(true).write(true).open(&dst_toml)?;
 
     outfile.write_all(toml.as_bytes())?;
     Ok(())
@@ -104,7 +98,7 @@ fn parse_dep(
 ) -> Result<Vec<(String, String)>, Box<dyn Error>> {
     let (crate_name, mod_name) = get_name(&src_toml);
 
-    eprintln!("parsing {:?}", src_toml);
+    // eprintln!("parsing {:?}", src_toml);
     let content =
         String::from_utf8_lossy(&std::fs::read(&src_toml)?).to_string();
     let man: Manifest = toml::de::from_str(&content)?;
@@ -194,19 +188,11 @@ fn dep_star(
                 .enumerate()
                 .filter_map(
                     |(j, b)| {
-                        if b {
-                            Some(dec[j].clone())
-                        } else {
-                            None
-                        }
+                        if b { Some(dec[j].clone()) } else { None }
                     },
                 )
                 .collect();
-            if v.is_empty() {
-                None
-            } else {
-                Some((dec[i].clone(), v))
-            }
+            if v.is_empty() { None } else { Some((dec[i].clone(), v)) }
         })
         .collect()
 }

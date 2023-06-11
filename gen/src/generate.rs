@@ -12,7 +12,7 @@ struct Manifest {
 }
 
 pub fn generate(src_glob: &str, dst: &PathBuf) -> Result<(), std::io::Error> {
-    eprintln!("Move {:?} => {:?}", src_glob, &dst);
+    // eprintln!("Move {:?} => {:?}", src_glob, &dst);
 
     // for local
     // if dst.exists() {
@@ -30,7 +30,7 @@ pub fn generate(src_glob: &str, dst: &PathBuf) -> Result<(), std::io::Error> {
             _ => continue,
         };
 
-        eprintln!("cloning {:?}", &toml_path);
+        // eprintln!("cloning {:?}", &toml_path);
 
         match clone(&toml_path, &dst) {
             Ok(_) => {}
@@ -46,16 +46,14 @@ pub fn generate(src_glob: &str, dst: &PathBuf) -> Result<(), std::io::Error> {
     }
 
     let lib_rs = dst.join("src/lib.rs");
-    eprintln!("appending to {:?}", lib_rs);
-    let mut outfile = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(lib_rs)?;
+    // eprintln!("appending to {:?}", lib_rs);
+    let mut outfile =
+        std::fs::OpenOptions::new().create(true).append(true).open(lib_rs)?;
 
     for c in crates {
         // add `pub mod {crate};` to src/lib.rs
         let pubmod = format!("pub mod {};\n", c);
-        eprintln!("writing: {:?}", pubmod);
+        // eprintln!("writing: {:?}", pubmod);
         outfile.write_all(pubmod.as_bytes())?;
     }
 
@@ -78,7 +76,7 @@ fn clone(toml_path: &PathBuf, dst: &PathBuf) -> Result<(), io::Error> {
 
     // {crate}/{mod}/src/lib.rs => src/{crate}/{mod}.rs
     let outfile_name = dst.join(format!("src/{}/{}.rs", crate_name, mod_name_));
-    eprintln!("cloning {:?}", outfile_name);
+    // eprintln!("cloning {:?}", outfile_name);
     let mut outfile = std::fs::OpenOptions::new()
         .create(true)
         .write(true)
