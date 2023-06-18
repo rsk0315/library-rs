@@ -1156,6 +1156,7 @@ impl<M: NttFriendly> Polynomial<M> {
         self.0.get(i).copied().unwrap_or(StaticModInt::new(0))
     }
 
+    /// $f(t) = f(x)\\bmod(x-t)$ を返す。
     pub fn eval(&self, t: impl Into<StaticModInt<M>>) -> StaticModInt<M> {
         let t = t.into();
         let mut ft = StaticModInt::new(0);
@@ -1267,6 +1268,71 @@ impl<M: NttFriendly> Polynomial<M> {
             .take(thresh + 1)
             .collect();
         (nz.len() <= thresh).then(|| nz)
+    }
+
+    /// $\\exp(ax)$ を返す。
+    pub fn exp_ax(a: impl Into<StaticModInt<M>>, len: usize) -> Self {
+        if len == 0 {
+            return Self::new();
+        }
+        let n = len - 1;
+        let mut recip: Self = {
+            let m = M::VALUE as u64;
+            let mut dp = vec![1_u64; n + 1];
+            for i in 2..=n {
+                let (q, r) = (m / i as u64, m % i as u64);
+                dp[i as usize] = m - q * dp[r as usize] % m;
+            }
+            dp.into()
+        };
+        let a = a.into();
+        for i in 1..=n {
+            let tmp = recip.0[i - 1];
+            recip.0[i] *= tmp * a;
+        }
+        recip
+    }
+
+    /// $\[x^i]f(x) = i!$ なる $f$ を返す。
+    pub fn factorial(len: usize) -> Self {
+        if len == 0 {
+            return Self::new();
+        }
+        let mut res: Self = vec![1; len].into();
+        for i in 1..len {
+            let tmp = res.0[i - 1] * StaticModInt::from(i);
+            res.0[i] = tmp;
+        }
+        res
+    }
+
+    /// $g(x) = f(x+t)$ なる $g$ を返す。
+    ///
+    /// # Examples
+    /// ```
+    /// # use nekolib::math::{Mod998244353, ModIntBase, Polynomial};
+    /// # type Mi = nekolib::math::ModInt998244353;
+    /// # type Poly = Polynomial::<nekolib::math::Mod998244353>;
+    /// // f(x) = 1/6 x(x+1)(2x+1) = 1/6 x + 1/2 x^2 + 1/3 x^3
+    /// let recip = Poly::from([1; 6]).integral().into_inner();
+    /// let f: Poly = [Mi::new(0), recip[6], recip[2], recip[3]].into();
+    /// let g = f.taylor_shift(3);
+    /// assert!((0..=10).all(|x| f.eval(x + 3) == g.eval(x)));
+    /// ```
+    pub fn taylor_shift(&self, t: impl Into<StaticModInt<M>>) -> Self {
+        let n = self.0.len();
+        if n == 0 {
+            return Self::new();
+        }
+        eprintln!("{}", self);
+        assert_ne!(self.0[n - 1].get(), 0);
+
+        let b = (self & Self::factorial(n)).reversed();
+        let c = Self::exp_ax(t, n);
+        let mut bc = (b * c).into_inner();
+        bc.resize(n, StaticModInt::new(0));
+        bc.reverse();
+        Self::exp_ax(1, n) & Self::from(bc)
     }
 }
 
