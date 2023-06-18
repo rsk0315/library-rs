@@ -1308,6 +1308,17 @@ impl<M: NttFriendly> Polynomial<M> {
 
     /// $g(x) = f(x+t)$ なる $g$ を返す。
     ///
+    /// ## Ideas
+    /// 定義通り計算すると
+    /// $$
+    /// \\begin{aligned}
+    /// f(x+t) &= \\sum\_{i=0}^{n-1} a\_i (x+t)^i \\\\
+    /// &= \\sum\_{i=0}^{n-1} x^i \\sum\_{j=i}^{n-1} a\_j \\frac{j!}{i!\\,(j-i)!} t^{j-i} \\\\
+    /// &= \\sum\_{i=0}^{n=1} \\frac{x^{n-1-i}}{(n-1-i)!} \\sum\_{j=0}^i \\underbrace{a\_{n-1-j}\\cdot (n-1-j)!\\vphantom{\\frac{t^j}{j}}}\_{b\_j}\\cdot\\underbrace{\\frac{t^{i-j}}{(i-j)!}}\_{c\_{i-j}}
+    /// \\end{aligned}
+    /// $$
+    /// であり、内側の $\\sum\_j$ は畳み込みになっているので、各 $i$ での値をまとめて求められる。
+    ///
     /// # Examples
     /// ```
     /// # use nekolib::math::{Mod998244353, ModIntBase, Polynomial};
