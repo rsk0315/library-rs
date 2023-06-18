@@ -320,6 +320,24 @@ impl<M: NttFriendly> Polynomial<M> {
     /// ```
     pub fn new() -> Self { Self(vec![]) }
 
+    pub fn init(
+        a0: impl Into<StaticModInt<M>>,
+        len: usize,
+        f: impl Fn(usize, &[StaticModInt<M>]) -> StaticModInt<M>,
+    ) -> Self {
+        if len == 0 {
+            return Self::new();
+        }
+
+        let mut res = vec![a0.into()];
+        res.reserve(len);
+        for i in 1..len {
+            let tmp = f(i, &res);
+            res.push(tmp);
+        }
+        res.into()
+    }
+
     fn normalize(&mut self) {
         if self.0.is_empty() {
             return;
@@ -1293,19 +1311,6 @@ impl<M: NttFriendly> Polynomial<M> {
         recip
     }
 
-    /// $\[x^i]f(x) = i!$ なる $f$ を返す。
-    pub fn factorial(len: usize) -> Self {
-        if len == 0 {
-            return Self::new();
-        }
-        let mut res: Self = vec![1; len].into();
-        for i in 1..len {
-            let tmp = res.0[i - 1] * StaticModInt::from(i);
-            res.0[i] = tmp;
-        }
-        res
-    }
-
     /// $g(x) = f(x+t)$ なる $g$ を返す。
     ///
     /// ## Ideas
@@ -1338,7 +1343,9 @@ impl<M: NttFriendly> Polynomial<M> {
         eprintln!("{}", self);
         assert_ne!(self.0[n - 1].get(), 0);
 
-        let b = (self & Self::factorial(n)).reversed();
+        let factorial =
+            Self::init(1, n, |i, dp| dp[i - 1] * StaticModInt::new(i));
+        let b = (self & factorial).reversed();
         let c = Self::exp_ax(t, n);
         let mut bc = (b * c).into_inner();
         bc.resize(n, StaticModInt::new(0));
