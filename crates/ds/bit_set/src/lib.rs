@@ -63,7 +63,7 @@ impl BitSet {
     }
 
     #[must_use]
-    pub fn contains(&mut self, index: usize) -> bool {
+    pub fn contains(&self, index: usize) -> bool {
         check_bounds(index, self.capacity);
 
         let (wi, bi) = (index / WORD_SIZE, index % WORD_SIZE);

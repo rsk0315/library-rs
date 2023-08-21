@@ -218,12 +218,13 @@ impl Barrett {
 
     fn mul(&self, a: u32, b: u32) -> u32 {
         let m = self.m.load(atomic::Ordering::SeqCst);
-        let im = self.m.load(atomic::Ordering::SeqCst);
+        let im = self.im.load(atomic::Ordering::SeqCst);
 
         let z = a as u64 * b as u64;
         let x = ((z as u128 * im as u128) >> 64) as u64;
-        let v = z.wrapping_sub(x.wrapping_mul(m as u64)) as u32;
-        if m <= v { v.wrapping_add(m) } else { v }
+        let y = x.wrapping_mul(m as u64);
+        let v = z.wrapping_sub(y) as u32;
+        v.wrapping_add(if z < y { m } else { 0 })
     }
 }
 
@@ -509,6 +510,7 @@ fn sanity_check() {
     type Md = DynamicModInt<DefaultId>;
     Md::set_modulus(10);
     assert_eq!(Md::new(5) + Md::new(7), Md::new(2));
+    assert_eq!(Md::new(3) * Md::new(4), Md::new(2));
 
     Md::set_modulus(4);
     assert_eq!(Md::new(5) + Md::new(7), Md::new(0));

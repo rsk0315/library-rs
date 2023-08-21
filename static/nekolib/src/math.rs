@@ -129,8 +129,8 @@ pub use mod_recip_table_::mod_recip_table_prime;
 pub use mod_tetration::ModTetration;
 #[doc(inline)]
 pub use modint::{
-    Mod1000000007, Mod998244353, ModInt1000000007, ModInt998244353, ModIntBase,
-    Modulus, StaticModInt,
+    DefaultId, DynamicModInt, Mod1000000007, Mod998244353, ModInt1000000007,
+    ModInt998244353, ModIntBase, Modulus, StaticModInt,
 };
 #[doc(inline)]
 pub use prime_pi_::prime_pi;
