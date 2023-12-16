@@ -42,7 +42,6 @@ pub trait FractionBisect: Sized + SbInt {
                 if (from + to * lo).is_deeper(bound) {
                     let steps = bound.steps(from.into_inner(), to.into_inner());
                     let front = from + to * steps;
-
                     let res = if tf { (front, upper) } else { (lower, front) };
                     break 'outer res;
                 }
@@ -50,7 +49,8 @@ pub trait FractionBisect: Sized + SbInt {
 
             while lo.lt1(hi) {
                 let mid = lo.avg(hi);
-                let cur = pred(from + to * mid) == tf;
+                let tmp = from + to * mid;
+                let cur = pred(tmp) == tf && !tmp.is_deeper(bound);
                 *(if cur { &mut lo } else { &mut hi }) = mid;
             }
 
@@ -105,12 +105,10 @@ macro_rules! impl_uint {
             fn abs(self) -> Self { self }
             fn neg(self) -> Self { self.wrapping_neg() } // not to be called
             fn steps(self, from: (Self, Self), to: (Self, Self)) -> Self {
-                if to.0 == 0 {
-                    (self - from.1) / to.1
-                } else if to.1 == 0 {
-                    (self - from.0) / to.0
+                if to.1 == 0 {
+                    Self::ZERO
                 } else {
-                    ((self - from.0) / to.0).min((self - from.1) / to.1)
+                    (self - from.1) / to.1
                 }
             }
         }
@@ -132,12 +130,10 @@ macro_rules! impl_int {
             fn abs(self) -> Self { self.abs() }
             fn neg(self) -> Self { -self}
             fn steps(self, from: (Self, Self), to: (Self, Self)) -> Self {
-                if to.0 == 0 {
-                    (self - from.1) / to.1
-                } else if to.1 == 0 {
-                    (self - from.0) / to.0
+                if to.1 == 0 {
+                    Self::ZERO
                 } else {
-                    ((self - from.0) / to.0).min((self - from.1) / to.1)
+                    (self - from.1) / to.1
                 }
             }
         }
