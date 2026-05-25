@@ -8,7 +8,7 @@ use gcd_recip::GcdRecip;
 
 /// Chinese remaindering。
 ///
-/// $\\gdef{\\lcm}{\\operatorname\*{lcm}}$
+/// $\\gdef\\lcm{\\operatorname\*{lcm}}$
 /// $x\\equiv r\_i\\pmod{m\_i}$ ($i=0, 1, \\dots$) を条件として与えたとき、
 /// それらすべてを満たす $0\\le x\\lt \\lcm\_i m\_i$ は高々一つ存在する。
 ///
