@@ -4,7 +4,7 @@ use gcd_recip::GcdRecip;
 
 /// Chinese remaindering。
 ///
-/// $\\gdef{\\lcm}{\\operatorname{lcm}}$
+/// $\\gdef\\lcm{\\operatorname{lcm}}$
 /// $(r\_0, m\_0)$ と $(r\_1, m\_1)$ に対し、以下を満たす $0\\le x\\lt\\lcm(m\_0, m\_1)$ を求める。
 /// - $x\\bmod m\_0 = r\_0$
 /// - $x\\bmod m\_1 = r\_1$

@@ -11,7 +11,7 @@ use mod_tetration::ModTetration;
 /// - $A(a+1,0) = A(a, 1)$,
 /// - $A(a+1, b+1) = A(a, A(a+1, b))$.
 ///
-/// $\\gdef{\\hyper}{\\operatorname{hyper}}$
+/// $\\gdef\\hyper{\\operatorname{hyper}}$
 /// 以下の性質が知られている。
 /// $$ a\\gt 0 \\implies \\hyper\_a(2, b+3)-3. $$
 /// ただし、$\\hyper\_a$ は $a$ 番目のハイパー演算子である。

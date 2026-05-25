@@ -8,7 +8,7 @@ use lcm::Lcm;
 /// $\\lambda(n)$ は、$\\gcd(a, n)$ である任意の $a$ に対して
 /// $a^m\\equiv 1 \\pmod{n}$ となる最小の $m$ として定義される。
 ///
-/// $\\gdef{\\lcm}{\\operatorname\*{lcm}}$
+/// $\\gdef\\lcm{\\operatorname\*{lcm}}$
 /// 以下の式によって計算される。
 /// - $\\lambda(1) = 1$
 /// - $\\lambda(2) = 1$
